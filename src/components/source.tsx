@@ -4,6 +4,7 @@ import React, { ReactElement } from 'react';
 import { graphql, useStaticQuery } from 'gatsby';
 import XE from '../components/xe/XE';
 import StockHover from '../components/stock-hover/StockHover';
+import Assessment from '../components/assessment/Assessment';
 
 const defaultProps = {
 	linkText: 'View the source',
@@ -55,6 +56,22 @@ const Source = ({ description, linkText }: SourceProps): ReactElement => {
 						shareProgress={50}
 						priceProgress={40}
 						activeCurrency={'usd'}
+					/>
+				</div>
+				<div>
+					<Assessment
+						name='Square Inc'
+						symbol='sq'
+						targetInvestment={30000}
+						quotePrice={80.23}
+						positionTotalCost={18000}
+						lastUpdatedTimestamp={new Date().getTime()}
+						pluses={['plus']}
+						minuses={['minus']}
+						questions={['question']}
+						valuations={['valuation']}
+						notes={['note']}
+						targetPrice={200}
 					/>
 				</div>
 			</p>
