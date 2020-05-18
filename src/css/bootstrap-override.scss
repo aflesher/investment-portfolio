@@ -1,0 +1,13 @@
+.form-group {
+    label {
+        font-style: italic;
+    }
+
+    .form-control {
+        border-color: $hoverable-color;
+        box-shadow: inset 0 0 8px $hoverable-glow-color, 0 0 8px $hoverable-glow-color;
+        border-radius: 3px;
+        color: #999;
+        font-weight: bold;
+    }
+}

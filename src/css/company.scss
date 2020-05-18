@@ -1,0 +1,36 @@
+.company-banner {
+  > div {
+    height: 4px;
+    margin-top: 5px;
+  }
+  text-transform: uppercase;
+  padding: 10px;
+}
+
+@mixin companyBase($color1, $color2, $color3) {
+  color: $color1;
+  background: $color2;
+  > div {
+    background: $color3;
+  }
+}
+
+.amzn { @include companyBase(#fff, #2f292b, #fbb321); }
+.ntdoy { @include companyBase(#fff, #e60012, #fff); }
+.pins { @include companyBase(#fff, #ee1b22, #000); }
+.spot { @include companyBase(#fff, #000, #a4ce3e); }
+.fb { @include companyBase(#fff, #3a559f, #fff); }
+.tsla { @include companyBase(#e51837, #fff, #e51837); }
+.aw-un-to { @include companyBase(#543224, #fff, #f46634); }
+.dis { @include companyBase(#fff, #123ccf, #80c2ee); }
+.irbt { @include companyBase(#64a70b, #fff, #64a70b); }
+.arkg { @include companyBase(#fff, #111370, #fff); }
+.weed-to { @include companyBase(#fff, #817d58, #fff); }
+.btc { @include companyBase(#fff, #f7941d, #fff); }
+.eth, .ethe { @include companyBase(#8b91b1, #e6e6e6, #464b75) }
+.scr-vn { @include companyBase(#fff, linear-gradient(180deg, rgba(0,87,174,1) 0%, rgba(0,33,78,1) 100%), #fda529); }
+.sq { @include companyBase(#000, #fff, #000); }
+.gld { @include companyBase(#000, #d4af37, #000); }
+.roku { @include companyBase(#fff, #662d91, #fff); }
+.twtr { @include companyBase(#fff, #1da1f2, #fff); }
+.wwe { @include companyBase(#fff, #000, #eb1826); } 

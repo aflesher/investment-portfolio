@@ -1,0 +1,106 @@
+@import './variables.scss';
+
+.bar-graph {
+  &.bar-graph-sm {
+    .bar {
+      height: 18px;
+    }
+
+    font-size: 0.9em;
+  }
+
+  &.bar-background {
+    background-color: #555;
+  }
+
+  .bar {
+    font-weight: bold;
+    position: relative;
+    height: 26px;
+  }
+
+  .bar-value {
+    font-weight: bold;
+    position: absolute;
+    width: 200px;
+    right: -210px;
+    top: 0;
+  }
+
+  &.positive {
+    
+    .bar {
+      background-color: lighten($positive-color, 20%);
+      box-shadow: inset 0 0 10px $positive-glow-color, 0 0 10px $positive-glow-color;
+    }
+
+    .bar-value {
+      @extend %text-positive;
+    }
+  }
+
+  &.negative {
+    
+    .bar {
+      background-color: lighten($negative-color, 20%);
+      box-shadow: inset 0 0 10px $negative-glow-color, 0 0 10px $negative-glow-color;
+    }
+
+    .bar-value {
+      @extend %text-negative;
+    }
+  }
+
+  &.neutral {
+    
+    .bar {
+      background-color: lighten($neutral-glow-color, 40%);
+      box-shadow: inset 0 0 10px $neutral-glow-color, 0 0 10px $neutral-glow-color;
+    }
+  }
+
+  &.blue-glow {
+    .bar {
+      background-color: rgba(lighten($link-glow-color, 40%), .8);
+      box-shadow: inset 0 0 10px $link-glow-color, 0 0 10px $link-glow-color;
+    }
+  }
+
+  .left-value {
+    margin-left: -50px;
+    width: 100px;
+    text-align: center;
+    float: left;
+    margin-top: -25px;
+    font-weight: normal;
+  }
+
+  .right-value {
+    margin-right: -100px;
+    width: 200px;
+    text-align: center;
+    float: right;
+    margin-top: -25px;
+    font-weight: normal;
+  }
+
+  .bar {
+    position: relative;
+    .right-value {
+      margin-top: 25px;
+    }
+
+    .end-value {
+      position: absolute;
+      font-weight: normal;
+      right: -60px;
+      width: 50px;
+    }
+  }
+}
+
+.chart-info-color {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+}

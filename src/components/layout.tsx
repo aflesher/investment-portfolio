@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { rhythm } from '../utils/typography';
+import '../css/main.scss';
 
 const MainLayout: React.FC = ({ children }) => (
 	<div
