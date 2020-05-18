@@ -2,6 +2,8 @@
 import React, { ReactElement } from 'react';
 // @ts-ignore
 import { graphql, useStaticQuery } from 'gatsby';
+import XE from '../components/xe/XE';
+import StockHover from '../components/stock-hover/StockHover';
 
 const defaultProps = {
 	linkText: 'View the source',
@@ -33,6 +35,28 @@ const Source = ({ description, linkText }: SourceProps): ReactElement => {
 			<p>
 				{description} <br />{' '}
 				<a href={data.site.siteMetadata.exampleUrl}>{linkText}</a>
+				<div>
+					<XE usd={12} cad = {15} currency='usd' />
+				</div>
+				<div>
+					<StockHover
+						symbol={'sq'}
+						price={80.23}
+						previousClosePrice={80.23}
+						name={'Square Inc.'}
+						assetCurrency={'usd'}
+						css={{'text-emphasis': true, 'font-weight-bold': true}}
+						marketCap={800000000}
+						quantity={243}
+						costCad={23000}
+						costUsd={18000}
+						valueCad={30000}
+						valueUsd={26000}
+						shareProgress={50}
+						priceProgress={40}
+						activeCurrency={'usd'}
+					/>
+				</div>
 			</p>
 		</React.Fragment>
 	);
