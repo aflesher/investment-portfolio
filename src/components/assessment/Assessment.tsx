@@ -5,18 +5,15 @@ import { Link } from 'gatsby';
 
 import { formatDateShort } from '../../utils/util';
 import CompanyBanner, { ICompanyBannerStateProps } from '../company-banner/CompanyBanner';
+import { IAssessment } from '../../utils/assessment';
 
-interface IAssessmentStateProps extends ICompanyBannerStateProps {
-	targetInvestment: number,
+interface IAssessmentStateProps extends
+	ICompanyBannerStateProps,
+	Pick<IAssessment, 'pluses' | 'minuses' | 'targetPrice' | 'valuations' | 'questions' |
+	'lastUpdatedTimestamp' | 'notes' | 'targetInvestment'>
+{
 	quotePrice: number,
 	positionTotalCost: number,
-	lastUpdatedTimestamp: number,
-	targetPrice: number,
-	pluses: string[],
-	minuses: string[],
-	valuations: string[],
-	questions: string[],
-	notes: string[]
 };
 
 const Assessment: React.FC<IAssessmentStateProps> = ({

@@ -1,0 +1,10 @@
+{
+  "type": "service_account",
+  "project_id": "dollar-jockey-5d690",
+  "client_email": "firebase-adminsdk-mii09@dollar-jockey-5d690.iam.gserviceaccount.com",
+  "client_id": "116606896721011057301",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-mii09%40dollar-jockey-5d690.iam.gserviceaccount.com"
+}
