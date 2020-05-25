@@ -17,7 +17,8 @@ export interface IPosition {
 	type: AssetType,
 	assessment?: IAssessment,
 	company?: ICompany,
-	quote: IQuote,
-	openQuantity: number,
-	openPnl: number
+	quote?: IQuote,
+	openPnl: number,
+	openPnlUsd: number,
+	openPnlCad: number
 }

@@ -101,7 +101,11 @@ export const setExchangeRates = async (key: string, value: number): Promise<void
 	});
 };
 
-export const getNotes = async (): Promise<void> => {
+export interface IFirebaseNote {
+	text: string
+}
+
+export const getNotes = async (): Promise<IFirebaseNote[]> => {
 	await initDeferredPromise.promise;
 
 	const querySnapshot = await firestore
@@ -195,8 +199,10 @@ interface ICryptoPositionDoc {
 	totalCost: number
 }
 
-export const getCryptoPositions = async (): Promise<Pick<IPosition, 'currency' | 'type' |
-	'averageEntryPrice' | 'quantity' | 'symbol' | 'totalCostCad' >[]> =>
+export interface ICryptoPosition extends Pick<IPosition, 'currency' | 'type' |
+'averageEntryPrice' | 'quantity' | 'symbol' | 'totalCostCad' > {}
+
+export const getCryptoPositions = async (): Promise<ICryptoPosition[]> =>
 {
 	await initDeferredPromise.promise;
 	

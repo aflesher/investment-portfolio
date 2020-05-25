@@ -16,7 +16,10 @@ export interface ITrade {
 	quote?: IQuote,
 	assessment?: IAssessment,
 	timestamp: number,
-	pAndL: number,
+	pnl: number,
 	pnlUsd: number,
-	pnlCad: number
+	pnlCad: number,
+	quantity: number,
+	action: string,
+	accountId: number
 }

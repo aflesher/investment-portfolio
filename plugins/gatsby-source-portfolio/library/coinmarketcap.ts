@@ -12,7 +12,16 @@ export const init = (_api: string, _apiKey: string): void => {
 	apiKey = _apiKey;
 };
 
-export const quote = async (slugs: string[]): Promise<IQuote[]> => {
+export interface ICoinMarketCapQuote {
+	price: number,
+	symbol: string,
+	name: string,
+	marketCap: number,
+	currency: Currency,
+	prevDayClosePrice: number
+}
+
+export const quote = async (slugs: string[]): Promise<ICoinMarketCapQuote[]> => {
 	const resp = await axios.get(`${api}/v1/cryptocurrency/quotes/latest`, {
 		headers: {
 			'X-CMC_PRO_API_KEY': apiKey,

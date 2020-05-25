@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-use-before-define: off */
 //https://login.questrade.com/oauth2/token?grant_type=refresh_token&refresh_token=
 import _ from 'lodash';
 import axios, { AxiosResponse } from 'axios';
@@ -6,20 +7,17 @@ import moment from 'moment-timezone';
 
 import * as util from './util';
 import * as firebase from './firebase';
-import { IPosition } from '../../../src/utils/position';
-import { ITrade } from '../../../src/utils/trade';
-import { IQuote } from '../../../src/utils/quote';
 import { Currency } from '../../../src/utils/enum';
 
 const loginUrl = 'https://login.questrade.com/oauth2/token';
 const accountsRoute = 'v1/accounts';
 
-var apiUrl;
-var accessToken;
-var cryptr;
+let apiUrl = '';
+let accessToken = '';
+let cryptr;
 let accounts: string[] = [];
 
-var endTime = null;
+let endTime = null;
 
 const ACCOUNT_LOOKUP = {
 	26418215: 'Margin',
@@ -44,7 +42,7 @@ const getLoginInfo = async (): Promise<void> => {
 	}
 };
 
-const init = async (cryptSecret: string): Promise<void> => {
+export const init = async (cryptSecret: string): Promise<void> => {
 	cryptr = new Cryptr(cryptSecret);
 	await getLoginInfo();
 	await getAccounts();
@@ -95,17 +93,32 @@ const getAccounts = async (): Promise<string[]> => {
 	return accounts;
 };
 
-const mergePositions = (positions: IPosition[]): IPosition[] => {
+export interface IQuestradePosition {
+	symbol: string,
+	symbolId: number,
+	openQuantity: number,
+	closedQuantity: number,
+	currentMarketValue: number,
+	currentPrice: number,
+	averageEntryPrice: number,
+	closedPnL: number,
+	openPnL: number,
+	totalCost: number,
+	isRealTime: boolean,
+	isUnderReorg: boolean
+}
+
+const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] => {
 	const positionsMap = _.groupBy(positions, 'symbol');
 	_.forEach(positionsMap, (symbolPositions, symbol) => {
 		const position = symbolPositions.shift();
 		symbolPositions.forEach(symbolPosition => {
 			position.currentMarketValue += symbolPosition.currentMarketValue;
 			position.totalCost += symbolPosition.totalCost;
-			position.quantity += symbolPosition.quantity;
-			position.averageEntryPrice = position.totalCost / position.quantity;
 			position.openQuantity += symbolPosition.openQuantity;
-			position.openPnl += symbolPosition.openPnl;
+			position.averageEntryPrice = position.totalCost / position.openQuantity;
+			position.openQuantity += symbolPosition.openQuantity;
+			position.openPnL += symbolPosition.openPnL;
 		});
 		positionsMap[symbol] = position;
 	});
@@ -116,7 +129,8 @@ const mergePositions = (positions: IPosition[]): IPosition[] => {
 /*
  [{data: { positions: []}}, {data: {positions: []}}]
 */
-const getPositions = async (): Promise<IPosition[]> => {
+
+export const getPositions = async (): Promise<IQuestradePosition[]> => {
 	await initDeferredPromise.promise;
 
 	const accountIds = _.map(accounts, 'number');
@@ -128,25 +142,34 @@ const getPositions = async (): Promise<IPosition[]> => {
 	);
 
 	const datas = _.map(resps, 'data');
-	const positions = _(datas)
+	const positions: IQuestradePosition[] = _(datas)
 		.map('positions')
 		.flatten()
 		.filter('openQuantity')
 		.value();
-	
-	positions.forEach(position => {
-		position.currency = position.symbol.indexOf('.') !== -1 ? 'cad' : 'usd';
-		position.quantity = position.openQuantity;
-		position.symbol = position.symbol.toLowerCase();
-		position.type = 'stock';
-		_.unset(position, 'isRealTime');
-		_.unset(position, 'isUnderReorg');
-	});
 
 	return mergePositions(positions);
 };
 
-const getActivities = async (): Promise<{activities: ITrade[], complete: boolean}> => {
+export interface IQuestradeActivity {
+	tradeDate: Date,
+	transactionDate: Date,
+	settlementDate: Date,
+	action: string,
+	symbol: string,
+	symbolId: number,
+	description: string,
+	currency: 'USD' | 'CAD',
+	quantity: number,
+	price: number,
+	grossAmount: number,
+	commission: number,
+	netAmount: number,
+	type: string,
+	accountId: number
+}
+
+export const getActivities = async (): Promise<{activities: IQuestradeActivity[], complete: boolean}> => {
 	await initDeferredPromise.promise;
 
 	// here's the problem
@@ -175,7 +198,7 @@ const getActivities = async (): Promise<{activities: ITrade[], complete: boolean
 		)
 	);
 
-	const activitiesByAcount = _(resps).map('data').map('activities').value();
+	const activitiesByAcount: IQuestradeActivity[][] = _(resps).map('data').map('activities').value();
 	for (let i = 0; i < activitiesByAcount.length; i++) {
 		const activities = activitiesByAcount[i];
 		const accountId = accountIds[i];
@@ -187,32 +210,47 @@ const getActivities = async (): Promise<{activities: ITrade[], complete: boolean
 
 	await firebase.setQuestradeActivityDate(endTime);
 
-	return {activities, complete};
+	return { activities, complete };
 };
 
-const getQuotes = async (symbolIds: string[]): Promise<IQuote> => {
+export interface IQuestradeQuote {
+	symbol: string,
+	symbolId: number,
+	tier: string,
+	bidPrice: number,
+	bidSize: number,
+	askPrice: number,
+	askSize: number,
+	astTradeTrHrs: number,
+	lastTradePrice: number,
+	lastTradeSize: number,
+	lastTradeTick: string,
+	volumne: number,
+	openPrice: number,
+	highPrice: number,
+	lowPrice: number,
+	delay: boolean,
+	isHalted: boolean,
+	lastTradePriceTrHrs: number,
+}
+
+export const getQuotes = async (symbolIds: number[]): Promise<IQuestradeQuote[]> => {
 	await initDeferredPromise.promise;
 
 	const resp = await authRequest(`v1/markets/quotes?ids=${symbolIds.join(',')}`);
+	if (!resp) {
+		return Promise.resolve(null);
+	}
 	
-	const quotes = resp.data.quotes;
+	const quotes: IQuestradeQuote[] = resp.data.quotes;
 
-	return quotes.map(quote => {
-		return {
-			price: quote.lastTradePriceTrHrs,
-			afterHoursPrice: quote.lastTradePrice,
-			symbol: quote.symbol.toLowerCase(),
-			symbolId: quote.symbolId,
-			currency: quote.symbol.indexOf('.') !== -1 ? 'cad' : 'usd',
-			type: 'stock'
-		};
-	});
+	return quotes;
 };
 
-interface ISymbol {
+export interface IQuestradeSymbol {
 	symbol: string,
-	symbolId: string,
-	currency: Currency,
+	symbolId: number,
+	currency: 'CAD' | 'USD',
 	pe: number,
 	yield: number,
 	dividend: number,
@@ -221,32 +259,22 @@ interface ISymbol {
 	exchange: string,
 	prevDayClosePrice: number,
 	highPrice52: number,
-	lowPrice52: number
+	lowPrice52: number,
+	description: string,
+	listingExchange
 }
 
-const getSymbols = async (symbolIds: string[]): Promise<ISymbol[]> => {
+export const getSymbols = async (symbolIds: number[]): Promise<IQuestradeSymbol[]> => {
 	await initDeferredPromise.promise;
 
 	const resp = await authRequest(`v1/symbols?ids=${symbolIds.join(',')}`);
+	if (!resp) {
+		return [];
+	}
 
-	const symbols = resp.data.symbols;
+	const symbols: IQuestradeSymbol[] = resp.data.symbols;
 
-	return symbols.map(symbol => {
-		return {
-			symbol: symbol.symbol.toLowerCase(),
-			symbolId: symbol.symbolId,
-			currency: symbol.symbol.indexOf('.') !== -1 ? 'cad' : 'usd',
-			pe: symbol.pe,
-			yield: symbol.yield,
-			dividend: symbol.dividend,
-			marketCap: symbol.marketCap,
-			name: symbol.description,
-			exchange: symbol.listingExchange,
-			prevDayClosePrice: symbol.prevDayClosePrice,
-			highPrice52: symbol.highPrice52,
-			lowPrice52: symbol.lowPrice52
-		};
-	});
+	return symbols;
 };
 
 interface IBalance {
@@ -255,7 +283,7 @@ interface IBalance {
 	combined: boolean
 }
 
-const getBalances = async (): Promise<IBalance[]> => {
+export const getBalances = async (): Promise<IBalance[]> => {
 	const accountIds = _.map(accounts, 'number');
 	const resps = await Promise.all(
 		accountIds.map(
@@ -281,17 +309,47 @@ const getBalances = async (): Promise<IBalance[]> => {
 	return [cad, usd];
 };
 
-const findSymbolId = async (symbol: string): Promise<string> => {
+export const findSymbolId = async (symbol: string): Promise<number> => {
 	const resp = await authRequest(`v1/symbols/search?prefix=${symbol}`);
 	if (!resp) {
-		return '';
+		return null;
 	}
-	const symbols: ISymbol[] = resp.data.symbols;
+	const symbols: IQuestradeSymbol[] = resp.data.symbols;
 	const stock = _.first(symbols);
 	return stock && stock.symbolId || null;
 };
 
-const getActiveOrdersForMonth = async (startTime, endTime) => {
+export enum QuestradeOrderType {
+	Market = 'Market',
+	Limit = 'Limit',
+	Stop = 'Stop',
+	StopLimit = 'StopLimit',
+	LimitOnOpen = 'LimitOnOpen',
+	LimitOnClose = 'LimitOnClose'
+}
+
+export enum QuestradeOrderSide {
+	Buy = 'Buy',
+	Sell = 'Sell'
+}
+
+export interface IQuestradeOrder {
+	id: number,
+	symbol: string,
+	symbolId: number,
+	orderType: QuestradeOrderType,
+	accountId: number,
+	action: string,
+	totalQuantity: number,
+	openQuantity: number,
+	filledQuantity: number,
+	limitPrice: number,
+	stopPrice: number,
+	avgExecPrice: number,
+	side: QuestradeOrderSide
+}
+
+const getActiveOrdersForMonth = async (startTime: Date, endTime: Date): Promise<IQuestradeOrder[]> => {
 	await initDeferredPromise.promise;
 
 	const accountIds = _.map(accounts, 'number');
@@ -318,38 +376,15 @@ const getActiveOrdersForMonth = async (startTime, endTime) => {
 		});
 	}
 
-	const orders = _(ordersByAccount)
+	const orders: IQuestradeOrder[] = _(ordersByAccount)
 		.flatten()
 		.filter({state: 'Accepted'})
-		.map(_order => {
-			var order = _.pick(_order, [
-				'id',
-				'symbol',
-				'symbolId',
-				'openQuantity',
-				'totalQuantity',
-				'filledQuantity',
-				'orderType',
-				'limitPrice',
-				'stopPrice',
-				'avgExecPrice',
-				'side',
-				'accountId'
-			]);
-
-			order.symbol = order.symbol.toLowerCase();
-			order.action = order.side.toLowerCase();
-			order.orderType = order.orderType.toLowerCase();
-			order.type = 'stock';
-			order.accountName = getAccountName(order.accountId);
-			return order;
-		})
 		.value();
 
 	return orders;
 };
 
-const getActiveOrders = async () => {
+export const getActiveOrders = async ():Promise<IQuestradeOrder[]> => {
 	const orders1 = await getActiveOrdersForMonth(
 		moment().subtract(1, 'month').toDate(),
 		new Date()
@@ -363,27 +398,25 @@ const getActiveOrders = async () => {
 		moment().subtract(2, 'month').toDate()
 	);
 
-	const orders = _(orders1)
+	const orders: IQuestradeOrder[] = _(orders1)
 		.concat(orders2, orders3)
 		.uniqBy('id')
-		.map(o => _.omit(o, 'id'))
 		.value();
 
 	if (!orders.length) {
 		orders.push({
+			id: 173577870,
 			symbol: 'dis',
-			symboldId: 16142,
+			symbolId: 16142,
 			openQuantity: 0,
 			totalQuantity: 0,
 			filledQuantity: 0,
-			orderType: 'limit',
+			orderType: QuestradeOrderType.Limit,
 			limitPrice: 200,
 			stopPrice: 0,
 			avgExecPrice: 0,
-			side: 'none',
-			accoundId: 0,
-			type: 'stock',
-			accountName: 'none',
+			side: QuestradeOrderSide.Buy,
+			accountId: 0,
 			action: 'sell'
 		});
 	}
@@ -391,18 +424,6 @@ const getActiveOrders = async () => {
 	return orders;
 };
 
-const getAccountName = accountId => {
+export const getAccountName = (accountId: number): string => {
 	return ACCOUNT_LOOKUP[accountId] || 'Unknown';
-};
-
-module.exports = {
-	init,
-	getPositions,
-	getActivities,
-	getQuotes,
-	getSymbols,
-	getBalances,
-	login,
-	findSymbolId,
-	getActiveOrders
 };
