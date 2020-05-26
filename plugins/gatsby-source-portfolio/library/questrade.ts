@@ -262,7 +262,6 @@ export interface IQuestradeSymbol {
 	yield: number,
 	dividend: number,
 	marketCap: number,
-	name: string,
 	exchange: string,
 	prevDayClosePrice: number,
 	highPrice52: number,

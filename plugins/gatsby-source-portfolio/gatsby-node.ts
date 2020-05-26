@@ -252,7 +252,8 @@ exports.sourceNodes = async (
 
 		const assessmentNodes = _.map(assessments, assessment => {
 			const assessmentNode: IAssessmentNode = {
-				...assessment, 
+				...assessment,
+				symbol: assessment.symbol,
 				trades___NODE: tradeNodeIdsMap[assessment.symbol] || [],
 				dividends___NODE: dividendNodeIdsMap[assessment.symbol] || [],
 				company___NODE: companyNodeIdsMap[assessment.symbol] || null,
@@ -709,13 +710,13 @@ exports.sourceNodes = async (
 		trades___NODE: string[],
 		dividends___NODE: string[],
 		assessment___NODE: string,
-		orders___NODE: string[]
+		orders___NODE: string[],
 	}
 
 	const mapQuestradeSymbolToCompany = (s: questrade.IQuestradeSymbol): ICompany => {
 		return {
 			symbol: s.symbol,
-			name: s.name,
+			name: s.description,
 			prevDayClosePrice: s.prevDayClosePrice,
 			pe: s.pe,
 			yield: s.yield,
