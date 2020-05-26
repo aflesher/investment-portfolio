@@ -23,7 +23,7 @@ export const getRate = async (from, to, date): Promise<number> => {
 	}
 
 	if (date <= moment().startOf('day').subtract(1, 'year').toDate()) {
-		return null;
+		return 1;
 	}
 
 	const resp = await axios.get(api, {

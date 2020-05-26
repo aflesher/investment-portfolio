@@ -1,3 +1,5 @@
+develop.sh
+build.sh
 
 # Created by https://www.gitignore.io/api/osx,vim,node,windows,visualstudiocode
 
@@ -134,3 +136,7 @@ $RECYCLE.BIN/
 ### Gatsby ###
 public
 .cache
+
+plugins/gatsby-source-portfolio/**/*.js
+src/utils/*.js
+key.json

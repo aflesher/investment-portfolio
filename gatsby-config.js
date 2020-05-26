@@ -1,3 +1,5 @@
+const config = require('./config');
+
 module.exports = {
 	siteMetadata: {
 		siteName: 'Using TypeScript Example',
@@ -15,5 +17,9 @@ module.exports = {
 				omitGoogleFont: true,
 			},
 		},
+		{
+			resolve: 'gatsby-source-portfolio',
+			options: config
+		}
 	],
 };

@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "CommonJS",
+    "lib": ["dom", "es2017"],
+    // "allowJs": true,
+    // "checkJs": true,
+    "jsx": "react",
+    "strict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noEmit": false,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": {
+      "axios": ["../../node_modules/axios/dist/axios"],
+      "moment": ["../../node_modules/moment/dist/moment"],
+      "@google-cloud/storage": ["../../node_modules/@google-cloud/storage/build/src/index"],
+      "cryptr": ["../../node_modules/cryptr/index"],
+      "firebase-admin": ["../../node_modules/firebase-admin/lib/index"]
+    },
+    "strictNullChecks": true
+  }
+}

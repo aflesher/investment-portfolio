@@ -1,7 +1,6 @@
 import axios from 'axios';
 import _ from 'lodash';
 
-import { IQuote } from  '../../../src/utils/quote';
 import { Currency, AssetType } from '../../../src/utils/enum';
 
 let api = '';
@@ -59,7 +58,8 @@ export const symbolToSlug = (symbol: string): string => {
 		eth: 'ethereum',
 		xmr: 'monero',
 		neo: 'neo',
-		nano: 'nano'
+		nano: 'nano',
+		mana: 'decentraland'
 	};
 
 	return lookup[symbol];

@@ -20,7 +20,8 @@ export interface ICloudTrade {
 	quantity: number,
 	type: string,
 	accountId: number,
-	hash: string
+	hash: string,
+	pnl: number
 }
 
 export interface ICloudDividend {
@@ -36,7 +37,7 @@ export interface ICloudDividend {
 // Creates a client
 const storage = new Storage({
 	keyFilename: './key.json'
-});
+} as any);
 const bucket = storage.bucket('dollar-jockey-5d690.appspot.com');
 const tradesFile = bucket.file('trades.json');
 const dividendsFile = bucket.file('dividends.json');
@@ -104,7 +105,8 @@ export const addTrade = (trade: IQuestradeActivity): void => {
 		quantity: Math.abs(trade.quantity),
 		type: trade.action.toLowerCase(),
 		accountId: trade.accountId,
-		hash
+		hash,
+		pnl: 0
 	});
 
 	tradesMap[hash] = true;
@@ -175,13 +177,13 @@ export const setProfitsAndLosses = (): void => {
 				const cost = avg * trade.quantity;
 				const proceeds = trade.price * trade.quantity;
 
-				trade.pAndL = proceeds - cost;
+				trade.pnl = proceeds - cost;
 
 				totals.cost -= cost;
 				totals.shares -= trade.quantity;
 
 				const currency = totals.currency === Currency.cad ? cad : usd;
-				currency.total += trade.pAndL;
+				currency.total += trade.pnl;
 			} 
 		}
 	});

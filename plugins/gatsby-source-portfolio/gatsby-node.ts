@@ -32,9 +32,9 @@ const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 	const assessments = await assessmentsPromise;
 	await questradeSync;
 
-	const missingSymbolIds = [];
+	const missingSymbolIds: IAssessment[] = [];
 	assessments.forEach(assessment => {
-		if (!assessment.symbolId) {
+		if (assessment.symbolId === 0) {
 			missingSymbolIds.push(assessment);
 		}
 	});
@@ -316,7 +316,7 @@ exports.sourceNodes = async (
 				avgExecPrice: order.avgExecPrice,
 				side: order.side,
 				accountId: order.accountId,
-				action: order.action.toLocaleLowerCase(),
+				action: order.action,
 				type: order.orderType,
 				accountName: questrade.getAccountName(order.accountId),
 				currency,
@@ -456,17 +456,18 @@ exports.sourceNodes = async (
 		cryptoQuotes: coinmarketcap.ICoinMarketCapQuote[]
 	): IPosition => {
 		const quote = _.find(cryptoQuotes, {symbol: position.symbol});
+		const price = quote?.price || 0;
 		const currency: Currency = Currency.usd;
 		const usdRate = 1;
 		const cadRate = usdToCadRate;
 		const totalCost = position.averageEntryPrice * position.quantity;
-		const currentMarketValue = quote.price * position.quantity;
+		const currentMarketValue = price * position.quantity;
 		const openPnl = currentMarketValue - totalCost;
 
 		return {
 			symbol: position.symbol,
 			currency,
-			currentMarketValue: position.quantity * quote.price,
+			currentMarketValue: position.quantity * price,
 			totalCost,
 			totalCostUsd: totalCost * usdRate,
 			totalCostCad: totalCost * cadRate,
@@ -505,7 +506,7 @@ exports.sourceNodes = async (
 
 			const content = JSON.stringify(positionNode);
 			_.defaults(
-				position, {
+				positionNode, {
 					id: positionNodeIdsMap[positionNode.symbol],
 					parent: null,
 					children: [],
@@ -549,9 +550,9 @@ exports.sourceNodes = async (
 				quote___NODE: quoteNodeIdsMap[trade.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[trade.symbol] || null,
 				timestamp: new Date(trade.date).getTime(),
-				pnl: 0,
-				pnlCad: 0,
-				pnlUsd: 0,
+				pnl: trade.pnl,
+				pnlCad: trade.pnl * cadRate,
+				pnlUsd: trade.pnl * usdRate,
 				currency: trade.currency === 'usd' ? Currency.usd : Currency.cad,
 				price: trade.price,
 				quantity: trade.quantity,
@@ -560,7 +561,7 @@ exports.sourceNodes = async (
 
 			const content = JSON.stringify(tradeNode);
 			_.defaults(
-				trade, {
+				tradeNode, {
 					id: getTradeNodeId(tradeNode.symbol, index),
 					parent: null,
 					children: [],
@@ -730,7 +731,7 @@ exports.sourceNodes = async (
 			symbol: q.symbol,
 			name: q.name,
 			exchange: 'CMC',
-			pe: null,
+			pe: undefined,
 			yield: 0,
 			prevDayClosePrice: q.prevDayClosePrice,
 			type: AssetType.crypto
@@ -776,183 +777,183 @@ exports.sourceNodes = async (
 		});
 	};
 
-	const getBalanceNodes = async () => {
-		const balances = await questrade.getBalances();
+	// const getBalanceNodes = async () => {
+	// 	const balances = await questrade.getBalances();
 
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
+	// 	const usdToCadRate = await getExchange;
+	// 	const cadToUsdRate = 1 / usdToCadRate;
 
-		const cadCash = _.find(balances, {currency: 'cad'}).cash;
-		const usdCash = _.find(balances, {currency: 'usd'}).cash;
+	// 	const cadCash = _.find(balances, {currency: 'cad'}).cash;
+	// 	const usdCash = _.find(balances, {currency: 'usd'}).cash;
 
-		balances.push({
-			currency: 'cad',
-			cash: cadCash + (usdCash * usdToCadRate),
-			combined: true
-		});
+	// 	balances.push({
+	// 		currency: 'cad',
+	// 		cash: cadCash + (usdCash * usdToCadRate),
+	// 		combined: true
+	// 	});
 
-		balances.push({
-			currency: 'usd',
-			cash: usdCash + (cadCash * cadToUsdRate),
-			combined: true
-		});
+	// 	balances.push({
+	// 		currency: 'usd',
+	// 		cash: usdCash + (cadCash * cadToUsdRate),
+	// 		combined: true
+	// 	});
 
-		balances.forEach(balance => {
-			let content = JSON.stringify(balance);
-			_.defaults(
-				balance, {
-					id: createNodeId(hash(`balance${balance.currency}${balance.combined}`)),
-					parent: null,
-					children: [],
-					internal: {
-						type: 'Balance',
-						content,
-						contentDigest: hash(content)
-					}
-				}
-			);
-		});
+	// 	balances.forEach(balance => {
+	// 		let content = JSON.stringify(balance);
+	// 		_.defaults(
+	// 			balance, {
+	// 				id: createNodeId(hash(`balance${balance.currency}${balance.combined}`)),
+	// 				parent: null,
+	// 				children: [],
+	// 				internal: {
+	// 					type: 'Balance',
+	// 					content,
+	// 					contentDigest: hash(content)
+	// 				}
+	// 			}
+	// 		);
+	// 	});
 
-		return balances;
-	};
+	// 	return balances;
+	// };
 
-	const getProfitsAndLossesNodes = async () => {
-		await questradeSync;
+	// const getProfitsAndLossesNodes = async () => {
+	// 	await questradeSync;
 
-		const profitsAndLosses = cloud.getProfitsAndLosses();
+	// 	const profitsAndLosses = cloud.getProfitsAndLosses();
 
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
+	// 	const usdToCadRate = await getExchange;
+	// 	const cadToUsdRate = 1 / usdToCadRate;
 
-		const cadTotal = _.find(profitsAndLosses, {currency: 'cad'}).total;
-		const usdTotal = _.find(profitsAndLosses, {currency: 'usd'}).total;
+	// 	const cadTotal = _.find(profitsAndLosses, {currency: 'cad'}).total;
+	// 	const usdTotal = _.find(profitsAndLosses, {currency: 'usd'}).total;
 
-		profitsAndLosses.push({
-			currency: 'cad',
-			total: cadTotal + (usdTotal * usdToCadRate),
-			combined: true
-		});
+	// 	profitsAndLosses.push({
+	// 		currency: 'cad',
+	// 		total: cadTotal + (usdTotal * usdToCadRate),
+	// 		combined: true
+	// 	});
 
-		profitsAndLosses.push({
-			currency: 'usd',
-			total: usdTotal + (cadTotal * cadToUsdRate),
-			combined: true
-		});
+	// 	profitsAndLosses.push({
+	// 		currency: 'usd',
+	// 		total: usdTotal + (cadTotal * cadToUsdRate),
+	// 		combined: true
+	// 	});
 
-		profitsAndLosses.forEach(profitsAndLosses => {
-			let content = JSON.stringify(profitsAndLosses);
-			_.defaults(
-				profitsAndLosses, {
-					id: createNodeId(
-						hash(
-							`pandl${profitsAndLosses.currency}${profitsAndLosses.combined}`
-						)
-					),
-					parent: null,
-					children: [],
-					internal: {
-						type: 'Profit',
-						content,
-						contentDigest: hash(content)
-					}
-				}
-			);
-		});
+	// 	profitsAndLosses.forEach(profitsAndLosses => {
+	// 		let content = JSON.stringify(profitsAndLosses);
+	// 		_.defaults(
+	// 			profitsAndLosses, {
+	// 				id: createNodeId(
+	// 					hash(
+	// 						`pandl${profitsAndLosses.currency}${profitsAndLosses.combined}`
+	// 					)
+	// 				),
+	// 				parent: null,
+	// 				children: [],
+	// 				internal: {
+	// 					type: 'Profit',
+	// 					content,
+	// 					contentDigest: hash(content)
+	// 				}
+	// 			}
+	// 		);
+	// 	});
 
-		return profitsAndLosses;
-	};
+	// 	return profitsAndLosses;
+	// };
 
-	const getExchangeRateNodes = async () => {
-		await questradeSync;
+	// const getExchangeRateNodes = async () => {
+	// 	await questradeSync;
 
-		const dividends = cloud.readDividends();
-		const trades = cloud.readTrades();
+	// 	const dividends = cloud.readDividends();
+	// 	const trades = cloud.readTrades();
 
-		const marginUsdTradeDates = _(trades)
-			.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
-			.map(trade => moment(trade.date).startOf('day').format('YYYY-MM-DD'))
-			.uniq()
-			.value();
+	// 	const marginUsdTradeDates = _(trades)
+	// 		.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
+	// 		.map(trade => moment(trade.date).startOf('day').format('YYYY-MM-DD'))
+	// 		.uniq()
+	// 		.value();
 		
-		const marginUsdDividendDates = _(dividends)
-			.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
-			.map(dividend => moment(dividend.date).startOf('day').format('YYYY-MM-DD'))
-			.uniq()
-			.value();
+	// 	const marginUsdDividendDates = _(dividends)
+	// 		.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
+	// 		.map(dividend => moment(dividend.date).startOf('day').format('YYYY-MM-DD'))
+	// 		.uniq()
+	// 		.value();
 		
-		const dates = _([marginUsdTradeDates, marginUsdDividendDates])
-			.flatten()
-			.uniq()
-			.value();
+	// 	const dates = _([marginUsdTradeDates, marginUsdDividendDates])
+	// 		.flatten()
+	// 		.uniq()
+	// 		.value();
 		
-		const rates = [];
-		for (let i = 0; i < dates.length; i++) {
-			const date = dates[i];
-			let rate = await exchange.getRate('usd', 'cad', date);
-			if (rate != null) {
-				rates.push({key: 'USD_CAD', rate, date});
-			}
-		}
+	// 	const rates = [];
+	// 	for (let i = 0; i < dates.length; i++) {
+	// 		const date = dates[i];
+	// 		let rate = await exchange.getRate('usd', 'cad', date);
+	// 		if (rate != null) {
+	// 			rates.push({key: 'USD_CAD', rate, date});
+	// 		}
+	// 	}
 
-		let usdToCad = await getExchange;
-		rates.push({key: 'USD_CAD', rate: usdToCad, date: moment().format('YYYY-MM-DD')});
+	// 	let usdToCad = await getExchange;
+	// 	rates.push({key: 'USD_CAD', rate: usdToCad, date: moment().format('YYYY-MM-DD')});
 
-		rates.forEach(rate => {
-			let content = JSON.stringify(rate);
-			_.defaults(
-				rate, {
-					id: createNodeId(
-						hash(
-							`rate${rate.rate}${rate.date}`
-						)
-					),
-					parent: null,
-					children: [],
-					internal: {
-						type: 'ExchangeRate',
-						content,
-						contentDigest: hash(content)
-					}
-				}
-			);
-		});
+	// 	rates.forEach(rate => {
+	// 		let content = JSON.stringify(rate);
+	// 		_.defaults(
+	// 			rate, {
+	// 				id: createNodeId(
+	// 					hash(
+	// 						`rate${rate.rate}${rate.date}`
+	// 					)
+	// 				),
+	// 				parent: null,
+	// 				children: [],
+	// 				internal: {
+	// 					type: 'ExchangeRate',
+	// 					content,
+	// 					contentDigest: hash(content)
+	// 				}
+	// 			}
+	// 		);
+	// 	});
 
-		return rates;
-	};
+	// 	return rates;
+	// };
 
-	const getBuildTimeNode = () => {
-		const buildTime = {date: new Date()};
+	// const getBuildTimeNode = () => {
+	// 	const buildTime = {date: new Date()};
 
-		let content = JSON.stringify(buildTime);
-		_.defaults(
-			buildTime, {
-				id: createNodeId(
-					hash('buildTime')
-				),
-				parent: null,
-				children: [],
-				internal: {
-					type: 'BuildTime',
-					content,
-					contentDigest: hash(content)
-				}
-			}
-		);
+	// 	let content = JSON.stringify(buildTime);
+	// 	_.defaults(
+	// 		buildTime, {
+	// 			id: createNodeId(
+	// 				hash('buildTime')
+	// 			),
+	// 			parent: null,
+	// 			children: [],
+	// 			internal: {
+	// 				type: 'BuildTime',
+	// 				content,
+	// 				contentDigest: hash(content)
+	// 			}
+	// 		}
+	// 	);
 
-		return [buildTime];
-	};
+	// 	return [buildTime];
+	// };
 
-	const getAll = async () => {
+	const getAll = async (): Promise<any[]> => {
 		const assessmentsPromise = getAssessmentNodes();
 		const notesPromise = getNoteNodes();
 		const positionNodesPromise = getPositionsNodes();
 		const tradeNodesPromise = getTradeNodes();
 		const dividendNodesPromise = getDividendNodes();
 		const quoteNodesPromise = getQuoteNodes();
-		const companyNodesPromise = getQuestradeCompanyNodes();
-		const balanceNodesPromise = getBalanceNodes();
-		const profitsAndLossesNodesPromise = getProfitsAndLossesNodes();
-		const exchangeRateNodesPromise = getExchangeRateNodes();
+		const companyNodesPromise = getCompanyNodes();
+		// const balanceNodesPromise = getBalanceNodes();
+		// const profitsAndLossesNodesPromise = getProfitsAndLossesNodes();
+		// const exchangeRateNodesPromise = getExchangeRateNodes();
 		const orderNodesPromise = getOrderNodes();
 		const reviewNodesPromise = getReviewNodes();
 
@@ -963,26 +964,26 @@ exports.sourceNodes = async (
 		const questradeDividends = await dividendNodesPromise;
 		const questradeQuotes = await quoteNodesPromise;
 		const questradeCompanies = await companyNodesPromise;
-		const balanceNodes = await balanceNodesPromise;
-		const profitsAndLossesNodes = await profitsAndLossesNodesPromise;
-		const exchangeRateNodes = await exchangeRateNodesPromise;
+		// const balanceNodes = await balanceNodesPromise;
+		// const profitsAndLossesNodes = await profitsAndLossesNodesPromise;
+		// const exchangeRateNodes = await exchangeRateNodesPromise;
 		const orderNodes = await orderNodesPromise;
-		const buildTimeNodes = getBuildTimeNode();
+		// const buildTimeNodes = getBuildTimeNode();
 		const reviewNodes = await reviewNodesPromise;
 
 		return _.concat(
-			assessments,
+			assessments as any[],
 			notes,
 			questradePositions,
 			questradeTrades,
 			questradeDividends,
 			questradeQuotes,
 			questradeCompanies,
-			balanceNodes,
-			profitsAndLossesNodes,
-			exchangeRateNodes,
+			// balanceNodes,
+			// profitsAndLossesNodes,
+			// exchangeRateNodes,
 			orderNodes,
-			buildTimeNodes,
+			// buildTimeNodes,
 			reviewNodes
 		);
 	};
@@ -995,21 +996,21 @@ exports.sourceNodes = async (
 	});
 };
 
-exports.createPages = async ({ actions }) => {
-	const { createPage } = actions;
+// exports.createPages = async ({ actions }) => {
+// 	const { createPage } = actions;
 
-	const stockQuotes = await quotesPromise;
-	const cryptoQuotes = await cryptoQuotesPromise;
+// 	const stockQuotes = await quotesPromise;
+// 	const cryptoQuotes = await cryptoQuotesPromise;
 
-	const quotes = _.concat(stockQuotes, cryptoQuotes);
+// 	const quotes = _.concat(stockQuotes, cryptoQuotes);
 
-	quotes.forEach(quote => {
-		createPage({
-			path: `stock/${quote.symbol}`,
-			component: path.resolve('./src/templates/stock.js'),
-			context: {
-				symbol: quote.symbol
-			}
-		});
-	});
-};
+// 	quotes.forEach(quote => {
+// 		createPage({
+// 			path: `stock/${quote.symbol}`,
+// 			component: path.resolve('./src/templates/stock.js'),
+// 			context: {
+// 				symbol: quote.symbol
+// 			}
+// 		});
+// 	});
+// };

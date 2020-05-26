@@ -154,7 +154,7 @@ export const getQuestradeActivityDate = async (): Promise<number> => {
 	return (state.questradeActivityDate as {_seconds: number})._seconds * 1000;
 };
 
-export const setQuestradeActivityDate = async (questradeActivityDate: IState): Promise<void> => {
+export const setQuestradeActivityDate = async (questradeActivityDate: Date): Promise<void> => {
 	await initDeferredPromise.promise;
 
 	stateDocumentSnapshot.ref.set({
@@ -176,7 +176,7 @@ export const setExchangeRate = async (key: string, date: Date, rate: number): Pr
 	});
 };
 
-export const getExchangeRate = async (key: string, date: Date): Promise<IExchangeRate> => {
+export const getExchangeRate = async (key: string, date: Date): Promise<IExchangeRate | null> => {
 	await initDeferredPromise.promise;
 
 	const querySnapshot = await firestore

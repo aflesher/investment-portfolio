@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import axios, { AxiosResponse } from 'axios';
 import Cryptr from 'cryptr';
-import moment from 'moment-timezone';
+import moment from 'moment';
 
 import * as util from './util';
 import * as firebase from './firebase';
@@ -14,10 +14,10 @@ const accountsRoute = 'v1/accounts';
 
 let apiUrl = '';
 let accessToken = '';
-let cryptr;
+let cryptr: Cryptr;
 let accounts: string[] = [];
 
-let endTime = null;
+let endTime: Date | null = null;
 
 const ACCOUNT_LOOKUP = {
 	26418215: 'Margin',
@@ -112,6 +112,9 @@ const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] =
 	const positionsMap = _.groupBy(positions, 'symbol');
 	_.forEach(positionsMap, (symbolPositions, symbol) => {
 		const position = symbolPositions.shift();
+		if (!position) {
+			return;
+		}
 		symbolPositions.forEach(symbolPosition => {
 			position.currentMarketValue += symbolPosition.currentMarketValue;
 			position.totalCost += symbolPosition.totalCost;
@@ -120,6 +123,7 @@ const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] =
 			position.openQuantity += symbolPosition.openQuantity;
 			position.openPnL += symbolPosition.openPnL;
 		});
+		// @ts-ignore
 		positionsMap[symbol] = position;
 	});
 
@@ -173,11 +177,14 @@ export const getActivities = async (): Promise<{activities: IQuestradeActivity[]
 	await initDeferredPromise.promise;
 
 	// here's the problem
-	endTime = endTime || await firebase.getQuestradeActivityDate();
+	if (!endTime) {
+		const endDate = await firebase.getQuestradeActivityDate();
+		endTime = new Date(endDate);
+	}
 	const startTime = moment(endTime).add(-1, 'day').toDate();
 	endTime = moment(startTime).add(30, 'day').toDate();
 	let complete = false;
-	if (endTime >= new Date()) {
+	if (endTime && endTime >= new Date()) {
 		endTime = new Date();
 		complete = true;
 	}
@@ -208,7 +215,7 @@ export const getActivities = async (): Promise<{activities: IQuestradeActivity[]
 	}
 	const activities = _.flatten(activitiesByAcount);
 
-	await firebase.setQuestradeActivityDate(endTime);
+	await firebase.setQuestradeActivityDate(endTime || new Date());
 
 	return { activities, complete };
 };
@@ -239,7 +246,7 @@ export const getQuotes = async (symbolIds: number[]): Promise<IQuestradeQuote[]>
 
 	const resp = await authRequest(`v1/markets/quotes?ids=${symbolIds.join(',')}`);
 	if (!resp) {
-		return Promise.resolve(null);
+		return Promise.resolve([]);
 	}
 	
 	const quotes: IQuestradeQuote[] = resp.data.quotes;
@@ -312,11 +319,11 @@ export const getBalances = async (): Promise<IBalance[]> => {
 export const findSymbolId = async (symbol: string): Promise<number> => {
 	const resp = await authRequest(`v1/symbols/search?prefix=${symbol}`);
 	if (!resp) {
-		return null;
+		return 0;
 	}
 	const symbols: IQuestradeSymbol[] = resp.data.symbols;
 	const stock = _.first(symbols);
-	return stock && stock.symbolId || null;
+	return stock && stock.symbolId || 0;
 };
 
 export enum QuestradeOrderType {
