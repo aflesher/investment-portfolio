@@ -1,4 +1,4 @@
-import { createStore as reduxCreateStore } from 'redux';
+import { createStore as reduxCreateStore, Store } from 'redux';
 import { Currency } from '../utils/enum';
 
 export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
@@ -37,6 +37,6 @@ const reducer = (state: IStoreState, action: IStoreAction): IStoreState => {
 	return state;
 };
 
-const createStore = (): void => reduxCreateStore(reducer, initialState);
+const createStore = (): Store => reduxCreateStore(reducer, initialState);
 
 export default createStore;

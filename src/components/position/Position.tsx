@@ -1,10 +1,11 @@
 import React from 'react';
 import classNames from 'classnames';
+import numeral from 'numeral';
 
 import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
 import { Currency } from '../../utils/enum';
 
-interface IPositionStateProps extends IStockQuoteStateProps {
+export interface IPositionStateProps extends IStockQuoteStateProps {
 	isFullPosition: boolean,
 	classes?: string[],
 	index: number,
@@ -24,7 +25,9 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		percentageOfInvestment, percentageOfPortfolio, pe, dividendYield, classes
 	} = props;
 	const mainClasses = ['row', 'position'].concat(classes || []).join(' ');
-	const pnl = activeCurrency === Currency.cad ? valueCad - costCad : valueUsd - costUsd;
+	const pnl = activeCurrency === Currency.cad ?
+		(valueCad - costCad) / costCad :
+		(valueUsd - costUsd) / costUsd;
 	return (
 		<div className={mainClasses}>
 			<div className={classNames({

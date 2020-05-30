@@ -26,7 +26,7 @@ const positionsPromise = questrade.getPositions();
 const cryptoPositionsPromise = firebase.getCryptoPositions();
 const ordersPromise = questrade.getActiveOrders();
 
-const MARGIN_ACOUNT_ID = '26418215';
+const MARGIN_ACOUNT_ID = 26418215;
 
 const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 	const assessments = await assessmentsPromise;
@@ -864,63 +864,71 @@ exports.sourceNodes = async (
 	// 	return profitsAndLosses;
 	// };
 
-	// const getExchangeRateNodes = async () => {
-	// 	await questradeSync;
+	interface IRate {
+		key: string,
+		rate: number,
+		date: string
+	}
 
-	// 	const dividends = cloud.readDividends();
-	// 	const trades = cloud.readTrades();
+	interface IRateNode extends IRate, INode {}
 
-	// 	const marginUsdTradeDates = _(trades)
-	// 		.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
-	// 		.map(trade => moment(trade.date).startOf('day').format('YYYY-MM-DD'))
-	// 		.uniq()
-	// 		.value();
+	const getExchangeRateNodes = async (): Promise<IRateNode[]> => {
+		await questradeSync;
+
+		const dividends = cloud.readDividends();
+		const trades = cloud.readTrades();
+
+		const marginUsdTradeDates = _(trades)
+			.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
+			.map(trade => moment(trade.date).startOf('day').format('YYYY-MM-DD'))
+			.uniq()
+			.value();
 		
-	// 	const marginUsdDividendDates = _(dividends)
-	// 		.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
-	// 		.map(dividend => moment(dividend.date).startOf('day').format('YYYY-MM-DD'))
-	// 		.uniq()
-	// 		.value();
+		const marginUsdDividendDates = _(dividends)
+			.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
+			.map(dividend => moment(dividend.date).startOf('day').format('YYYY-MM-DD'))
+			.uniq()
+			.value();
 		
-	// 	const dates = _([marginUsdTradeDates, marginUsdDividendDates])
-	// 		.flatten()
-	// 		.uniq()
-	// 		.value();
+		const dates = _([marginUsdTradeDates, marginUsdDividendDates])
+			.flatten()
+			.uniq()
+			.value();
 		
-	// 	const rates = [];
-	// 	for (let i = 0; i < dates.length; i++) {
-	// 		const date = dates[i];
-	// 		let rate = await exchange.getRate('usd', 'cad', date);
-	// 		if (rate != null) {
-	// 			rates.push({key: 'USD_CAD', rate, date});
-	// 		}
-	// 	}
+		const rates: IRate[] = [];
+		for (let i = 0; i < dates.length; i++) {
+			const date = dates[i];
+			const rate = await exchange.getRate('usd', 'cad', date);
+			if (rate != null) {
+				rates.push({key: 'USD_CAD', rate, date});
+			}
+		}
 
-	// 	let usdToCad = await getExchange;
-	// 	rates.push({key: 'USD_CAD', rate: usdToCad, date: moment().format('YYYY-MM-DD')});
+		const usdToCad = await getExchange;
+		rates.push({key: 'USD_CAD', rate: usdToCad, date: moment().format('YYYY-MM-DD')});
 
-	// 	rates.forEach(rate => {
-	// 		let content = JSON.stringify(rate);
-	// 		_.defaults(
-	// 			rate, {
-	// 				id: createNodeId(
-	// 					hash(
-	// 						`rate${rate.rate}${rate.date}`
-	// 					)
-	// 				),
-	// 				parent: null,
-	// 				children: [],
-	// 				internal: {
-	// 					type: 'ExchangeRate',
-	// 					content,
-	// 					contentDigest: hash(content)
-	// 				}
-	// 			}
-	// 		);
-	// 	});
-
-	// 	return rates;
-	// };
+		return rates.map(rate => {
+			const rateNode = rate;
+			const content = JSON.stringify(rateNode);
+			_.defaults(
+				rateNode, {
+					id: createNodeId(
+						hash(
+							`rate${rateNode.rate}${rateNode.date}`
+						)
+					),
+					parent: null,
+					children: [],
+					internal: {
+						type: 'ExchangeRate',
+						content,
+						contentDigest: hash(content)
+					}
+				}
+			);
+			return rateNode;
+		});
+	};
 
 	// const getBuildTimeNode = () => {
 	// 	const buildTime = {date: new Date()};
@@ -954,7 +962,7 @@ exports.sourceNodes = async (
 		const companyNodesPromise = getCompanyNodes();
 		// const balanceNodesPromise = getBalanceNodes();
 		// const profitsAndLossesNodesPromise = getProfitsAndLossesNodes();
-		// const exchangeRateNodesPromise = getExchangeRateNodes();
+		const exchangeRateNodesPromise = getExchangeRateNodes();
 		const orderNodesPromise = getOrderNodes();
 		const reviewNodesPromise = getReviewNodes();
 
@@ -967,7 +975,7 @@ exports.sourceNodes = async (
 		const questradeCompanies = await companyNodesPromise;
 		// const balanceNodes = await balanceNodesPromise;
 		// const profitsAndLossesNodes = await profitsAndLossesNodesPromise;
-		// const exchangeRateNodes = await exchangeRateNodesPromise;
+		const exchangeRateNodes = await exchangeRateNodesPromise;
 		const orderNodes = await orderNodesPromise;
 		// const buildTimeNodes = getBuildTimeNode();
 		const reviewNodes = await reviewNodesPromise;
@@ -982,7 +990,7 @@ exports.sourceNodes = async (
 			questradeCompanies,
 			// balanceNodes,
 			// profitsAndLossesNodes,
-			// exchangeRateNodes,
+			exchangeRateNodes,
 			orderNodes,
 			// buildTimeNodes,
 			reviewNodes

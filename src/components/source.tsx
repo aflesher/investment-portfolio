@@ -33,7 +33,7 @@ const Source = ({ description, linkText }: SourceProps): ReactElement => {
 
 	return (
 		<React.Fragment>
-			<p>
+			<div>
 				{description} <br />{' '}
 				<a href={data.site.siteMetadata.exampleUrl}>{linkText}</a>
 				<div>
@@ -74,7 +74,7 @@ const Source = ({ description, linkText }: SourceProps): ReactElement => {
 						targetPrice={200}
 					/>
 				</div>
-			</p>
+			</div>
 		</React.Fragment>
 	);
 };

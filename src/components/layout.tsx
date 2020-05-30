@@ -12,8 +12,10 @@ import {
 	SET_AUTHENICATED_ACTION,
 	SET_SHOW_SIDEBAR
 } from '../store/store';
-import { Currency } from '../utils/enum';
+import { Currency, AssetType } from '../utils/enum';
 import SidebarLeft from './sidebar/SidebarLeft';
+import SidebarRight from './sidebar/SidebarRight';
+import { IPositionStateProps } from './position/Position';
 
 const headerImage = require('../images/header.png');
 const headerSpacerImage = require('../images/header-spacer.png');
@@ -57,6 +59,29 @@ interface ILayoutGraphQL {
 			rate: number
 		}[]
 	}
+	allPosition: {
+		nodes: {
+			symbol: string,
+			currency: Currency,
+			totalCostCad: number,
+			totalCostUsd: number,
+			currentMarketValueCad: number,
+			currentMarketValueUsd: number,
+			quantity: number,
+			averageEntryPrice: number
+			type: AssetType,
+			company: {
+				prevDayClosePrice: number,
+				marketCap: number,
+				name: string
+			},
+			quote: {
+				price: number,
+				priceCad: number,
+				priceUsd: number
+			}
+		}[]
+	}
 }
 
 const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
@@ -70,11 +95,67 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						rate
 					}
 				}
+				allPosition {
+					nodes {
+						symbol
+						currency
+						totalCostCad
+						totalCostUsd
+						currentMarketValueCad
+						currentMarketValueUsd
+						quantity
+						averageEntryPrice
+						type
+						quote {
+							price
+							priceCad
+							priceUsd
+						}
+						company {
+							prevDayClosePrice
+							marketCap
+							name
+						}
+						assessment {
+							targetPrice
+							targetShares
+						}
+					}
+				}
 			}
 		`}
 		render={(queryData: ILayoutGraphQL):JSX.Element => {
 			const usdCad = _.first(queryData.allExchangeRate.nodes)?.rate || 1;
 			const cadUsd = 1 / usdCad;
+
+			const portfolioValue: number = _.sumBy(
+				queryData.allPosition.nodes,
+				q => q.currentMarketValueCad
+			);
+
+			const portfolioCost: number = _.sumBy(
+				queryData.allPosition.nodes,
+				q => q.totalCostCad
+			);
+
+			const positions: IPositionStateProps[] = queryData.allPosition.nodes.map(position => (
+				{
+					...position,
+					isFullPosition: false,
+					valueCad: position.currentMarketValueCad,
+					valueUsd: position.currentMarketValueUsd,
+					costCad: position.totalCostCad,
+					costUsd: position.totalCostUsd,
+					index: 0,
+					previousClosePrice: position.company.prevDayClosePrice,
+					name: position.company.name,
+					price: position.quote.price,
+					assetCurrency: position.currency,
+					marketCap: position.company.marketCap,
+					percentageOfInvestment: position.totalCostCad / portfolioCost,
+					percentageOfPortfolio: position.currentMarketValueCad / portfolioValue
+				}
+			));
 
 			return(
 				<div className='page-wrapper'>
@@ -95,6 +176,9 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						</div>
 						<div className='sidebar-right'>
 							<div className='p-2'>
+								<SidebarRight
+									positions={positions}
+								/>
 							</div>
 						</div>
 						<div
