@@ -14,6 +14,7 @@
     "@types/classnames": "^2.2.10",
     "@types/moment-timezone": "^0.5.13",
     "@types/numeral": "0.0.28",
+    "@types/react-redux": "^7.1.9",
     "axios": "^0.19.2",
     "bootstrap": "^4.5.0",
     "classnames": "^2.2.6",
@@ -28,7 +29,9 @@
     "react": "^16.12.0",
     "react-append-to-body": "^2.0.25",
     "react-dom": "^16.12.0",
+    "react-redux": "^7.2.0",
     "react-typography": "^0.16.19",
+    "redux": "^4.0.5",
     "typography": "^0.16.19",
     "typography-theme-bootstrap": "^0.16.19"
   },
