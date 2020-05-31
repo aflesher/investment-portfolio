@@ -21,3 +21,5 @@ export const formatDateShort = (timestamp: number): string => {
 		.tz('America/New_York')
 		.format('MMM DD `YY');
 };
+
+export const dateInputFormat = (date: Date): string => moment(date).format('yyyy-mm-dd');

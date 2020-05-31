@@ -151,8 +151,11 @@ export const getPositions = async (): Promise<IQuestradePosition[]> => {
 		.flatten()
 		.filter('openQuantity')
 		.value();
+	
+	const mergedPositions = mergePositions(positions);
+	mergedPositions.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
-	return mergePositions(positions);
+	return mergedPositions;
 };
 
 export interface IQuestradeActivity {
@@ -250,6 +253,7 @@ export const getQuotes = async (symbolIds: number[]): Promise<IQuestradeQuote[]>
 	}
 	
 	const quotes: IQuestradeQuote[] = resp.data.quotes;
+	quotes.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
 	return quotes;
 };
@@ -279,6 +283,7 @@ export const getSymbols = async (symbolIds: number[]): Promise<IQuestradeSymbol[
 	}
 
 	const symbols: IQuestradeSymbol[] = resp.data.symbols;
+	symbols.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
 	return symbols;
 };
@@ -386,6 +391,8 @@ const getActiveOrdersForMonth = async (startTime: Date, endTime: Date): Promise<
 		.flatten()
 		.filter({state: 'Accepted'})
 		.value();
+	
+	orders.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
 	return orders;
 };
@@ -426,6 +433,8 @@ export const getActiveOrders = async ():Promise<IQuestradeOrder[]> => {
 			action: 'sell'
 		});
 	}
+
+	orders.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
 	return orders;
 };
