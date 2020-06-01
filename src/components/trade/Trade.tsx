@@ -7,10 +7,13 @@ import XE from '../xe/XE';
 
 interface ITradeStateProps extends
 	Omit<IStockQuoteStateProps, 'quantity' >,
-	Pick<ITrade, 'isSell' | 'quantity' | 'timestamp' | 'pnlCad' | 'pnlUsd' | 'currency'> {}
+	Pick<ITrade, 'isSell' | 'quantity' | 'timestamp' | 'pnlCad' | 'pnlUsd' | 'currency'>
+{
+	tradePrice: number
+}
 
 const Trade: React.FC<ITradeStateProps> = (props) => {
-	const { symbol, isSell, quantity, price, timestamp, pnlCad, pnlUsd, currency } = props;
+	const { symbol, isSell, quantity, timestamp, pnlCad, pnlUsd, currency, tradePrice } = props;
 	return (
 		<div className='trade border-top-normal'>
 			<div className='row'>
@@ -32,7 +35,7 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 					&nbsp;
 					<span>
 						{numeral(quantity).format('1,000')} shares @
-						{numeral(price).format('$0.00')}
+						{numeral(tradePrice).format('$0.00')}
 					</span>
 				</div>
 				<div className='col-4 text-sub text-right'>

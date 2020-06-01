@@ -25,6 +25,7 @@ const questradeSync = questradeCloud.sync();
 const positionsPromise = questrade.getPositions();
 const cryptoPositionsPromise = firebase.getCryptoPositions();
 const ordersPromise = questrade.getActiveOrders();
+const cryptoTradesPromise = firebase.getCryptoTrades();
 
 const MARGIN_ACOUNT_ID = 26418215;
 
@@ -89,6 +90,7 @@ const companiesPromise = (async (): Promise<questrade.IQuestradeSymbol[]> => {
 const cryptoSlugsPromise = (async (): Promise<string[]> => {
 	const positions = await cryptoPositionsPromise;
 	const assessments = await assessmentsFillPromise;
+	const trades = await cryptoTradesPromise;
 
 	const allSlugs = _.concat(
 		_(positions)
@@ -97,6 +99,10 @@ const cryptoSlugsPromise = (async (): Promise<string[]> => {
 			.value(),
 		_(assessments)
 			.filter({type: AssetType.crypto})
+			.map(q => q.symbol)
+			.map(coinmarketcap.symbolToSlug)
+			.value(),
+		_(trades)
 			.map(q => q.symbol)
 			.map(coinmarketcap.symbolToSlug)
 			.value()
@@ -183,6 +189,12 @@ exports.sourceNodes = async (
 	const trades = cloud.readTrades();
 	const tradeNodeIdsMap = {};
 	_.forEach(trades, (trade, index) => {
+		const nodeId = getTradeNodeId(trade.symbol, index);
+		tradeNodeIdsMap[trade.symbol] = tradeNodeIdsMap[trade.symbol] || [];
+		tradeNodeIdsMap[trade.symbol].push(nodeId);
+	});
+	const cryptoTrades = await cryptoTradesPromise;
+	_.forEach(cryptoTrades, (trade, index) => {
 		const nodeId = getTradeNodeId(trade.symbol, index);
 		tradeNodeIdsMap[trade.symbol] = tradeNodeIdsMap[trade.symbol] || [];
 		tradeNodeIdsMap[trade.symbol].push(nodeId);
@@ -456,30 +468,28 @@ exports.sourceNodes = async (
 		cadToUsdRate: number,
 		cryptoQuotes: coinmarketcap.ICoinMarketCapQuote[]
 	): IPosition => {
+		// quote in usd, position in cad
 		const quote = _.find(cryptoQuotes, {symbol: position.symbol});
 		const price = quote?.price || 0;
-		const currency: Currency = Currency.usd;
-		const usdRate = 1;
-		const cadRate = usdToCadRate;
 		const totalCost = position.averageEntryPrice * position.quantity;
-		const currentMarketValue = price * position.quantity;
+		const currentMarketValue = price * position.quantity * usdToCadRate;
 		const openPnl = currentMarketValue - totalCost;
 
 		return {
 			symbol: position.symbol,
-			currency,
-			currentMarketValue: position.quantity * price,
+			currency: position.currency,
+			currentMarketValue,
 			totalCost,
-			totalCostUsd: totalCost * usdRate,
-			totalCostCad: totalCost * cadRate,
-			currentMarketValueCad: currentMarketValue * cadRate,
-			currentMarketValueUsd: currentMarketValue * usdRate,
+			totalCostUsd: totalCost * cadToUsdRate,
+			totalCostCad: totalCost,
+			currentMarketValueCad: currentMarketValue,
+			currentMarketValueUsd: currentMarketValue * cadToUsdRate,
 			quantity: position.quantity,
 			averageEntryPrice: position.averageEntryPrice,
 			type: AssetType.crypto,
 			openPnl,
-			openPnlCad: openPnl * cadRate,
-			openPnlUsd: openPnl * usdRate
+			openPnlCad: openPnl,
+			openPnlUsd: openPnl * cadToUsdRate
 		};
 	};
 
@@ -530,34 +540,68 @@ exports.sourceNodes = async (
 		assessment___NODE: string
 	}
 
+	const mapQuestradeTradesToTrades = (
+		trade: cloud.ICloudTrade,
+		cadRate: number,
+		usdRate: number
+	): ITrade => ({
+		isSell: trade.action === 'sell',
+		symbol: trade.symbol,
+		accountId: parseInt(trade.accountId as any),
+		priceCad: trade.price * cadRate,
+		priceUsd: trade.price * usdRate,
+		timestamp: new Date(trade.date).getTime(),
+		pnl: trade.pnl,
+		pnlCad: trade.pnl * cadRate,
+		pnlUsd: trade.pnl * usdRate,
+		currency: trade.currency === 'usd' ? Currency.usd : Currency.cad,
+		price: trade.price,
+		quantity: trade.quantity,
+		action: trade.action,
+		type: AssetType.stock
+	});
+
+	const mapCryptoTradeToTrade = (
+		trade: firebase.ICryptoTrade,
+		cadRate: number,
+		usdRate: number
+	): ITrade => ({
+		isSell: trade.isSell,
+		symbol: trade.symbol,
+		accountId: 0,
+		priceCad: trade.price,
+		priceUsd: trade.price * cadRate,
+		timestamp: trade.timestamp,
+		pnl: 0,
+		pnlCad: 0,
+		pnlUsd: 0,
+		currency: Currency.cad,
+		price: trade.price,
+		quantity: trade.quantity,
+		action: trade.isSell ? 'sell' : 'buy',
+		type: AssetType.crypto
+	});
+
 	const getTradeNodes = async (): Promise<ITradeNode[]> => {
 		await questradeSync;
 
-		const trades = cloud.readTrades();
+		const cryptoTrades = await cryptoTradesPromise;
+		const cloudTrades = cloud.readTrades();
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
 
+		const trades = _.concat(
+			_.map(cloudTrades, t => mapQuestradeTradesToTrades(t, cadToUsdRate, usdToCadRate)),
+			_.map(cryptoTrades, t => mapCryptoTradeToTrade(t, cadToUsdRate, usdToCadRate))
+		);
+
 		return trades.map((trade, index) => {
-			const usdRate = trade.currency === 'usd' ? 1 : cadToUsdRate;
-			const cadRate = trade.currency === 'cad' ? 1 : usdToCadRate;
 			const tradeNode: ITradeNode = {
-				isSell: trade.action === 'sell',
-				symbol: trade.symbol,
-				accountId: trade.accountId,
-				priceCad: trade.price * cadRate,
-				priceUsd: trade.price * usdRate,
+				...trade,
 				position___NODE: positionNodeIdsMap[trade.symbol] || null,
 				company___NODE: companyNodeIdsMap[trade.symbol] || null,
 				quote___NODE: quoteNodeIdsMap[trade.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[trade.symbol] || null,
-				timestamp: new Date(trade.date).getTime(),
-				pnl: trade.pnl,
-				pnlCad: trade.pnl * cadRate,
-				pnlUsd: trade.pnl * usdRate,
-				currency: trade.currency === 'usd' ? Currency.usd : Currency.cad,
-				price: trade.price,
-				quantity: trade.quantity,
-				action: trade.action
 			};
 
 			const content = JSON.stringify(tradeNode);

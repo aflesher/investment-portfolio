@@ -166,8 +166,8 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
 								nextLabel='>'
 								previousLabel='<'
 								forcePage={page}
-								pageRangeDisplayed={10}
-								marginPagesDisplayed={10}
+								pageRangeDisplayed={6}
+								marginPagesDisplayed={3}
 							/>
 						</div>
 					</div>
@@ -178,6 +178,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
 							key={`${trade.symbol}${index}`}
 							{...trade}
 							{...trade.quote}
+							tradePrice={trade.price}
 							previousClosePrice={trade.company.prevDayClosePrice}
 							assetCurrency={trade.currency}
 							isSell={trade.action === 'sell'}

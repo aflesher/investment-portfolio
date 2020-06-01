@@ -11,13 +11,6 @@ module.exports = {
 		// specific options in it
 		'gatsby-plugin-sass',
 		{
-			resolve: 'gatsby-plugin-typography',
-			options: {
-				pathToConfigModule: 'src/utils/typography.js',
-				omitGoogleFont: true,
-			},
-		},
-		{
 			resolve: 'gatsby-source-portfolio',
 			options: config
 		}

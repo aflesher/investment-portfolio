@@ -64,7 +64,7 @@ const SidebarLeft: React.FC<ISidebarLeftStateProps & ISidebarLeftDispatchProps> 
 				<div className='form-group'>
 					<select
 						value={currency}
-						onChange={(e): void => onSetCurrency(e.target.value === 'CAD' ? Currency.cad : Currency.usd)}
+						onChange={(e): void => onSetCurrency(e.target.value === 'cad' ? Currency.cad : Currency.usd)}
 						className='form-control'
 					>
 						<option value='cad'>CAD</option>

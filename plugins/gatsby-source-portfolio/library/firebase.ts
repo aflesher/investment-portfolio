@@ -7,6 +7,7 @@ import { IExchangeRate } from '../../../src/utils/exchange';
 import { IPosition } from '../../../src/utils/position';
 import { Currency, AssetType } from '../../../src/utils/enum';
 import { IReview } from '../../../src/utils/review';
+import { ITrade } from '../../../src/utils/trade';
 
 const serviceAccount = require('../json/firebase.json');
 let firestore;
@@ -219,6 +220,41 @@ export const getCryptoPositions = async (): Promise<ICryptoPosition[]> =>
 			quantity: doc.quantity,
 			symbol: doc.symbol,
 			totalCostCad: doc.totalCost
+		};
+	});
+};
+
+interface ICryptoTradeDoc {
+	symbol: string,
+	isSell: boolean,
+	quantity: number,
+	price: number,
+	timestamp: {
+		_seconds: number,
+		_nanoseconds: number
+	}
+}
+
+export interface ICryptoTrade extends
+	Pick<ITrade, 'symbol' | 'timestamp' | 'isSell' | 'quantity' | 'price' | 'type'> {}
+
+export const getCryptoTrades = async(): Promise<ICryptoTrade[]> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore
+		.collection('cryptoTrades')
+		.get();
+	
+	return querySnapshot.docs.map(documentSnapshot => {
+		const doc: ICryptoTradeDoc = documentSnapshot.data();
+		return {
+			currency: Currency.cad,
+			type: AssetType.crypto,
+			price: doc.price,
+			quantity: doc.quantity,
+			symbol: doc.symbol,
+			isSell: doc.isSell,
+			timestamp: doc.timestamp._seconds * 1000
 		};
 	});
 };

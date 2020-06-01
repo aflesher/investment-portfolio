@@ -22,4 +22,4 @@ export const formatDateShort = (timestamp: number): string => {
 		.format('MMM DD `YY');
 };
 
-export const dateInputFormat = (date: Date): string => moment(date).format('yyyy-mm-dd');
+export const dateInputFormat = (date: Date): string => moment(date).format('YYYY-MM-DD');

@@ -2,7 +2,7 @@ import { ICompany } from './company';
 import { IPosition } from './position';
 import { IQuote } from './quote';
 import { IAssessment } from './assessment';
-import { Currency } from './enum';
+import { Currency, AssetType } from './enum';
 
 export interface ITrade {
 	symbol: string,
@@ -21,5 +21,6 @@ export interface ITrade {
 	pnlCad: number,
 	quantity: number,
 	action: string,
-	accountId: number
+	accountId: number,
+	type: AssetType
 }
