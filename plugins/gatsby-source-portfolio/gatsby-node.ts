@@ -317,7 +317,6 @@ exports.sourceNodes = async (
 
 			const orderNode: IOrderNode = {
 				symbol: order.symbol,
-				symbolId: order.symbolId,
 				limitPrice: order.limitPrice,
 				limitPriceUsd: order.limitPrice * usdRate,
 				limitPriceCad: order.limitPrice * cadRate,
@@ -329,7 +328,7 @@ exports.sourceNodes = async (
 				avgExecPrice: order.avgExecPrice,
 				side: order.side,
 				accountId: order.accountId,
-				action: order.action,
+				action: order.side === questrade.QuestradeOrderSide.Buy ? 'buy' : 'sell',
 				type: order.orderType,
 				accountName: questrade.getAccountName(order.accountId),
 				currency,

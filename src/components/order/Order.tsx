@@ -1,12 +1,14 @@
 import React from 'react';
 import numeral from 'numeral';
+// @ts-ignore
 import { Link } from 'gatsby';
 
 import XE from '../xe/XE';
 import { IOrder } from '../../utils/order';
 import { positiveNegativeText } from '../../utils/util';
 
-interface IOrderStateProps extends IOrder {
+interface IOrderStateProps extends Omit<IOrder, 'totalQuantity' | 'orderType' | 'filledPrice' |
+'avgExecPrice' | 'stopPrice' | 'type' | 'accountId' | 'side' | 'filledQuantity' > {
 	positionQuantity: number,
 	quotePrice: number,
 	positionCost: number
@@ -41,7 +43,7 @@ const Order: React.FC<IOrderStateProps> = ({
 					<div className='text-right col-6'>
 						{numeral(openQuantity).format('0,0')}
 						/
-						{numeral(positionQuantity).format(0,0)}
+						{numeral(positionQuantity).format('0,0')}
 					</div>
 				</div>
 				<div className='row'>
@@ -95,7 +97,7 @@ const Order: React.FC<IOrderStateProps> = ({
 					<div className='text-right col-4'>
 						{numeral(openQuantity).format('0,0')}
 						/
-						{numeral(positionQuantity).format(0,0)}
+						{numeral(positionQuantity).format('0,0')}
 					</div>
 				</div>
 				<div className='row'>

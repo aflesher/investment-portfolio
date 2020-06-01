@@ -1,5 +1,6 @@
 import React from 'react';
 import Paginate from 'react-paginate';
+// @ts-ignore
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 import {Typeahead} from 'react-bootstrap-typeahead';

@@ -2,7 +2,6 @@ import { Currency } from './enum';
 
 export interface IOrder {
 	symbol: string;
-	symbolId: number;
 	openQuantity: number;
 	totalQuantity: number;
 	filledQuantity: number;

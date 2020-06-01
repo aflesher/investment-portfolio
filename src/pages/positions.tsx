@@ -1,4 +1,5 @@
 import React from 'react';
+// @ts-ignore
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 

@@ -350,7 +350,6 @@ export interface IQuestradeOrder {
 	symbolId: number,
 	orderType: QuestradeOrderType,
 	accountId: number,
-	action: string,
 	totalQuantity: number,
 	openQuantity: number,
 	filledQuantity: number,
@@ -429,8 +428,7 @@ export const getActiveOrders = async ():Promise<IQuestradeOrder[]> => {
 			stopPrice: 0,
 			avgExecPrice: 0,
 			side: QuestradeOrderSide.Buy,
-			accountId: 0,
-			action: 'sell'
+			accountId: 0
 		});
 	}
 
