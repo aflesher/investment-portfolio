@@ -23,3 +23,11 @@ export const formatDateShort = (timestamp: number): string => {
 };
 
 export const dateInputFormat = (date: Date): string => moment(date).format('YYYY-MM-DD');
+
+export const positiveNegativeText = (isPositive: boolean, isNeutral?: boolean): string => {
+	if (isNeutral === true) {
+		return '';
+	}
+
+	return isPositive ? 'text-positive' : 'text-negative';
+};
