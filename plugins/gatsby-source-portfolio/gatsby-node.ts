@@ -455,9 +455,9 @@ exports.sourceNodes = async (
 			quantity: position.openQuantity,
 			averageEntryPrice: position.averageEntryPrice,
 			type: AssetType.stock,
-			openPnl: position.openPnL,
-			openPnlCad: position.openPnL * cadRate,
-			openPnlUsd: position.openPnL * usdRate
+			openPnl: position.openPnl,
+			openPnlCad: position.openPnl * cadRate,
+			openPnlUsd: position.openPnl * usdRate
 		};
 	};
 
@@ -511,7 +511,7 @@ exports.sourceNodes = async (
 				dividends___NODE: dividendNodeIdsMap[position.symbol] || [],
 				company___NODE: companyNodeIdsMap[position.symbol] || null,
 				quote___NODE: quoteNodeIdsMap[position.symbol] || null,
-				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null,
+				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null
 			};
 
 			const content = JSON.stringify(positionNode);
@@ -541,24 +541,31 @@ exports.sourceNodes = async (
 
 	const mapQuestradeTradesToTrades = (
 		trade: cloud.ICloudTrade,
-		cadRate: number,
-		usdRate: number
-	): ITrade => ({
-		isSell: trade.action === 'sell',
-		symbol: trade.symbol,
-		accountId: parseInt(trade.accountId as any),
-		priceCad: trade.price * cadRate,
-		priceUsd: trade.price * usdRate,
-		timestamp: new Date(trade.date).getTime(),
-		pnl: trade.pnl,
-		pnlCad: trade.pnl * cadRate,
-		pnlUsd: trade.pnl * usdRate,
-		currency: trade.currency === 'usd' ? Currency.usd : Currency.cad,
-		price: trade.price,
-		quantity: trade.quantity,
-		action: trade.action,
-		type: AssetType.stock
-	});
+		cadToUsdRate: number,
+		usdToCadRate: number
+	): ITrade => {
+		const currency: Currency = trade.currency === 'usd' ? Currency.usd : Currency.cad;
+		const usdRate = currency === Currency.usd  ? 1 : cadToUsdRate;
+		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
+
+		return {
+			isSell: trade.action === 'sell',
+			symbol: trade.symbol,
+			accountId: parseInt(trade.accountId as any),
+			priceCad: trade.price * cadRate,
+			priceUsd: trade.price * usdRate,
+			timestamp: new Date(trade.date).getTime(),
+			pnl: trade.pnl,
+			pnlCad: trade.pnl * cadRate,
+			pnlUsd: trade.pnl * usdRate,
+			currency,
+			price: trade.price,
+			quantity: trade.quantity,
+			action: trade.action,
+			type: AssetType.stock,
+			isOpeningPositionTrade: false
+		};
+	};
 
 	const mapCryptoTradeToTrade = (
 		trade: firebase.ICryptoTrade,
@@ -578,8 +585,29 @@ exports.sourceNodes = async (
 		price: trade.price,
 		quantity: trade.quantity,
 		action: trade.isSell ? 'sell' : 'buy',
-		type: AssetType.crypto
+		type: AssetType.crypto,
+		isOpeningPositionTrade: false
 	});
+
+	const setOpeningTrade = (trades: ITrade[]): void => {
+		let quantity = 0;
+		let openingTrade: ITrade | null = null;
+		const orderedTrades = _.orderBy(trades, t => t.timestamp, 'asc');
+		_.forEach(orderedTrades, trade => {
+			if (!quantity) {
+				openingTrade = trade;
+			}
+			const action = trade.action == 'sell' ? -1 : 1;
+			quantity += trade.quantity * action;
+			quantity = Math.max(quantity, 0);
+		});
+		
+		if (!openingTrade) {
+			return;
+		}
+
+		(openingTrade as ITrade).isOpeningPositionTrade = true;
+	};
 
 	const getTradeNodes = async (): Promise<ITradeNode[]> => {
 		await questradeSync;
@@ -593,6 +621,11 @@ exports.sourceNodes = async (
 			_.map(cloudTrades, t => mapQuestradeTradesToTrades(t, cadToUsdRate, usdToCadRate)),
 			_.map(cryptoTrades, t => mapCryptoTradeToTrade(t, cadToUsdRate, usdToCadRate))
 		);
+
+		const groupedTradesDictionary = _.groupBy(trades, t => t.symbol);
+		_.forEach(groupedTradesDictionary, (groupedTrades) => {
+			setOpeningTrade(groupedTrades);
+		});
 
 		return trades.map((trade, index) => {
 			const tradeNode: ITradeNode = {
@@ -765,7 +798,9 @@ exports.sourceNodes = async (
 			yield: s.yield,
 			type: AssetType.stock,
 			marketCap: s.marketCap,
-			exchange: s.exchange
+			exchange: s.exchange,
+			highPrice52: s.highPrice52,
+			lowPrice52: s.lowPrice52
 		};
 	};
 
@@ -778,7 +813,9 @@ exports.sourceNodes = async (
 			pe: undefined,
 			yield: 0,
 			prevDayClosePrice: q.prevDayClosePrice,
-			type: AssetType.crypto
+			type: AssetType.crypto,
+			highPrice52: q.price,
+			lowPrice52: q.price
 		};
 	};
 
@@ -1048,21 +1085,21 @@ exports.sourceNodes = async (
 	});
 };
 
-// exports.createPages = async ({ actions }) => {
-// 	const { createPage } = actions;
+exports.createPages = async ({ actions }) => {
+	const { createPage } = actions;
 
-// 	const stockQuotes = await quotesPromise;
-// 	const cryptoQuotes = await cryptoQuotesPromise;
+	const stockQuotes = await quotesPromise;
+	const cryptoQuotes = await cryptoQuotesPromise;
 
-// 	const quotes = _.concat(stockQuotes, cryptoQuotes);
+	const quotes = _.concat(stockQuotes.map(q => q.symbol), cryptoQuotes.map(q => q.symbol));
 
-// 	quotes.forEach(quote => {
-// 		createPage({
-// 			path: `stock/${quote.symbol}`,
-// 			component: path.resolve('./src/templates/stock.js'),
-// 			context: {
-// 				symbol: quote.symbol
-// 			}
-// 		});
-// 	});
-// };
+	quotes.forEach(symbol => {
+		createPage({
+			path: `stock/${symbol}`,
+			component: path.resolve('./src/templates/stock.tsx'),
+			context: {
+				symbol: symbol
+			}
+		});
+	});
+};

@@ -2,6 +2,7 @@ import { IAssessment } from './assessment';
 import { Currency, AssetType } from './enum';
 import { ICompany } from './company';
 import { IQuote } from './quote';
+import { ITrade } from './trade';
 
 export interface IPosition {
 	currency: Currency,
@@ -20,5 +21,6 @@ export interface IPosition {
 	quote?: IQuote,
 	openPnl: number,
 	openPnlUsd: number,
-	openPnlCad: number
+	openPnlCad: number,
+	openingTrade?: ITrade
 }

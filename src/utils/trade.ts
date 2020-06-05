@@ -22,5 +22,6 @@ export interface ITrade {
 	quantity: number,
 	action: string,
 	accountId: number,
-	type: AssetType
+	type: AssetType,
+	isOpeningPositionTrade: boolean
 }

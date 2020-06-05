@@ -8,5 +8,7 @@ export interface ICompany {
 	name: string,
 	symbol: string,
 	type: AssetType,
-	exchange: string
+	exchange: string,
+	highPrice52: number,
+	lowPrice52: number
 }

@@ -11,6 +11,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@primer/octicons-react": "^9.6.0",
     "@types/classnames": "^2.2.10",
     "@types/moment-timezone": "^0.5.13",
     "@types/numeral": "0.0.28",

@@ -101,8 +101,8 @@ export interface IQuestradePosition {
 	currentMarketValue: number,
 	currentPrice: number,
 	averageEntryPrice: number,
-	closedPnL: number,
-	openPnL: number,
+	closedPnl: number,
+	openPnl: number,
 	totalCost: number,
 	isRealTime: boolean,
 	isUnderReorg: boolean
@@ -121,7 +121,7 @@ const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] =
 			position.openQuantity += symbolPosition.openQuantity;
 			position.averageEntryPrice = position.totalCost / position.openQuantity;
 			position.openQuantity += symbolPosition.openQuantity;
-			position.openPnL += symbolPosition.openPnL;
+			position.openPnl += symbolPosition.openPnl;
 		});
 		// @ts-ignore
 		positionsMap[symbol] = position;

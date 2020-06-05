@@ -16,6 +16,13 @@ export const faClassForSymbol = (symbol: string): string => {
 	return lookup[symbol] || '';
 };
 
+export const formatDate = (timestamp: number) => {
+	return moment(timestamp)
+		.tz('America/New_York')
+		.format('ddd, MMM DD YYYY');
+};
+
+
 export const formatDateShort = (timestamp: number): string => {
 	return moment(timestamp)
 		.tz('America/New_York')
@@ -30,4 +37,16 @@ export const positiveNegativeText = (isPositive: boolean, isNeutral?: boolean): 
 	}
 
 	return isPositive ? 'text-positive' : 'text-negative';
+};
+
+export const marketCap = (value: number): string => {
+	return numeral(value).format('$1.00 a');
+};
+
+export const yahooFinanceLink = (symbol: string): string => {
+	symbol = symbol
+		.replace('.vn', '.v')
+		.replace('.un', '-un')
+		.toUpperCase();
+	return `https://finance.yahoo.com/quote/${symbol}`;
 };

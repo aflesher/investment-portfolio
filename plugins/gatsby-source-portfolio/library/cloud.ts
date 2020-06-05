@@ -163,7 +163,7 @@ export const setProfitsAndLosses = (): void => {
 	});
 
 	const tradeTotals = {};
-	const orderedTrades = _.orderBy(trades, 'date');
+	const orderedTrades = _.orderBy(trades, t => t.date);
 	orderedTrades.forEach(trade => {
 		if (trade.action == 'buy') {
 			tradeTotals[trade.symbol] = tradeTotals[trade.symbol] ||

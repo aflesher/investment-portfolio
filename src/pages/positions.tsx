@@ -61,8 +61,8 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 		case PostionsOrderBy.symbol:
 			return position.symbol;
 		case PostionsOrderBy.profits:
-			return (position.quote.price - position.averageEntryPrice) /
-				position.averageEntryPrice;
+			return (position.currentMarketValueCad - position.totalCostCad) /
+				position.totalCostCad;
 		case PostionsOrderBy.position:
 			return position.currentMarketValueCad / totalPositionValue;
 		case PostionsOrderBy.investment:
