@@ -35,7 +35,7 @@ const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 
 	const missingSymbolIds: IAssessment[] = [];
 	assessments.forEach(assessment => {
-		if (assessment.symbolId === 0) {
+		if (!assessment.symbolId) {
 			missingSymbolIds.push(assessment);
 		}
 	});

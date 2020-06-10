@@ -12,6 +12,10 @@ export default ({ element }): JSX.Element => {
 	const store = createStore();
 
 	import('firebase').then(firebase => {
+		if (!firebase || !firebase.initializeApp) {
+			return;
+		}
+
 		firebase.initializeApp({
 			apiKey: config.firebase.apiKey,
 			authDomain: config.firebase.authDomain,

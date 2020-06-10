@@ -6,6 +6,10 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
 					{
 						test: /react-append-to-body/,
 						use: loaders.null(),
+					},
+					{
+						test: /firebase/,
+						use: loaders.null(),
 					}
 				],
 			},

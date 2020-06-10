@@ -31,11 +31,11 @@ interface IAssessmentsQuery {
 					quantity: number,
 					totalCost: number,
 				},
-				quote: {
+				quote?: {
 					price: number,
 					currency: Currency
 				}
-				company: {
+				company?: {
 					name: string
 					marketCap: number
 				}
@@ -158,9 +158,9 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 					<Assessment
 						key={assessment.symbol}
 						{ ...assessment }
-						quotePrice={assessment.quote.price}
+						quotePrice={assessment.quote?.price || 0}
 						positionTotalCost={assessment.position?.totalCost || 0}
-						name={assessment.company.name}
+						name={assessment.company?.name || '???'}
 					/>
 				))}
 			</div>
