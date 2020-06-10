@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import createStore, { SET_USER_ACTION } from './src/store/store';
+import createStore, { SET_USER_ACTION, SET_FIREBASE } from './src/store/store';
 const config = require('./config');
 
 // eslint-disable-next-line react/display-name,react/prop-types
@@ -22,7 +22,10 @@ export default ({ element }): JSX.Element => {
 			projectId: config.firebase.projectId
 		});
 		
-		firebase.auth().onAuthStateChanged(user => store.dispatch({type: SET_USER_ACTION, payload: user}));
+		firebase.auth().onAuthStateChanged(user => {
+			store.dispatch({type: SET_USER_ACTION, payload: user});
+			store.dispatch({type: SET_FIREBASE, payload: firebase});
+		});
 	});
 	return <Provider store={store}>{element}</Provider>;
 };

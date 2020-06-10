@@ -7,6 +7,7 @@ import * as firebase from 'firebase';
 export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
 export const SET_USER_ACTION = 'SET_USER_ACTION';
 export const SET_SHOW_SIDEBAR = 'SET_SHOW_SIDEBAR';
+export const SET_FIREBASE = 'SET_FIREBASE';
 
 export interface IStoreAction {
 	type: string,
@@ -16,13 +17,15 @@ export interface IStoreAction {
 export interface IStoreState {
 	currency: Currency,
 	user: firebase.User | null | undefined,
-	showSidebar: boolean
+	showSidebar: boolean,
+	firebase: any
 }
 
 const initialState: IStoreState = {
 	currency: Currency.cad,
 	user: undefined,
-	showSidebar: true
+	showSidebar: true,
+	firebase: undefined
 };
 
 const reducer = (state: IStoreState, action: IStoreAction): IStoreState => {
@@ -36,6 +39,9 @@ const reducer = (state: IStoreState, action: IStoreAction): IStoreState => {
 	case SET_SHOW_SIDEBAR:
 		const showSidebar = action.payload as boolean;
 		return {...state, showSidebar};
+	case SET_FIREBASE:
+		const firebase = action.payload as any;
+		return {...state, firebase};
 	}
 	return state;
 };
