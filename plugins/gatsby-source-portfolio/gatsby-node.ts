@@ -261,10 +261,24 @@ exports.sourceNodes = async (
 
 	const getAssessmentNodes = async (): Promise<IAssessmentNode[]> => {
 		const assessments = await assessmentsFillPromise;
+		const quotes = await quotesPromise;
+		const cryptoQuotes = await cryptoQuotesPromise;
+		const positions = await positionsPromise;
+		const cryptoPositions = await cryptoPositionsPromise;
 
 		const assessmentNodes = _.map(assessments, assessment => {
+			const price = assessment.type === AssetType.stock ?
+				_.find(quotes, q => q.symbol === assessment.symbol)?.lastTradePriceTrHrs :
+				_.find(cryptoQuotes, q => q.symbol === assessment.symbol)?.price;
+			
+			const totalCost = assessment.type === AssetType.stock ?
+				_.find(positions, q => q.symbol === assessment.symbol)?.totalCost :
+				_.find(cryptoPositions, q => q.symbol === assessment.symbol)?.totalCostCad;
+			
 			const assessmentNode: IAssessmentNode = {
 				...assessment,
+				targetInvestmentProgress: assessment.targetInvestment ? (totalCost || 0) / (assessment.targetInvestment || 0) : 0,
+				targetPriceProgress: assessment.targetPrice ? (price || 0) / (assessment.targetPrice || 0) : 0,
 				symbol: assessment.symbol,
 				trades___NODE: tradeNodeIdsMap[assessment.symbol] || [],
 				dividends___NODE: dividendNodeIdsMap[assessment.symbol] || [],

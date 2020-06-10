@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import { connect } from 'react-redux';
 
 import { IStoreState } from '../store/store';
-import { Currency } from '../utils/enum';
+import { Currency, AssetType } from '../utils/enum';
 import Layout from '../components/layout';
 import CompanyBanner from '../components/company-banner/CompanyBanner';
 import XE from '../components/xe/XE';
@@ -31,6 +31,7 @@ interface IStockTemplateQuery {
 				yield?: number,
 				highPrice52: number,
 				lowPrice52: number,
+				type: AssetType,
 				position?: {
 					quantity: number,
 					totalCost: number,
@@ -353,6 +354,11 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 									tradePrice={trade.price}
 									pnlCad={trade.pnlCad}
 									pnlUsd={trade.pnlUsd}
+									costCad={position.totalCostCad}
+									costUsd={position.totalCostUsd}
+									valueCad={position.currentMarketValueCad}
+									valueUsd={position.currentMarketValueUsd}
+									type={company.type}
 								/>
 							).value() : '(no trades)'}
 						</div>
@@ -399,6 +405,7 @@ export const pageQuery = graphql`
 				yield
 				highPrice52
 				lowPrice52
+				type
 				position {
 					quantity
 					totalCost

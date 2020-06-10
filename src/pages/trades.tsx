@@ -10,7 +10,7 @@ import Trade from '../components/trade/Trade';
 import Layout from '../components/layout';
 import DateRange from '../components/dateRange/DateRange';
 import { IStoreState } from '../store/store';
-import { Currency } from '../utils/enum';
+import { Currency, AssetType } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';
 
 interface ITradeProps {
@@ -42,6 +42,23 @@ interface ITradeQuery {
 					price: number,
 					priceUsd: number,
 					priceCad: number
+				},
+				assessment?: {
+					targetInvestmentProgress: number,
+					targetPriceProgress: number,
+					type: AssetType
+				},
+				position?: {
+					quantity: number,
+					totalCost: number,
+					totalCostUsd: number,
+					totalCostCad: number,
+					currentMarketValueCad: number,
+					currentMarketValueUsd: number,
+					averageEntryPrice: number,
+					openPnl: number,
+					openPnlCad: number,
+					openPnlUsd: number
 				}
 			}[]
 		}
@@ -54,7 +71,7 @@ const mapStateToProps = ({ currency }: IStoreState): ITradeProps => ({
 	currency
 });
 
-const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
+const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
@@ -177,7 +194,11 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
 					{trades.map((trade, index) => (
 						<Trade
 							key={`${trade.symbol}${index}`}
-							{...trade}
+							symbol={trade.symbol}
+							quantity={trade.quantity}
+							timestamp={trade.timestamp}
+							pnlCad={trade.pnlCad}
+							pnlUsd={trade.pnlUsd}
 							{...trade.quote}
 							tradePrice={trade.price}
 							previousClosePrice={trade.company.prevDayClosePrice}
@@ -186,6 +207,14 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
 							name={trade.company.name}
 							marketCap={trade.company.marketCap}
 							currency={trade.currency}
+							priceProgress={trade.assessment?.targetPriceProgress || 0}
+							shareProgress={trade.assessment?.targetInvestmentProgress || 0}
+							type={trade.assessment?.type || AssetType.stock}
+							costCad={trade.position?.totalCostCad || 0}
+							costUsd={trade.position?.totalCostUsd || 0}
+							valueCad={trade.position?.currentMarketValueCad || 0}
+							valueUsd={trade.position?.currentMarketValueUsd || 0}
+							activeCurrency={currency}
 						/>
 					))}
 				</div>
@@ -216,14 +245,9 @@ export const pageQuery = graphql`
 				pnlUsd
 				currency
 				assessment {
-					symbol
-					minuses
-					pluses
-					targetPrice
-					targetShares
-					notes
-					lastUpdatedTimestamp
-					assessment
+					targetInvestmentProgress
+					targetPriceProgress
+					type
 				}
 				company {
 					name
@@ -247,6 +271,7 @@ export const pageQuery = graphql`
 					averageEntryPrice
 					openPnl
 					openPnlCad
+					openPnlUsd
 				}
 			}
 		}

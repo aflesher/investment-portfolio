@@ -18,7 +18,8 @@ export interface IAssessment {
 	symbolId: number,
 	targetInvestment: number,
 	targetPrice: number,
-	targetShares?: number
+	targetInvestmentProgress: number,
+	targetPriceProgress: number,
 	type: AssetType,
 	valuations: string[]
 }

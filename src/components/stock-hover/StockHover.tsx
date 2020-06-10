@@ -16,16 +16,16 @@ export interface IStockQuoteStateProps {
 	name: string,
 	assetCurrency: string,
 	marketCap: number,
-	quantity?: number,
+	quantity: number | undefined,
 	css?: object,
-	costCad?: number,
-	costUsd?: number,
-	valueCad?: number,
-	valueUsd?: number,
-	shareProgress?: number,
-	priceProgress?: number,
-	type?: string,
-	activeCurrency?: string
+	costCad: number | undefined,
+	costUsd: number | undefined,
+	valueCad: number | undefined,
+	valueUsd: number | undefined,
+	shareProgress: number | undefined,
+	priceProgress: number | undefined,
+	type: string,
+	activeCurrency: string
 }
 
 function HoverComponent({ children }: { children: JSX.Element }): JSX.Element {

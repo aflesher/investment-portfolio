@@ -1,15 +1,18 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+// @ts-ignore
 import { StaticQuery, graphql } from 'gatsby';
 import classNames from 'classnames';
 import _ from 'lodash';
+//@ts-ignore
+import * as firebase from 'firebase';
 
 import '../css/main.scss';
 import {
 	IStoreState,
 	IStoreAction,
 	SET_CURRENCY_ACTION,
-	SET_AUTHENICATED_ACTION,
+	SET_USER_ACTION,
 	SET_SHOW_SIDEBAR
 } from '../store/store';
 import { Currency, AssetType } from '../utils/enum';
@@ -22,7 +25,7 @@ const headerSpacerImage = require('../images/header-spacer.png');
 
 interface ILayoutStateProps {
 	currency: Currency,
-	authenticated: boolean,
+	user: firebase.User | null | undefined,
 	showSidebar: boolean
 }
 
@@ -32,8 +35,8 @@ interface ILayoutDispatchProps {
 	setShowSidebar: (showSidebar: boolean) => void
 }
 
-const mapStateToProps = ({ currency, authenticated, showSidebar }: IStoreState): ILayoutStateProps => {
-	return { currency, authenticated, showSidebar };
+const mapStateToProps = ({ currency, user, showSidebar }: IStoreState): ILayoutStateProps => {
+	return { currency, user, showSidebar };
 };
 
 const mapDispatchToProps = (dispatch: (action: IStoreAction) => void): ILayoutDispatchProps => {
@@ -43,7 +46,7 @@ const mapDispatchToProps = (dispatch: (action: IStoreAction) => void): ILayoutDi
 			payload: currency
 		}),
 		setAuthenticated: (authenticated: boolean): void => dispatch({
-			type: SET_AUTHENICATED_ACTION,
+			type: SET_USER_ACTION,
 			payload: authenticated
 		}),
 		setShowSidebar: (showSidebar: boolean): void => dispatch({
@@ -79,13 +82,17 @@ interface ILayoutGraphQL {
 				price: number,
 				priceCad: number,
 				priceUsd: number
+			},
+			assessment?: {
+				targetInvestmentProgress: number,
+				targetPriceProgress: number
 			}
 		}[]
 	}
 }
 
 const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
-	children, currency, authenticated, showSidebar, setCurrency, setShowSidebar
+	children, currency, user, showSidebar, setCurrency, setShowSidebar
 }) => (
 	<StaticQuery
 		query={graphql`
@@ -117,8 +124,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 							name
 						}
 						assessment {
-							targetPrice
-							targetShares
+							targetInvestmentProgress
+							targetPriceProgress
 						}
 					}
 				}
@@ -153,7 +160,10 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					assetCurrency: position.currency,
 					marketCap: position.company.marketCap,
 					percentageOfInvestment: position.totalCostCad / portfolioCost,
-					percentageOfPortfolio: position.currentMarketValueCad / portfolioValue
+					percentageOfPortfolio: position.currentMarketValueCad / portfolioValue,
+					activeCurrency: currency,
+					shareProgress: position.assessment?.targetInvestmentProgress || 0,
+					priceProgress: position.assessment?.targetPriceProgress || 0
 				}
 			));
 
@@ -170,7 +180,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 									onSetCurrency={setCurrency}
 									usdCad={usdCad}
 									cadUsd={cadUsd}
-									authenticated={authenticated}
+									authenticated={!!user}
 								/>
 							</div>
 						</div>

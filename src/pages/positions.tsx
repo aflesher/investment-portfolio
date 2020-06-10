@@ -2,10 +2,12 @@ import React from 'react';
 // @ts-ignore
 import { graphql } from 'gatsby';
 import _ from 'lodash';
+import { connect } from 'react-redux';
 
 import Position from '../components/position/Position';
 import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
+import { IStoreState } from '../store/store';
 
 enum PostionsOrderBy {
 	symbol,
@@ -41,16 +43,24 @@ interface IPositionsQuery {
 					marketCap: number,
 					name: string
 				}
-				assessment: {
-					targetPrice: number,
-					targetShares: number
+				assessment?: {
+					targetInvestmentProgress: number,
+					targetPriceProgress: number
 				}
 			}[]
 		}
 	}
 }
 
-const Positions: React.FC<IPositionsQuery> = ({ data }) => {
+interface IPositionStateProps {
+	currency: Currency
+}
+
+const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
+	currency
+});
+
+const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, data }) => {
 	const [orderBy, setOrderBy] = React.useState(PostionsOrderBy.profits);
 
 	const totalPositionValue = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueCad);
@@ -127,6 +137,9 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 						percentageOfPortfolio={position.currentMarketValueCad / totalPositionValue}
 						percentageOfInvestment={position.totalCostCad / totalPositionCost}
 						classes={['colored-row']}
+						shareProgress={position.assessment?.targetInvestmentProgress || 0}
+						priceProgress={position.assessment?.targetPriceProgress}
+						activeCurrency={currency}
 					/>
 				))}
 			</div>
@@ -134,7 +147,7 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 	);
 };
 
-export default Positions;
+export default connect(mapStateToProps)(Positions);
 
 export const pageQuery = graphql`
 	query {
@@ -161,8 +174,8 @@ export const pageQuery = graphql`
 					name
 				}
 				assessment {
-					targetPrice
-					targetShares
+					targetInvestmentProgress
+					targetPriceProgress
 				}
 			}
 		}

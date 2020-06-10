@@ -1,24 +1,27 @@
+// @ts-ignore
 import { createStore as reduxCreateStore, Store } from 'redux';
 import { Currency } from '../utils/enum';
+// @ts-ignore
+import * as firebase from 'firebase';
 
 export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
-export const SET_AUTHENICATED_ACTION = 'SET_AUTHENICATED_ACTION';
+export const SET_USER_ACTION = 'SET_USER_ACTION';
 export const SET_SHOW_SIDEBAR = 'SET_SHOW_SIDEBAR';
 
 export interface IStoreAction {
 	type: string,
-	payload: Currency | boolean
+	payload: Currency | firebase.User | null | boolean
 }
 
 export interface IStoreState {
 	currency: Currency,
-	authenticated: boolean,
+	user: firebase.User | null | undefined,
 	showSidebar: boolean
 }
 
 const initialState: IStoreState = {
 	currency: Currency.cad,
-	authenticated: false,
+	user: undefined,
 	showSidebar: true
 };
 
@@ -27,9 +30,9 @@ const reducer = (state: IStoreState, action: IStoreAction): IStoreState => {
 	case SET_CURRENCY_ACTION:
 		const currency = action.payload as Currency;
 		return { ...state, currency };
-	case SET_AUTHENICATED_ACTION:
-		const authenticated = action.payload as boolean;
-		return {...state, authenticated};
+	case SET_USER_ACTION:
+		const user = action.payload as firebase.User | null;
+		return {...state, user};
 	case SET_SHOW_SIDEBAR:
 		const showSidebar = action.payload as boolean;
 		return {...state, showSidebar};

@@ -3,12 +3,13 @@ import Paginate from 'react-paginate';
 import _ from 'lodash';
 //@ts-ignore
 import { graphql } from 'gatsby';
+//@ts-ignore
 import Octicon, {TriangleDown, TriangleUp} from '@primer/octicons-react';
 import { connect } from 'react-redux';
 
 import CompletedPosition, { ICompletePositionStateProps } from '../components/completedPosition/CompletedPosition';
 import { IStoreState } from '../store/store';
-import { Currency } from '../utils/enum';
+import { Currency, AssetType } from '../utils/enum';
 import Layout from '../components/layout';
 import { dateInputFormat } from '../utils/util';
 
@@ -28,9 +29,10 @@ interface ICompletedPositionsQuery {
         pnl: number,
 				pnlCad: number,
 				pnlUsd: number,
-        assessment: {
-          targetPrice: number,
-					targetInvestment: number
+        assessment?: {
+          targetPriceProgress: number,
+					targetInvestmentProgress: number,
+					type: AssetType
         }
         company: {
           name: string,
@@ -117,7 +119,10 @@ const CompletedPositions: React.FC<ICompletedPositionsStateProps & ICompletedPos
 				pnlPercentage: 0,
 				previousClosePrice: trade.company.prevDayClosePrice,
 				assetCurrency: trade.quote.currency,
-				activeCurrency: currency
+				activeCurrency: currency,
+				shareProgress: trade.assessment?.targetInvestmentProgress || 0,
+				priceProgress: trade.assessment?.targetPriceProgress || 0,
+				type: trade.assessment?.type || AssetType.stock
 			};
 			runningCompletedPositions.push(completedPosition);
 		}
@@ -168,8 +173,6 @@ const CompletedPositions: React.FC<ICompletedPositionsStateProps & ICompletedPos
 			(completedPosition.avgPriceSold - completedPosition.avgPricePaid) / completedPosition.avgPricePaid;
 	});
 
-	console.log(orderBy, orderAscending);
-
 	completedPositions = _(completedPositions)
 		.filter(cp => {
 			if (!cp.quantityBought) {
@@ -201,8 +204,6 @@ const CompletedPositions: React.FC<ICompletedPositionsStateProps & ICompletedPos
 			}
 		}, orderAscending ? 'asc' : 'desc')
 		.value();
-	
-	console.log(completedPositions);
 	
 	const changeSortOrder = (newOrderBy: OrderBy) => {
 		setOrderAscending(newOrderBy === orderBy ? !orderAscending : false);
