@@ -154,15 +154,18 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 						</div>
 					</div>
 				</div>
-				{assessments.map(assessment => (
-					<Assessment
-						key={assessment.symbol}
-						{ ...assessment }
-						quotePrice={assessment.quote?.price || 0}
-						positionTotalCost={assessment.position?.totalCost || 0}
-						name={assessment.company?.name || '???'}
-					/>
-				))}
+				{assessments
+					.slice(page * ASSESSMENTS_PER_PAGE, (page * ASSESSMENTS_PER_PAGE) + ASSESSMENTS_PER_PAGE)
+					.map(assessment => (
+						<Assessment
+							key={assessment.symbol}
+							{ ...assessment }
+							quotePrice={assessment.quote?.price || 0}
+							positionTotalCost={assessment.position?.totalCost || 0}
+							name={assessment.company?.name || '???'}
+						/>
+					))
+				}
 			</div>
 		</Layout>
 	);
