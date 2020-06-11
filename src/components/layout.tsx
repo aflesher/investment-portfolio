@@ -7,7 +7,6 @@ import _ from 'lodash';
 //@ts-ignore
 import * as firebase from 'firebase';
 
-import '../css/main.scss';
 import {
 	IStoreState,
 	IStoreAction,
