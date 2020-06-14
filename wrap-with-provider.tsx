@@ -11,7 +11,7 @@ export default ({ element }): JSX.Element => {
 	//  - it will be called only once in browser, when React mounts
 	const store = createStore();
 
-	import('firebase').then(firebase => {
+	import('firebase/app').then(firebase => {
 		if (!firebase || !firebase.initializeApp) {
 			return;
 		}

@@ -1,8 +1,6 @@
-// @ts-ignore
 import { createStore as reduxCreateStore, Store } from 'redux';
 import { Currency } from '../utils/enum';
-// @ts-ignore
-import * as firebase from 'firebase';
+import * as firebase from 'firebase/app';
 
 export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
 export const SET_USER_ACTION = 'SET_USER_ACTION';
@@ -18,7 +16,7 @@ export interface IStoreState {
 	currency: Currency,
 	user: firebase.User | null | undefined,
 	showSidebar: boolean,
-	firebase: any
+	firebase: firebase.app.App | undefined
 }
 
 const initialState: IStoreState = {
@@ -28,7 +26,11 @@ const initialState: IStoreState = {
 	firebase: undefined
 };
 
-const reducer = (state: IStoreState, action: IStoreAction): IStoreState => {
+const reducer = (state: IStoreState | undefined, action: IStoreAction): IStoreState => {
+	if (!state) {
+		return initialState;
+	}
+
 	switch (action.type) {
 	case SET_CURRENCY_ACTION:
 		const currency = action.payload as Currency;

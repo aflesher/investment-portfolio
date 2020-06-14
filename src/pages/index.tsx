@@ -1,4 +1,3 @@
-// @ts-ignore
 import { graphql, PageProps } from 'gatsby';
 import * as React from 'react';
 import Layout from '../components/layout';

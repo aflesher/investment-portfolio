@@ -1,9 +1,7 @@
 import React from 'react';
 import Paginate from 'react-paginate';
 import _ from 'lodash';
-//@ts-ignore
 import { graphql } from 'gatsby';
-//@ts-ignore
 import Octicon, {TriangleDown, TriangleUp} from '@primer/octicons-react';
 import { connect } from 'react-redux';
 

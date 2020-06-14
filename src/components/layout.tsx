@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-// @ts-ignore
 import { StaticQuery, graphql } from 'gatsby';
 import classNames from 'classnames';
 import _ from 'lodash';
-//@ts-ignore
-import * as firebase from 'firebase';
+import * as firebase from 'firebase/app';
 
 import {
 	IStoreState,

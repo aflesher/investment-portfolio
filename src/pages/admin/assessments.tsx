@@ -1,7 +1,6 @@
 import React from 'react';
-// @ts-ignore
-import * as firebase from 'firebase';
-// @ts-ignore
+import * as firebase from 'firebase/app';
+import 'firebase/firestore';
 import { graphql } from 'gatsby';
 import _ from'lodash';
 import { Typeahead } from 'react-bootstrap-typeahead';
@@ -13,7 +12,7 @@ import Layout from '../../components/layout';
 
 interface IAssessmentsStateProps {
 	user: firebase.User | null | undefined,
-	firebase: any
+	firebase: firebase.app.App | undefined
 }
 
 interface IAsessmentsQuery {
@@ -26,7 +25,7 @@ interface IAsessmentsQuery {
 	}
 }
 
-interface IFirebaseAssessmentFields {
+interface IFirebaseAssessmentFields extends firebase.firestore.DocumentData {
 	symbol: string,
 	notes: string[],
 	targetInvestment: number,
@@ -42,7 +41,7 @@ interface IFirebaseAssessmentFields {
 }
 
 interface IFirebaseAssessment extends IFirebaseAssessmentFields {
-	docRef: any,
+	docRef: firebase.firestore.DocumentReference,
 	id?: string,
 }
 
@@ -79,21 +78,24 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 	const [questions, setQuestions] = React.useState<string[]>([]);
 	const [valuations, setValuations] = React.useState<string[]>([]);
 	const [sector, setSector] = React.useState('');
-	const [firestore, setFirestore] = React.useState<object | null>(null);
+	const [firestore, setFirestore] = React.useState<firebase.firestore.Firestore | null>(null);
 	const [assessments, setAssessments] = React.useState<IFirebaseAssessment[]>([]);
 	const [sectors, setSectors] = React.useState<string[]>([]);
 	const [isEdit, setIsEdit] = React.useState(false);
 	const [checklist, setChecklist] = React.useState<IChecklistItem[]>(defaultChecklist.slice());
 
-	const fetchAssessments = async (db: any): Promise<void> => {
+	const fetchAssessments = async (db: firebase.firestore.Firestore): Promise<void> => {
 		const querySnapshot = await db.collection('stocks').get();
 
 		const stocks = querySnapshot.docs.map(
-			(queryDocumentSnapshot: any) =>
-				_.extend(
-					{id: queryDocumentSnapshot.id, docRef: queryDocumentSnapshot.ref},
-					queryDocumentSnapshot.data()
-				)
+			(queryDocumentSnapshot: firebase.firestore.QueryDocumentSnapshot) => {
+				const data = queryDocumentSnapshot.data() as IFirebaseAssessmentFields;
+				return {
+					id: queryDocumentSnapshot.id,
+					docRef: queryDocumentSnapshot.ref,
+					...data
+				};
+			}
 		);
 		const sectors = _(stocks).map('sector').uniq().filter().value();
 		
@@ -126,9 +128,12 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 	};
 
 	const save = async (): Promise<void> => {
+		if (!firestore) {
+			return;
+		}
 		await fetchAssessments(firestore);
 		const assessment = _.find(assessments, q => q.symbol === symbol);
-		const docRef = assessment ? assessment.docRef : firebase.collection('stocks').doc();
+		const docRef = assessment ? assessment.docRef : firestore.collection('stocks').doc();
 
 		const newAssessment: IFirebaseAssessmentFields = {
 			pluses: _.filter(pluses),

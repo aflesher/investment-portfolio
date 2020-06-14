@@ -1,8 +1,6 @@
 import React from 'react';
-//@ts-ignore
-import * as firebase from 'firebase';
+import * as firebase from 'firebase/app';
 import { connect } from 'react-redux';
-//@ts-ignore
 import * as firebaseui from 'firebaseui';
 import { IStoreState } from '../store/store';
 import Layout from '../components/layout';
