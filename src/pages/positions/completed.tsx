@@ -5,11 +5,11 @@ import { graphql } from 'gatsby';
 import Octicon, {TriangleDown, TriangleUp} from '@primer/octicons-react';
 import { connect } from 'react-redux';
 
-import CompletedPosition, { ICompletePositionStateProps } from '../components/completedPosition/CompletedPosition';
-import { IStoreState } from '../store/store';
-import { Currency, AssetType } from '../utils/enum';
-import Layout from '../components/layout';
-import { dateInputFormat } from '../utils/util';
+import CompletedPosition, { ICompletePositionStateProps } from '../../components/completedPosition/CompletedPosition';
+import { IStoreState } from '../../store/store';
+import { Currency, AssetType } from '../../utils/enum';
+import Layout from '../../components/layout';
+import { dateInputFormat } from '../../utils/util';
 
 interface ICompletedPositionsStateProps {
 	currency: Currency
