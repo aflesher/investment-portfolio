@@ -71,8 +71,8 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 }) => {
 	const [symbol, setSymbol] = React.useState('');
 	const [notes, setNotes] = React.useState<string[]>([]);
-	const [targetInvestment, setTargetInvestment] = React.useState<number | undefined>(undefined);
-	const [targetPrice, setTargetPrice] = React.useState<number | undefined>(undefined);
+	const [targetInvestment, setTargetInvestment] = React.useState<string>('');
+	const [targetPrice, setTargetPrice] = React.useState<string>('');
 	const [pluses, setPluses] = React.useState<string[]>([]);
 	const [minuses, setMinuses] = React.useState<string[]>([]);
 	const [type, setType] = React.useState(AssetType.stock);
@@ -104,13 +104,14 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 	const loadAssessment = (symbol: string): void => {
 		const assessment = _.find(assessments, q => q.symbol === symbol);
 		setNotes(assessment?.notes || []);
-		setTargetInvestment(assessment?.targetInvestment || undefined);
-		setTargetPrice(assessment?.targetPrice || undefined);
+		setTargetInvestment(String(assessment?.targetInvestment || ''));
+		setTargetPrice(String(assessment?.targetPrice || ''));
 		setMinuses(assessment?.minuses || []);
 		setPluses(assessment?.pluses || []);
 		setType(assessment?.type || AssetType.stock);
 		setValuations(assessment?.valuations || []);
 		setQuestions(assessment?.questions || []);
+		setSector(assessment?.sector || '');
 
 		const newChecklist = defaultChecklist.slice();
 		if (assessment) {
@@ -125,6 +126,7 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 	};
 
 	const save = async (): Promise<void> => {
+		await fetchAssessments(firestore);
 		const assessment = _.find(assessments, q => q.symbol === symbol);
 		const docRef = assessment ? assessment.docRef : firebase.collection('stocks').doc();
 
@@ -133,8 +135,8 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 			minuses: _.filter(minuses),
 			notes: _.filter(notes),
 			valuations: _.filter(valuations),
-			targetPrice: targetPrice || 0,
-			targetInvestment: targetInvestment || 0,
+			targetPrice: Number(targetPrice || 0),
+			targetInvestment: Number(targetInvestment || 0),
 			questions: _.filter(questions),
 			symbol,
 			sector,
@@ -144,9 +146,6 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 		};
 
 		await docRef.set(newAssessment, {merge: true});
-
-		await fetchAssessments(firestore);
-		loadAssessment(symbol);
 	};
 
 	React.useEffect(() => {
@@ -367,7 +366,7 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 								aria-label='Target Price'
 								aria-describedby='target-price-addon'
 								value={targetPrice}
-								onChange={e => setTargetPrice(e.target.value ? parseInt(e.target.value) : undefined)}
+								onChange={e => setTargetPrice(e.target.value)}
 							/>
 						</div>
 					</div>
@@ -388,8 +387,8 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 								placeholder='Target Investment'
 								aria-label='Target Investment'
 								aria-describedby='target-investment-addon'
-								value={targetInvestment}
-								onChange={e => setTargetInvestment(e.target.value ? parseInt(e.target.value) : undefined)}
+								value={String(targetInvestment)}
+								onChange={e => setTargetInvestment(e.target.value)}
 							/>
 						</div>
 					</div>
@@ -410,11 +409,12 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 					<div className='col-3'>
 						<div className='form-group'>
 							<Typeahead
+								selected={[sector]}
 								onChange={sectors => setSector(sectors[0])}
 								onInputChange={sector => setSector(sector)}
 								options={sectors}
 								allowNew
-								id='sector99'
+								id='sector'
 							/>
 						</div>
 					</div>
