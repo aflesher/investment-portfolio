@@ -196,10 +196,10 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 		setValuations(newValuations);
 	};
 
-	const onSetNote = (valuation: string, index: number) => {
-		const newValuations = valuations.slice();
-		newValuations[index] = valuation;
-		setValuations(newValuations);
+	const onSetNote = (note: string, index: number) => {
+		const newNotes = notes.slice();
+		newNotes[index] = note;
+		setNotes(newNotes);
 	};
 
 	return (

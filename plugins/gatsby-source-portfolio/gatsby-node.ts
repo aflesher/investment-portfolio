@@ -872,45 +872,45 @@ exports.sourceNodes = async (
 		});
 	};
 
-	// const getBalanceNodes = async () => {
-	// 	const balances = await questrade.getBalances();
+	const getBalanceNodes = async () => {
+		const balances = await questrade.getBalances();
 
-	// 	const usdToCadRate = await getExchange;
-	// 	const cadToUsdRate = 1 / usdToCadRate;
+		const usdToCadRate = await getExchange;
+		const cadToUsdRate = 1 / usdToCadRate;
 
-	// 	const cadCash = _.find(balances, {currency: 'cad'}).cash;
-	// 	const usdCash = _.find(balances, {currency: 'usd'}).cash;
+		const cadCash = _.find(balances, q => q.currency === Currency.cad)?.cash || 0;
+		const usdCash = _.find(balances, q => q.currency === Currency.usd)?.cash || 0;
 
-	// 	balances.push({
-	// 		currency: 'cad',
-	// 		cash: cadCash + (usdCash * usdToCadRate),
-	// 		combined: true
-	// 	});
+		balances.push({
+			currency: Currency.cad,
+			cash: cadCash + (usdCash * usdToCadRate),
+			combined: true
+		});
 
-	// 	balances.push({
-	// 		currency: 'usd',
-	// 		cash: usdCash + (cadCash * cadToUsdRate),
-	// 		combined: true
-	// 	});
+		balances.push({
+			currency: Currency.usd,
+			cash: usdCash + (cadCash * cadToUsdRate),
+			combined: true
+		});
 
-	// 	balances.forEach(balance => {
-	// 		let content = JSON.stringify(balance);
-	// 		_.defaults(
-	// 			balance, {
-	// 				id: createNodeId(hash(`balance${balance.currency}${balance.combined}`)),
-	// 				parent: null,
-	// 				children: [],
-	// 				internal: {
-	// 					type: 'Balance',
-	// 					content,
-	// 					contentDigest: hash(content)
-	// 				}
-	// 			}
-	// 		);
-	// 	});
+		balances.forEach(balance => {
+			const content = JSON.stringify(balance);
+			_.defaults(
+				balance, {
+					id: createNodeId(hash(`balance${balance.currency}${balance.combined}`)),
+					parent: null,
+					children: [],
+					internal: {
+						type: 'Balance',
+						content,
+						contentDigest: hash(content)
+					}
+				}
+			);
+		});
 
-	// 	return balances;
-	// };
+		return balances;
+	};
 
 	// const getProfitsAndLossesNodes = async () => {
 	// 	await questradeSync;
@@ -1054,7 +1054,7 @@ exports.sourceNodes = async (
 		const dividendNodesPromise = getDividendNodes();
 		const quoteNodesPromise = getQuoteNodes();
 		const companyNodesPromise = getCompanyNodes();
-		// const balanceNodesPromise = getBalanceNodes();
+		const balanceNodesPromise = getBalanceNodes();
 		// const profitsAndLossesNodesPromise = getProfitsAndLossesNodes();
 		const exchangeRateNodesPromise = getExchangeRateNodes();
 		const orderNodesPromise = getOrderNodes();
@@ -1067,7 +1067,7 @@ exports.sourceNodes = async (
 		const questradeDividends = await dividendNodesPromise;
 		const questradeQuotes = await quoteNodesPromise;
 		const questradeCompanies = await companyNodesPromise;
-		// const balanceNodes = await balanceNodesPromise;
+		const balanceNodes = await balanceNodesPromise;
 		// const profitsAndLossesNodes = await profitsAndLossesNodesPromise;
 		const exchangeRateNodes = await exchangeRateNodesPromise;
 		const orderNodes = await orderNodesPromise;
@@ -1082,7 +1082,7 @@ exports.sourceNodes = async (
 			questradeDividends,
 			questradeQuotes,
 			questradeCompanies,
-			// balanceNodes,
+			balanceNodes,
 			// profitsAndLossesNodes,
 			exchangeRateNodes,
 			orderNodes,
