@@ -1,4 +1,8 @@
 import { Currency } from './enum';
+import { ICompany } from './company';
+import { IPosition } from './position';
+import { IQuote } from './quote';
+import { IAssessment } from './assessment';
 
 export interface IDividend {
 	symbol: string,
@@ -7,5 +11,9 @@ export interface IDividend {
 	currency: Currency,
 	accountId: number,
 	amountUsd: number,
-	amountCad: number
+	amountCad: number,
+	company?: ICompany,
+	position?: IPosition,
+	quote?: IQuote,
+	assessment?: IAssessment,
 }

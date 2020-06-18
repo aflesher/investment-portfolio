@@ -1,50 +1,43 @@
 import React from 'react';
-import Paginate from 'react-paginate';
-import _ from 'lodash';
 import { graphql } from 'gatsby';
+import _ from 'lodash';
+import Paginate from 'react-paginate';
 import {Typeahead} from 'react-bootstrap-typeahead';
-import { connect } from 'react-redux';
+import moment from 'moment';
 
-import Trade from '../components/trade/Trade';
-import Layout from '../components/layout';
-import DateRange from '../components/dateRange/DateRange';
-import { IStoreState } from '../store/store';
 import { Currency, AssetType } from '../utils/enum';
+import Layout from '../components/layout';
+import XE from '../components/xe/XE';
+import StockHover from '../components/stock-hover/StockHover';
+import { IStoreState } from '../store/store';
+import { connect } from 'react-redux';
+import * as util from '../utils/util';
 import { dateInputFormat } from '../utils/util';
+import DateRange from '../components/dateRange/DateRange';
 
-interface ITradeProps {
+interface IDividendsStateProps {
 	currency: Currency
 }
 
-interface ITradeQuery {
+interface IDividendsQueryProps {
 	data: {
-		allTrade: {
+		allDividend: {
 			nodes: {
-				accountId: number,
-				quantity: number,
-				price: number,
-				action: string,
 				symbol: string,
 				timestamp: number,
-				pnl: number,
-				pnlCad: number,
-				pnlUsd: number,
+				amount: number,
 				currency: Currency,
-				company: {
+				accountId: number,
+				amountUsd: number,
+				amountCad: number,
+				assessment?: {
+					targetInvestmentProgress: number,
+					targetPriceProgress: number
+				},
+				company?: {
 					name: string,
 					marketCap: number,
 					prevDayClosePrice: number,
-					symbol: string,
-					yield?: number
-				}
-				quote: {
-					price: number,
-					priceUsd: number,
-					priceCad: number
-				},
-				assessment?: {
-					targetInvestmentProgress: number,
-					targetPriceProgress: number,
 					type: AssetType
 				},
 				position?: {
@@ -53,41 +46,40 @@ interface ITradeQuery {
 					totalCostUsd: number,
 					totalCostCad: number,
 					currentMarketValueCad: number,
-					currentMarketValueUsd: number,
-					averageEntryPrice: number,
-					openPnl: number,
-					openPnlCad: number,
-					openPnlUsd: number
+					currentMarketValueUsd: number
+				},
+				quote?: {
+					price: number
 				}
 			}[]
 		}
 	}
 }
 
-const ACTIONS_PER_PAGE = 15;
+const DIVIDENDS_PER_PAGE = 30;
 
-const mapStateToProps = ({ currency }: IStoreState): ITradeProps => ({
+const mapStateToProps = ({ currency }: IStoreState): IDividendsStateProps => ({
 	currency
 });
 
-const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
-	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));
+const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data, currency }) => {
+	const [startDate, setStartDate] = React.useState(moment().startOf('year').toDate());
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
 	const [page, setPage] = React.useState(0);
 
-	const trades = _.filter(data.allTrade.nodes, trade => {
-		if (startDate && startDate > new Date(trade.timestamp)) {
+	const dividends = _.filter(data.allDividend.nodes, dividend => {
+		if (startDate && startDate > new Date(dividend.timestamp)) {
 			return false;
 		}
 
-		if (endDate && endDate < new Date(trade.timestamp)) {
+		if (endDate && endDate < new Date(dividend.timestamp)) {
 			return false;
 		}
 
 		if (
 			symbol &&
-			!trade.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))
+			!dividend.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))
 		) {
 			return false;
 		}
@@ -95,7 +87,10 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 		return true;
 	});
 
-	const symbols = _(data.allTrade.nodes).map(t => t.symbol).uniq().value();
+	const totalCad = _.sumBy(dividends, q => q.amountCad);
+	const totalUsd = _.sumBy(dividends, q => q.amountUsd);
+
+	const symbols = _(data.allDividend.nodes).map(t => t.symbol).uniq().value();
 
 	const handleSymbolChange = (symbol: string): void => {
 		setSymbol(symbol);
@@ -120,7 +115,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 
 	return (
 		<Layout>
-			<div className='activity p-4'>
+			<div className='p-4'>
 				<div className='row'>
 					
 					<div className='col-3'>
@@ -178,7 +173,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 					<div className='col-12'>
 						<div className='paginate d-flex justify-content-center'>
 							<Paginate
-								pageCount={Math.ceil(trades.length / ACTIONS_PER_PAGE)}
+								pageCount={Math.ceil(dividends.length / DIVIDENDS_PER_PAGE)}
 								onPageChange={(resp): void => setPage(resp.selected)}
 								nextLabel='>'
 								previousLabel='<'
@@ -189,76 +184,90 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 						</div>
 					</div>
 				</div>
-				<div>
-					{trades.map((trade, index) => (
-						<Trade
-							key={`${trade.symbol}${index}`}
-							symbol={trade.symbol}
-							quantity={trade.quantity}
-							timestamp={trade.timestamp}
-							pnlCad={trade.pnlCad}
-							pnlUsd={trade.pnlUsd}
-							{...trade.quote}
-							tradePrice={trade.price}
-							previousClosePrice={trade.company.prevDayClosePrice}
-							assetCurrency={trade.currency}
-							isSell={trade.action === 'sell'}
-							name={trade.company.name}
-							marketCap={trade.company.marketCap}
-							currency={trade.currency}
-							priceProgress={trade.assessment?.targetPriceProgress || 0}
-							shareProgress={trade.assessment?.targetInvestmentProgress || 0}
-							type={trade.assessment?.type || AssetType.stock}
-							costCad={trade.position?.totalCostCad || 0}
-							costUsd={trade.position?.totalCostUsd || 0}
-							valueCad={trade.position?.currentMarketValueCad || 0}
-							valueUsd={trade.position?.currentMarketValueUsd || 0}
-							activeCurrency={currency}
+				{dividends.map(dividend => (
+					<div className='row py-1 border-b' key={`${dividend.symbol}${dividend.timestamp}`}>
+						<div className='col-3'>
+							<StockHover
+								symbol={dividend.symbol}
+								assetCurrency={dividend.currency}
+								activeCurrency={currency}
+								priceProgress={dividend.assessment?.targetPriceProgress || 0}
+								shareProgress={dividend.assessment?.targetInvestmentProgress || 0}
+								name={dividend.company?.name || ''}
+								marketCap={dividend.company?.marketCap || 0}
+								previousClosePrice={dividend.company?.prevDayClosePrice || 0}
+								quantity={dividend.position?.quantity || 0}
+								costUsd={dividend.position?.totalCostUsd || 0}
+								costCad={dividend.position?.totalCostCad || 0}
+								valueCad={dividend.position?.currentMarketValueCad || 0}
+								valueUsd={dividend.position?.currentMarketValueUsd || 0}
+								price={dividend.quote?.price || 0}
+								type={dividend?.company?.type || AssetType.stock}
+							/>
+						</div>
+						<div className='col-3 text-right'>
+							{util.formatDate(dividend.timestamp)}
+						</div>
+						<div className='col-3 text-right'>
+							<XE
+								cad={dividend.amountCad}
+								usd={dividend.amountUsd}
+								currency={dividend.currency}
+							/>
+						</div>
+						<div className='col-3 text-right'>
+							<XE
+								cad={dividend.amountCad}
+								usd={dividend.amountUsd}
+								currency={currency}
+								hideCurrency={true}
+							/>
+						</div>
+					</div>
+				))}
+				<div className='row mt-2'>
+					<div className='col-3 text-right offset-6'>
+						Total
+					</div>
+					<div className='col-3 text-right'>
+						<XE
+							cad={totalCad}
+							usd={totalUsd}
+							currency={currency}
+							hideCurrency={true}
 						/>
-					))}
-				</div>
-				<div className="text-center mt-2">
-					<a onClick={(): void => setPage(page - 1)}>PREVIOUS</a>&nbsp;
-					|&nbsp;
-					<a onClick={(): void => setPage(page + 1)}>NEXT</a>
+					</div>
 				</div>
 			</div>
 		</Layout>
 	);
 };
 
-export default connect(mapStateToProps, null)(Trades);
+export default connect(mapStateToProps)(Dividends);
 
 export const pageQuery = graphql`
 	query {
-		allTrade(sort: {fields: [timestamp], order: DESC}) {
+		allDividend(sort: {fields: timestamp, order: DESC}) {
 			nodes {
-				accountId
-				quantity
-				price
-				action
-				symbol
-				timestamp
-				pnl
-				pnlCad
-				pnlUsd
+				amount
+				amountCad
+				amountUsd
 				currency
+				symbol
+				accountId
+				timestamp
 				assessment {
 					targetInvestmentProgress
 					targetPriceProgress
-					type
 				}
 				company {
 					name
 					marketCap
 					prevDayClosePrice
-					symbol
-					yield
+					type
 				}
 				quote {
 					price
-					priceUsd
-					priceCad
 				}
 				position {
 					quantity
@@ -267,12 +276,8 @@ export const pageQuery = graphql`
 					totalCostCad
 					currentMarketValueCad
 					currentMarketValueUsd
-					averageEntryPrice
-					openPnl
-					openPnlCad
-					openPnlUsd
 				}
 			}
 		}
 	}
-	`;
+`;

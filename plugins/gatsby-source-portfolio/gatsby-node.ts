@@ -668,7 +668,12 @@ exports.sourceNodes = async (
 		});
 	};
 
-	interface IDividendNode extends INode, IDividend {}
+	interface IDividendNode extends INode, IDividend {
+		position___NODE: string,
+		company___NODE: string,
+		quote___NODE: string,
+		assessment___NODE: string
+	}
 
 	const getDividendNodes = async (): Promise<IDividendNode[]> => {
 		await questradeSync;
@@ -682,6 +687,10 @@ exports.sourceNodes = async (
 			const cadRate = dividend.currency === 'cad' ? 1 : usdToCadRate;
 
 			const dividendNode: IDividendNode = {
+				position___NODE: positionNodeIdsMap[dividend.symbol] || null,
+				company___NODE: companyNodeIdsMap[dividend.symbol] || null,
+				quote___NODE: quoteNodeIdsMap[dividend.symbol] || null,
+				assessment___NODE: assessmentNodeIdsMap[dividend.symbol] || null,
 				symbol: dividend.symbol,
 				amount: dividend.amount,
 				currency: dividend.currency === 'usd' ? Currency.usd : Currency.cad,
