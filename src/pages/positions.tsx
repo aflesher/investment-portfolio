@@ -14,7 +14,8 @@ enum PostionsOrderBy {
 	position,
 	investment,
 	pe,
-	dividendYield
+	dividendYield,
+	cashProfits
 }
 
 interface IPositionsQuery {
@@ -80,6 +81,8 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 			return position.company.pe;
 		case PostionsOrderBy.dividendYield:
 			return position.company.yield;
+		case PostionsOrderBy.cashProfits:
+			return position.currentMarketValueCad - position.totalCostCad;
 		}
 	}, orderBy == PostionsOrderBy.symbol ? 'asc' : 'desc');
 
@@ -88,7 +91,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 			<div className='grid p-4'>
 				<div className='row pb-1'>
 					<div
-						className='col-4 col-lg-3 offset-lg-1 link'
+						className='col-4 col-lg-2 offset-lg-1 link'
 						onClick={() => setOrderBy(PostionsOrderBy.symbol)}>
 							SYMBOL
 					</div>
@@ -108,14 +111,9 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 							%oI
 					</div>
 					<div
-						className='d-none d-lg-block col-1 text-right link'
-						onClick={() => setOrderBy(PostionsOrderBy.pe)}>
-							PE
-					</div>
-					<div
-						className='d-none d-lg-block col-1 text-right link'
-						onClick={() => setOrderBy(PostionsOrderBy.dividendYield)}>
-							Yield
+						className='d-none d-lg-block col-3 text-right link'
+						onClick={() => setOrderBy(PostionsOrderBy.cashProfits)}>
+							$P&L
 					</div>
 				</div>
 				{positions.map((position, index) => (

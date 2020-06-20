@@ -72,6 +72,22 @@ export const getTrades = async (): Promise<void> => {
 	});
 };
 
+export const getCustomTrades = (): ICloudTrade[] => ([
+	{
+		symbol: 'spy17apr20p200.00',
+		date: new Date('2020-04-20'),
+		accountId: 51637118,
+		action: 'sell',
+		symbolId: 27994113,
+		currency: 'usd',
+		price: 0,
+		quantity: 12,
+		type: 'stock',
+		hash: '',
+		pnl: -1152		
+	}
+]);
+
 export const readTrades = (): ICloudTrade[] => {
 	return trades;
 };

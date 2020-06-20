@@ -29,6 +29,12 @@ const cryptoTradesPromise = firebase.getCryptoTrades();
 
 const MARGIN_ACOUNT_ID = 26418215;
 
+const FILTER_SYMBOLS = [
+	'ausa.cn',
+	'dlr.to',
+	'dlr.u.to'
+];
+
 const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 	const assessments = await assessmentsPromise;
 	await questradeSync;
@@ -514,7 +520,10 @@ exports.sourceNodes = async (
 		const cadToUsdRate = 1 / usdToCadRate;
 
 		const positions: IPosition[] = _.concat(
-			_.map(stockPositions, p => mapQuestradePositionToPosition(p, usdToCadRate, cadToUsdRate)),
+			_(stockPositions)
+				.filter(q => !FILTER_SYMBOLS.includes(q.symbol))
+				.map(p => mapQuestradePositionToPosition(p, usdToCadRate, cadToUsdRate))
+				.value(),
 			_.map(cryptoPositions, p => mapCryptoPositionToPosition(p, usdToCadRate, cadToUsdRate, cryptoQuotes))
 		);
 
@@ -628,12 +637,14 @@ exports.sourceNodes = async (
 
 		const cryptoTrades = await cryptoTradesPromise;
 		const cloudTrades = cloud.readTrades();
+		const customCloudTrades = cloud.getCustomTrades();
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
 
 		const trades = _.concat(
 			_.map(cloudTrades, t => mapQuestradeTradesToTrades(t, cadToUsdRate, usdToCadRate)),
-			_.map(cryptoTrades, t => mapCryptoTradeToTrade(t, cadToUsdRate, usdToCadRate))
+			_.map(cryptoTrades, t => mapCryptoTradeToTrade(t, cadToUsdRate, usdToCadRate)),
+			_.map(customCloudTrades, t => mapQuestradeTradesToTrades(t, cadToUsdRate, usdToCadRate))
 		);
 
 		const groupedTradesDictionary = _.groupBy(trades, t => t.symbol);

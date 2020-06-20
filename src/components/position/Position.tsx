@@ -4,6 +4,7 @@ import numeral from 'numeral';
 
 import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
 import { Currency } from '../../utils/enum';
+import XE from '../xe/XE';
 
 export interface IPositionStateProps extends IStockQuoteStateProps {
 	isFullPosition: boolean,
@@ -22,7 +23,7 @@ export interface IPositionStateProps extends IStockQuoteStateProps {
 const Position: React.FC<IPositionStateProps> = (props) => {
 	const {
 		isFullPosition, activeCurrency, valueCad, costCad, valueUsd, costUsd, index,
-		percentageOfInvestment, percentageOfPortfolio, pe, dividendYield, classes
+		percentageOfInvestment, percentageOfPortfolio, pe, dividendYield, classes, assetCurrency
 	} = props;
 	const mainClasses = ['row', 'position'].concat(classes || []).join(' ');
 	const pnl = activeCurrency === Currency.cad ?
@@ -41,7 +42,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 			</div>
 			<div className={classNames({
 				'col-4': true,
-				'col-lg-3': isFullPosition,
+				'col-lg-2': isFullPosition,
 				'pr-0': true
 			})}>
 				<div className='d-inline-block'>
@@ -75,19 +76,17 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 			</div>
 			<div className={classNames({
 				'd-none': true,
-				'col-1': true,
+				'col-3': true,
 				'd-lg-block': isFullPosition,
-				'text-right': true
+				'text-right': true,
+				'text-positive': pnl >= 0,
+				'text-negative': pnl < 0
 			})}>
-				{pe ? numeral(pe).format('0.00') : '-'}
-			</div>
-			<div className={classNames({
-				'd-none': true,
-				'col-1': true,
-				'd-lg-block': isFullPosition,
-				'text-right': true
-			})}>
-				{dividendYield ? numeral(dividendYield / 100).format('0.00%') : '-'}
+				<XE
+					cad={valueCad - costCad}
+					usd={valueUsd - costUsd}
+					currency={activeCurrency}
+				/>
 			</div>
 		</div>
 	);
