@@ -4,6 +4,7 @@ import 'firebase/firestore';
 import { graphql } from 'gatsby';
 import _ from'lodash';
 import { Typeahead } from 'react-bootstrap-typeahead';
+import TextareaAutosize from 'react-textarea-autosize';
 
 import { IStoreState } from '../../store/store';
 import { connect } from 'react-redux';
@@ -429,14 +430,14 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 				<div className='row my-4'>
 					<div className='col-12'>
 						{valuations.map((valuation, index) => (
-							<textarea
-								className='form-control'
+							<TextareaAutosize
+								className='form-control mb-2'
 								placeholder='Valution'
 								value={valuation}
 								key={`valuation${index}`}
 								onChange={e => onSetValuation(e.target.value, index)}
 							>
-							</textarea>)
+							</TextareaAutosize>)
 						)}
 						<div className='my-3'>
 							<button
@@ -453,14 +454,14 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 				<div className='row my-4'>
 					<div className='col-12'>
 						{notes.map((note, index) => (
-							<textarea
-								className='form-control'
+							<TextareaAutosize
+								className='form-control mb-2'
 								placeholder='Note'
 								value={note}
 								key={`note${index}`}
 								onChange={e => onSetNote(e.target.value, index)}
 							>
-							</textarea>)
+							</TextareaAutosize>)
 						)}
 						<div className='my-3'>
 							<button
