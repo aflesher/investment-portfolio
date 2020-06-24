@@ -2,7 +2,6 @@ import { graphql, PageProps } from 'gatsby';
 import * as React from 'react';
 import _ from 'lodash';
 
-import Order from '../components/order/Order';
 import Layout from '../components/layout';
 import { connect } from 'react-redux';
 import { IStoreState } from '../store/store';
@@ -10,27 +9,17 @@ import { Currency } from '../utils/enum';
 
 interface IIndexQueryProps extends PageProps {
 	data: {
-		allOrder: {
+		allReview: {
 			nodes: {
-				symbol: string,
-				limitPrice: number,
-				limitPriceCad: number,
-				limitPriceUsd: number,
-				openQuantity: number,
-				action: string,
-				accountName: string,
-				quote: {
-					price: number,
-					afterHoursPrice: number,
-				}
-				company: {
-					name: string,
-					marketCap: number
-				}
-				position?: {
-					quantity: number,
-					totalCost: number
-				}
+				comments: string,
+				continue: string[],
+				goals: string[],
+				grade: string,
+				hightlights: string[],
+				lowlights: string[],
+				start: string[],
+				stop: string[],
+				year: number
 			}[]
 		},
 		allNote: {
@@ -52,24 +41,37 @@ const mapStateToProps = ({ currency }: IStoreState): IIndexStateProps => ({
 
 const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({ data, currency }) => {
 	const notes = _.sampleSize(data.allNote.nodes, data.allNote.nodes.length);
+	const review = _.first(data.allReview.nodes);
+	const random = _.random(1,3);
 	return (
 		<Layout>
-			<h1>Orders</h1>
-			{data.allOrder.nodes.map((order, index) => (
-				<Order
-					key={`${order.symbol}${index}`}
-					{...order}
-					positionQuantity={order.position?.quantity || 0}
-					positionCost={order.position?.totalCost || 0}
-					quotePrice={order.quote.price}
-					currency={currency}
-				/>
-			))}
-			{notes.map(({text}) => (
+			<div className='row p-4'>
+				<div className='col-12'>
+					{random === 1 && review?.continue.map(c => (
+						<div key={c}>
+							<i className="fas fa-sync-alt mr-2 blue-color"></i>
+							{c}
+						</div>
+					))}
+					{random === 2 && review?.start.map(s => (
+						<div key={s}>
+							<i className="fas fa-play mr-2 green-color"></i>
+							{s}
+						</div>
+					))}
+					{random === 3 && review?.stop.map(s => (
+						<div key={s}>
+							<i className="fas fa-stop mr-2 red-color"></i>
+							{s}
+						</div>
+					))}
+				</div>
+			</div>
+			{_(notes).sampleSize(3).map(({text}) => (
 				<div key={text} className='daily-note text-center b-1 py-2 px-4 mt-4'>
 					{text}
 				</div>
-			))}
+			)).value()}
 		</Layout>
 	);
 };
@@ -78,27 +80,17 @@ export default connect(mapStateToProps)(IndexPage);
 
 export const pageQuery = graphql`
 	query {
-		allOrder{
+		allReview(sort: {fields: year, order: ASC}, limit: 1) {
 			nodes {
-				symbol
-				limitPrice
-				limitPriceCad
-				limitPriceUsd
-				openQuantity
-				action
-				accountName
-				quote {
-					price
-					afterHoursPrice
-				}
-				company {
-					name
-					marketCap
-				}
-				position {
-					quantity
-					totalCost
-				}
+				comments
+				continue
+				goals
+				grade
+				highlights
+				lowlights
+				start
+				stop
+				year
 			}
 		}
 		allNote {

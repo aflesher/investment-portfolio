@@ -64,7 +64,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 	const [goals, setGoals] = React.useState<string[]>([]);
 	const [highlights, setHighlights] = React.useState<string[]>([]);
 	const [lowlights, setLowlights] = React.useState<string[]>([]);
-	const [comments, setComments] = React.useState<string>([]);
+	const [comments, setComments] = React.useState<string>('');
 
 	const setEmptyYear = (): void => {
 		setStart([]);
@@ -73,7 +73,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		setHighlights([]);
 		setLowlights([]);
 		setGoals([]);
-		setComments([]);
+		setComments('');
 		setGrade('');
 	};
 

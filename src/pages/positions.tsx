@@ -7,6 +7,7 @@ import Position from '../components/position/Position';
 import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
 import { IStoreState } from '../store/store';
+import XE from '../components/xe/XE';
 
 enum PostionsOrderBy {
 	symbol,
@@ -65,6 +66,8 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 
 	const totalPositionValue = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueCad);
 	const totalPositionCost = _.sumBy(data.allPosition.nodes, p => p.totalCostCad);
+	const totalPositionValueUsd = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueUsd);
+	const totalPositionCostUsd = _.sumBy(data.allPosition.nodes, p => p.totalCostUsd);
 
 	const positions = _.orderBy(data.allPosition.nodes, position => {
 		switch (orderBy) {
@@ -139,6 +142,15 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 						activeCurrency={currency}
 					/>
 				))}
+				<div className='row'>
+					<div className='col-3 offset-9 text-right'>
+						<XE
+							cad={totalPositionValue - totalPositionCost}
+							usd={totalPositionValueUsd - totalPositionCostUsd}
+							currency={currency}
+						/>
+					</div>
+				</div>
 			</div>
 		</Layout>
 	);

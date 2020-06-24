@@ -33,3 +33,15 @@ $highlight-panel-color: #333;
   color: #fff;
   text-shadow: 0 0 2px #001716, 0 0 3px $neutral-glow-color, 0 0 5px $neutral-glow-color, 0 0 10px $neutral-glow-color;
 }
+
+.green-color {
+  color: $positive-glow-color;
+}
+
+.red-color {
+  color: $negative-glow-color;
+}
+
+.blue-color {
+  color: $hoverable-crypto-glow-color;
+}
