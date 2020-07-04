@@ -176,7 +176,6 @@ export const pageQuery = graphql`
 	query {
 		allAssessment(
 			sort: {fields: [lastUpdatedTimestamp], order: DESC}
-			filter: {assessment: {eq: true}}
 		) {
 			nodes {
 				assessment
