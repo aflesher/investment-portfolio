@@ -296,7 +296,7 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 							<button
 								type='button'
 								className='btn btn-danger'
-								onClick={() => setMinuses(pluses.concat(''))}
+								onClick={() => setMinuses(minuses.concat(''))}
 							>
 								Minus
 							</button>
