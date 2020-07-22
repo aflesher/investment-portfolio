@@ -14,7 +14,6 @@ import Order from '../components/order/Order';
 import Assessment from '../components/assessment/Assessment';
 import Trade from '../components/trade/Trade';
 import { formatDate, marketCap, yahooFinanceLink } from '../utils/util';
-import positions from '../pages/positions';
 
 interface IStockTemplateStateProps {
 	currency: Currency
@@ -207,8 +206,10 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 							</div>
 						</div>
 						<div className='row font-weight-bold'>
-							<div className='col-6'>Shares</div>
-							<div className='col-6'>{numeral(position?.quantity).format('0,0')}</div>
+							<div className='col-6'>{company.type === 'crypto' ? 'Coins' : 'Shares'}</div>
+							<div className='col-6'>
+								{numeral(position?.quantity).format(company.type === 'crypto' ? '0,0.0000' : '0,0')}
+							</div>
 						</div>
 						<div className='row font-weight-bold'>
 							<div className='col-6'>Open P & L %</div>

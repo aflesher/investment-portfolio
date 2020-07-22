@@ -22,9 +22,11 @@ export default ({ element }): JSX.Element => {
 			projectId: config.firebase.projectId
 		});
 		
-		firebase.auth().onAuthStateChanged(user => {
-			store.dispatch({type: SET_USER_ACTION, payload: user});
-			store.dispatch({type: SET_FIREBASE, payload: firebase});
+		import('firebase/auth').then(() => {
+			firebase.auth().onAuthStateChanged(user => {
+				store.dispatch({type: SET_USER_ACTION, payload: user});
+				store.dispatch({type: SET_FIREBASE, payload: firebase});
+			});
 		});
 	});
 	return <Provider store={store}>{element}</Provider>;

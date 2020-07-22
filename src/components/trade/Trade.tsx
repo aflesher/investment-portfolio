@@ -13,7 +13,7 @@ interface ITradeStateProps extends
 }
 
 const Trade: React.FC<ITradeStateProps> = (props) => {
-	const { symbol, isSell, quantity, timestamp, pnlCad, pnlUsd, currency, tradePrice } = props;
+	const { symbol, isSell, quantity, timestamp, pnlCad, pnlUsd, currency, tradePrice, type } = props;
 	return (
 		<div className='trade border-top-normal'>
 			<div className='row'>
@@ -34,8 +34,9 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 					</span>
 					&nbsp;
 					<span>
-						{numeral(quantity).format('1,000')} shares @
-						{numeral(tradePrice).format('$0.00')}
+						{type === 'crypto' ? numeral(quantity).format('1,000.0000') : numeral(quantity).format('1,000')}
+						{type === 'crypto' ? ' coins @' : ' shares @'}
+						{numeral(tradePrice).format('$1,000.00')}
 					</span>
 				</div>
 				<div className='col-4 text-sub text-right'>
