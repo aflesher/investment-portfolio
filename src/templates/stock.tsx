@@ -14,6 +14,7 @@ import Order from '../components/order/Order';
 import Assessment from '../components/assessment/Assessment';
 import Trade from '../components/trade/Trade';
 import { formatDate, marketCap, yahooFinanceLink } from '../utils/util';
+import positions from '../pages/positions';
 
 interface IStockTemplateStateProps {
 	currency: Currency
@@ -279,6 +280,20 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 								<XE
 									cad={totalCad}
 									usd={totalUsd}
+									currency={currency}
+								/>
+							</div>
+						</div>
+						<div className='row font-weight-bold'>
+							<div className='col-6'>
+								Value
+							</div>
+							<div className={classNames({
+								'col-6': true
+							})}>
+								<XE
+									cad={position.currentMarketValueCad}
+									usd={position.currentMarketValueUsd}
 									currency={currency}
 								/>
 							</div>

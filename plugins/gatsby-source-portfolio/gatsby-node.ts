@@ -652,6 +652,7 @@ exports.sourceNodes = async (
 			setOpeningTrade(groupedTrades);
 		});
 
+		let cryptoIndex = 0;
 		return trades.map((trade, index) => {
 			const tradeNode: ITradeNode = {
 				...trade,
@@ -662,9 +663,14 @@ exports.sourceNodes = async (
 			};
 
 			const content = JSON.stringify(tradeNode);
+			let nodeId = getTradeNodeId(tradeNode.symbol, index);
+			if (trade.type === 'crypto') {
+				nodeId = getTradeNodeId(tradeNode.symbol, cryptoIndex);
+				cryptoIndex++;
+			}
 			_.defaults(
 				tradeNode, {
-					id: getTradeNodeId(tradeNode.symbol, index),
+					id: nodeId,
 					parent: null,
 					children: [],
 					internal: {
