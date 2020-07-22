@@ -3,9 +3,10 @@ import numeral from 'numeral';
 
 import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
 import { ITrade } from '../../utils/trade';
-import XE from '../xe/XE'; 
+import XE from '../xe/XE';
+import { formatDateShort } from '../../utils/util';
 
-interface ITradeStateProps extends
+export interface ITradeStateProps extends
 	Omit<IStockQuoteStateProps, 'quantity' >,
 	Pick<ITrade, 'isSell' | 'quantity' | 'timestamp' | 'pnlCad' | 'pnlUsd' | 'currency'>
 {
@@ -40,7 +41,7 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 					</span>
 				</div>
 				<div className='col-4 text-sub text-right'>
-					{timestamp}
+					{formatDateShort(timestamp)}
 				</div>
 			</div>
 			{isSell &&

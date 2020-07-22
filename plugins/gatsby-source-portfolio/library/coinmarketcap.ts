@@ -2,6 +2,7 @@ import axios from 'axios';
 import _ from 'lodash';
 
 import { Currency, AssetType } from '../../../src/utils/enum';
+import { stringify } from 'querystring';
 
 let api = '';
 let apiKey = '';

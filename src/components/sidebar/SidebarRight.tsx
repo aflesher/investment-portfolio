@@ -5,9 +5,11 @@ import { Link } from 'gatsby';
 import numeral from 'numeral';
 
 import Position, { IPositionStateProps } from '../position/Position';
+import Trade, { ITradeStateProps } from '../trade/Trade';
 
 interface ISidebarRightStateProps {
-	positions: IPositionStateProps[]
+	positions: IPositionStateProps[],
+	trades: ITradeStateProps[]
 }
 
 interface ISidebarRightDispatchProps {
@@ -21,7 +23,7 @@ enum PositionOrderBy {
 }
 
 const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProps> = ({
-	positions
+	positions, trades
 }) => {
 	const [orderBy, setOrderBy] = React.useState(PositionOrderBy.profits);
 	const portfolioTotalValue = _.sumBy(positions, p => p.valueCad);
@@ -93,8 +95,18 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 				</h3>
 				<div>
 				</div>
-				<div className='text-right p-1'>
-					<Link to='/activity'>View All Activity</Link>
+				<div>
+					<div className='text-right p-1'>
+						<Link to='/trades'>View All Trades</Link>
+					</div>
+					<div style={{fontSize: '80%'}}>
+						{trades.map((trade, index) => (
+							<Trade
+								key={`${trade.symbol}${index}`}
+								{...trade}
+							/>
+						))}
+					</div>
 				</div>
 			</div>
 		</div>

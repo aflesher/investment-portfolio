@@ -16,6 +16,7 @@ import { Currency, AssetType } from '../utils/enum';
 import SidebarLeft from './sidebar/SidebarLeft';
 import SidebarRight from './sidebar/SidebarRight';
 import { IPositionStateProps } from './position/Position';
+import { ITradeStateProps } from './trade/Trade';
 
 const headerImage = require('../images/header.png');
 const headerSpacerImage = require('../images/header-spacer.png');
@@ -86,6 +87,50 @@ interface ILayoutGraphQL {
 			}
 		}[]
 	}
+	allTrade: {
+		nodes: {
+			accountId: number,
+			quantity: number,
+			price: number,
+			action: string,
+			symbol: string,
+			timestamp: number,
+			pnl: number,
+			pnlCad: number,
+			pnlUsd: number,
+			currency: Currency,
+			type: AssetType,
+			company: {
+				name: string,
+				marketCap: number,
+				prevDayClosePrice: number,
+				symbol: string,
+				yield?: number
+			}
+			quote: {
+				price: number,
+				priceUsd: number,
+				priceCad: number
+			},
+			assessment?: {
+				targetInvestmentProgress: number,
+				targetPriceProgress: number,
+				type: AssetType
+			},
+			position?: {
+				quantity: number,
+				totalCost: number,
+				totalCostUsd: number,
+				totalCostCad: number,
+				currentMarketValueCad: number,
+				currentMarketValueUsd: number,
+				averageEntryPrice: number,
+				openPnl: number,
+				openPnlCad: number,
+				openPnlUsd: number
+			}
+		}[]
+	}
 }
 
 const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
@@ -126,6 +171,50 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
+				allTrade(sort: {fields: [timestamp], order: DESC}, limit: 5) {
+					nodes {
+						accountId
+						quantity
+						price
+						action
+						symbol
+						timestamp
+						pnl
+						pnlCad
+						pnlUsd
+						currency
+						type
+						assessment {
+							targetInvestmentProgress
+							targetPriceProgress
+							type
+						}
+						company {
+							name
+							marketCap
+							prevDayClosePrice
+							symbol
+							yield
+						}
+						quote {
+							price
+							priceUsd
+							priceCad
+						}
+						position {
+							quantity
+							totalCost
+							totalCostUsd
+							totalCostCad
+							currentMarketValueCad
+							currentMarketValueUsd
+							averageEntryPrice
+							openPnl
+							openPnlCad
+							openPnlUsd
+						}
+					}
+				}
 			}
 		`}
 		render={(queryData: ILayoutGraphQL):JSX.Element => {
@@ -163,6 +252,29 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					priceProgress: position.assessment?.targetPriceProgress || 0
 				}
 			));
+		
+			const trades: ITradeStateProps[] = queryData.allTrade.nodes.map(trade => (
+				{
+					...trade,
+					previousClosePrice: trade.company.prevDayClosePrice,
+					name: trade.company.name,
+					price: trade.quote.price,
+					assetCurrency: trade.currency,
+					marketCap: trade.company.marketCap,
+					percentageOfInvestment: (trade.position?.totalCostCad || 0) / portfolioCost,
+					percentageOfPortfolio: (trade.position?.currentMarketValueCad || 0) / portfolioValue,
+					activeCurrency: currency,
+					shareProgress: trade.assessment?.targetInvestmentProgress || 0,
+					priceProgress: trade.assessment?.targetPriceProgress || 0,
+					tradePrice: trade.price,
+					valueCad: trade.position?.currentMarketValueCad || 0,
+					valueUsd: trade.position?.currentMarketValueUsd || 0,
+					costCad: trade.position?.totalCostCad || 0,
+					costUsd: trade.position?.totalCostUsd || 0,
+					isSell: trade.action === 'sell',
+					type: trade.type
+				}
+			));
 
 			return(
 				<div className='page-wrapper'>
@@ -185,6 +297,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 							<div className='p-2'>
 								<SidebarRight
 									positions={positions}
+									trades={trades}
 								/>
 							</div>
 						</div>
