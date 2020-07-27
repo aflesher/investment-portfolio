@@ -14,3 +14,10 @@ export const deferredPromise = (): IDeferredPromise => {
 
 	return {promise, resolve, reject};
 };
+
+export const replaceSymbol = (symbol: string): string => {
+	if (symbol.match(/^fgr/) || symbol.match(/^dsf/)) {
+		return 'fgr.vn';
+	}
+	return symbol;
+};

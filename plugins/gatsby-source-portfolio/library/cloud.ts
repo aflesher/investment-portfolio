@@ -89,6 +89,7 @@ export const getCustomTrades = (): ICloudTrade[] => ([
 ]);
 
 export const readTrades = (): ICloudTrade[] => {
+	trades.forEach(q => q.accountId = Number(q.accountId));
 	return trades;
 };
 

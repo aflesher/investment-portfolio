@@ -19,6 +19,7 @@ import { IPosition } from '../../src/utils/position';
 import { ITrade } from '../../src/utils/trade';
 import { IDividend } from '../../src/utils/dividend';
 import { ICompany } from '../../src/utils/company';
+import { replaceSymbol } from './library/util';
 
 const assessmentsPromise = firebase.getAssessments();
 const questradeSync = questradeCloud.sync();
@@ -183,6 +184,7 @@ exports.sourceNodes = async (
 	const positions = await positionsPromise;
 	const positionNodeIdsMap = {};
 	_.forEach(positions, position => {
+		position.symbol = replaceSymbol(position.symbol);
 		positionNodeIdsMap[position.symbol] = getPositionNodeId(position.symbol);
 	});
 
@@ -195,6 +197,7 @@ exports.sourceNodes = async (
 	const trades = cloud.readTrades();
 	const tradeNodeIdsMap = {};
 	_.forEach(trades, (trade, index) => {
+		trade.symbol = replaceSymbol(trade.symbol);
 		const nodeId = getTradeNodeId(trade.symbol, index);
 		tradeNodeIdsMap[trade.symbol] = tradeNodeIdsMap[trade.symbol] || [];
 		tradeNodeIdsMap[trade.symbol].push(nodeId);
@@ -223,6 +226,7 @@ exports.sourceNodes = async (
 	const quotes = await quotesPromise;
 	const quoteNodeIdsMap = {};
 	_.forEach(quotes, quote => {
+		quote.symbol = replaceSymbol(quote.symbol);
 		quoteNodeIdsMap[quote.symbol] = getQuoteNodeId(quote.symbol);
 	});
 
@@ -234,6 +238,7 @@ exports.sourceNodes = async (
 	const companies = await companiesPromise;
 	const companyNodeIdsMap = {};
 	_.forEach(companies, company => {
+		company.symbol = replaceSymbol(company.symbol);
 		companyNodeIdsMap[company.symbol] = getCompanyNodeId(company.symbol);
 	});
 
@@ -999,13 +1004,13 @@ exports.sourceNodes = async (
 		const trades = cloud.readTrades();
 
 		const marginUsdTradeDates = _(trades)
-			.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
+			.filter(q => q.accountId === MARGIN_ACOUNT_ID && q.currency === Currency.usd)
 			.map(trade => moment(trade.date).startOf('day').format('YYYY-MM-DD'))
 			.uniq()
 			.value();
 		
 		const marginUsdDividendDates = _(dividends)
-			.filter({accountId: MARGIN_ACOUNT_ID, currency: 'usd'})
+			.filter(q => q.accountId === MARGIN_ACOUNT_ID && q.currency === Currency.usd)
 			.map(dividend => moment(dividend.date).startOf('day').format('YYYY-MM-DD'))
 			.uniq()
 			.value();
