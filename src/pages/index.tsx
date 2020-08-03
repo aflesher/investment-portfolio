@@ -49,20 +49,20 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({ data, curren
 				<div className='col-12'>
 					{random === 1 && review?.continue.map(c => (
 						<div key={c}>
-							<i className="fas fa-sync-alt mr-2 blue-color"></i>
-							{c}
+							<span><i className="fas fa-sync-alt mr-2 blue-color"></i></span>
+							<span>{c}</span>
 						</div>
 					))}
 					{random === 2 && review?.start.map(s => (
 						<div key={s}>
-							<i className="fas fa-play mr-2 green-color"></i>
-							{s}
+							<span><i className="fas fa-play mr-2 green-color"></i></span>
+							<span>{s}</span>
 						</div>
 					))}
 					{random === 3 && review?.stop.map(s => (
 						<div key={s}>
-							<i className="fas fa-stop mr-2 red-color"></i>
-							{s}
+							<span><i className="fas fa-stop mr-2 red-color"></i></span>
+							<span>{s}</span>
 						</div>
 					))}
 				</div>

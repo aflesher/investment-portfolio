@@ -16,7 +16,7 @@ export const deferredPromise = (): IDeferredPromise => {
 };
 
 export const replaceSymbol = (symbol: string): string => {
-	if (symbol.match(/^fgr/) || symbol.match(/^dsf/)) {
+	if (symbol.match(/^fgr/) || symbol.match(/^dsf/) || symbol.match(/^ele/)) {
 		return 'fgr.vn';
 	}
 	return symbol;

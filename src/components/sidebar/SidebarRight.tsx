@@ -6,10 +6,12 @@ import numeral from 'numeral';
 
 import Position, { IPositionStateProps } from '../position/Position';
 import Trade, { ITradeStateProps } from '../trade/Trade';
+import Dividend, { IDividendStateProps } from '../dividend/Dividend';
 
 interface ISidebarRightStateProps {
 	positions: IPositionStateProps[],
-	trades: ITradeStateProps[]
+	trades: ITradeStateProps[],
+	dividends: IDividendStateProps[]
 }
 
 interface ISidebarRightDispatchProps {
@@ -23,12 +25,20 @@ enum PositionOrderBy {
 }
 
 const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProps> = ({
-	positions, trades
+	positions, trades, dividends
 }) => {
 	const [orderBy, setOrderBy] = React.useState(PositionOrderBy.profits);
 	const portfolioTotalValue = _.sumBy(positions, p => p.valueCad);
 	const portfolioTotalCost = _.sumBy(positions, p => p.costCad);
 	const inTheBlack = portfolioTotalValue > portfolioTotalCost;
+
+	let dividendsAndTrades: (ITradeStateProps | IDividendStateProps)[] = [];
+	dividendsAndTrades = _(dividendsAndTrades)
+		.concat(trades)
+		.concat(dividends)
+		.orderBy(q => q.timestamp)
+		.slice(5)
+		.value();
 
 	return (
 		<div>
@@ -100,11 +110,17 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 						<Link to='/trades'>View All Trades</Link>
 					</div>
 					<div style={{fontSize: '80%'}}>
-						{trades.map((trade, index) => (
-							<Trade
-								key={`${trade.symbol}${index}`}
-								{...trade}
-							/>
+						{dividendsAndTrades.map((dividendOrTrade, index) => (
+							'tradePrice' in dividendOrTrade ?
+								<Trade
+									key={`${dividendOrTrade.symbol}${dividendOrTrade.timestamp}${index}`}
+									{...dividendOrTrade}
+								/>
+								:
+								<Dividend
+									key={`${dividendOrTrade.symbol}${dividendOrTrade.timestamp}${index}`}
+									{...dividendOrTrade}
+								/>
 						))}
 					</div>
 				</div>

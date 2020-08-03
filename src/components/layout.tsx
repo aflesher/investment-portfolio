@@ -17,6 +17,8 @@ import SidebarLeft from './sidebar/SidebarLeft';
 import SidebarRight from './sidebar/SidebarRight';
 import { IPositionStateProps } from './position/Position';
 import { ITradeStateProps } from './trade/Trade';
+import { IDividendStateProps } from './dividend/Dividend';
+import { type } from 'os';
 
 const headerImage = require('../images/header.png');
 const headerSpacerImage = require('../images/header-spacer.png');
@@ -100,6 +102,43 @@ interface ILayoutGraphQL {
 			pnlUsd: number,
 			currency: Currency,
 			type: AssetType,
+			company: {
+				name: string,
+				marketCap: number,
+				prevDayClosePrice: number,
+				symbol: string,
+				yield?: number
+			}
+			quote: {
+				price: number,
+				priceUsd: number,
+				priceCad: number
+			},
+			assessment?: {
+				targetInvestmentProgress: number,
+				targetPriceProgress: number,
+				type: AssetType
+			},
+			position?: {
+				quantity: number,
+				totalCost: number,
+				totalCostUsd: number,
+				totalCostCad: number,
+				currentMarketValueCad: number,
+				currentMarketValueUsd: number,
+				averageEntryPrice: number,
+				openPnl: number,
+				openPnlCad: number,
+				openPnlUsd: number
+			}
+		}[]
+	}
+	allDividend: {
+		nodes: {
+			amountCad: number,
+			amountUsd: number,
+			currency: Currency,
+			timestamp: number,
 			company: {
 				name: string,
 				marketCap: number,
@@ -215,6 +254,43 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
+				allDividend(limit: 5, sort: {fields: timestamp, order: DESC}) {
+					nodes {
+						amountCad
+						amountUsd
+						currency
+						timestamp
+						assessment {
+							targetInvestmentProgress
+							targetPriceProgress
+							type
+						}
+						company {
+							name
+							marketCap
+							prevDayClosePrice
+							symbol
+							yield
+						}
+						quote {
+							price
+							priceUsd
+							priceCad
+						}
+						position {
+							quantity
+							totalCost
+							totalCostUsd
+							totalCostCad
+							currentMarketValueCad
+							currentMarketValueUsd
+							averageEntryPrice
+							openPnl
+							openPnlCad
+							openPnlUsd
+						}
+					}
+				}
 			}
 		`}
 		render={(queryData: ILayoutGraphQL):JSX.Element => {
@@ -276,6 +352,29 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 				}
 			));
 
+			const dividends: IDividendStateProps[] = queryData.allDividend.nodes.map(dividend => (
+				{
+					...dividend,
+					previousClosePrice: dividend.company.prevDayClosePrice,
+					name: dividend.company.name,
+					price: dividend.quote.price,
+					assetCurrency: dividend.currency,
+					marketCap: dividend.company.marketCap,
+					percentageOfInvestment: (dividend.position?.totalCostCad || 0) / portfolioCost,
+					percentageOfPortfolio: (dividend.position?.currentMarketValueCad || 0) / portfolioValue,
+					activeCurrency: currency,
+					shareProgress: dividend.assessment?.targetInvestmentProgress || 0,
+					priceProgress: dividend.assessment?.targetPriceProgress || 0,
+					valueCad: dividend.position?.currentMarketValueCad || 0,
+					valueUsd: dividend.position?.currentMarketValueUsd || 0,
+					costCad: dividend.position?.totalCostCad || 0,
+					costUsd: dividend.position?.totalCostUsd || 0,
+					symbol: dividend.company.symbol,
+					type: AssetType.stock,
+					quantity: dividend.position?.quantity || 0
+				}
+			));
+
 			return(
 				<div className='page-wrapper'>
 					<div className='page'>
@@ -298,6 +397,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 								<SidebarRight
 									positions={positions}
 									trades={trades}
+									dividends={dividends}
 								/>
 							</div>
 						</div>

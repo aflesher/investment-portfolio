@@ -30,6 +30,8 @@ const initDeferredPromise = util.deferredPromise();
 // use this to replace refresh token
 const overrideLoginToken = null; // 'h5kAC9rZI3k277QR6FrG25zSCwz4ftgO0';
 
+const filteredPositions = ['ele.vn'];
+
 const getLoginInfo = async (): Promise<void> => {
 	const auth = await firebase.getQuestradeAuth();
 
@@ -155,7 +157,7 @@ export const getPositions = async (): Promise<IQuestradePosition[]> => {
 	const mergedPositions = mergePositions(positions);
 	mergedPositions.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
-	return mergedPositions;
+	return _.filter(mergedPositions, q => !filteredPositions.includes(q.symbol));
 };
 
 export interface IQuestradeActivity {

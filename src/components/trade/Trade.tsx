@@ -1,4 +1,5 @@
-import React from 'react';import classNames from 'classnames';
+import React from 'react';
+import classNames from 'classnames';
 import numeral from 'numeral';
 
 import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
