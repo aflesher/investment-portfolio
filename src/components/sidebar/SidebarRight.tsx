@@ -36,8 +36,8 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 	dividendsAndTrades = _(dividendsAndTrades)
 		.concat(trades)
 		.concat(dividends)
-		.orderBy(q => q.timestamp)
-		.slice(5)
+		.orderBy(q => q.timestamp, 'desc')
+		.slice(0, 5)
 		.value();
 
 	return (
@@ -106,8 +106,13 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 				<div>
 				</div>
 				<div>
-					<div className='text-right p-1'>
-						<Link to='/trades'>View All Trades</Link>
+					<div className='d-flex py-1 justify-content-between'>
+						<div className='text-left'>
+							<Link to='/dividends'>View All Dividends</Link>
+						</div>
+						<div className='text-right'>
+							<Link to='/trades'>View All Trades</Link>
+						</div>
 					</div>
 					<div style={{fontSize: '80%'}}>
 						{dividendsAndTrades.map((dividendOrTrade, index) => (
