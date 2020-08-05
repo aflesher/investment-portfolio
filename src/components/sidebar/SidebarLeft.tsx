@@ -31,7 +31,6 @@ const SidebarLeft: React.FC<ISidebarLeftStateProps & ISidebarLeftDispatchProps> 
 				<Link to='/positions'>Positions</Link>
 				<ul>
 					<li><Link to='/positions'>Current</Link></li>
-					<li><Link to='/positions/charts'>Charts</Link></li>
 					<li><Link to='/positions/completed'>Completed</Link></li>
 				</ul>
 			</div>

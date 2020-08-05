@@ -118,6 +118,9 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 		setPage(0);
 	};
 
+	const pageStart = ACTIONS_PER_PAGE * page;
+	const pageEnd = (ACTIONS_PER_PAGE * page) + ACTIONS_PER_PAGE;
+
 	return (
 		<Layout>
 			<div className='activity p-4'>
@@ -190,7 +193,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 					</div>
 				</div>
 				<div>
-					{trades.map((trade, index) => (
+					{trades.slice(pageStart, pageEnd).map((trade, index) => (
 						<Trade
 							key={`${trade.symbol}${index}`}
 							symbol={trade.symbol}

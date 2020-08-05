@@ -6,11 +6,13 @@ export const displayMarketCap = (value: number): string => numeral(value).format
 export const faClassForSymbol = (symbol: string): string => {
 	const lookup: any = {
 		btc: 'fab fa-btc mr-2',
+		gbtc: 'fab fa-btc mr-2',
 		xmr: 'fab fa-monero mr-2',
 		eth: 'fab fa-ethereum mr-2',
 		amzn: 'fab fa-amazon mr-2',
 		fb: 'fab fa-facebook-f mr-2',
 		pins: 'fab fa-pinterest-p mr-2',
+		msft: 'fab fa-microsoft mr-2',
 	};
 
 	return lookup[symbol] || '';
