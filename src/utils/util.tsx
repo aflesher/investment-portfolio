@@ -1,5 +1,6 @@
 import numeral from 'numeral';
 import moment from 'moment-timezone';
+import { AssetType } from './enum';
 
 export const displayMarketCap = (value: number): string => numeral(value).format('$1.00 a');
 
@@ -51,4 +52,12 @@ export const yahooFinanceLink = (symbol: string): string => {
 		.replace('.un', '-un')
 		.toUpperCase();
 	return `https://finance.yahoo.com/quote/${symbol}`;
+};
+
+export const coinMarketCapLink = (name: string): string => {
+	return `https://coinmarketcap.com/currencies/${name.toLocaleLowerCase()}/`;
+};
+
+export const assetLink = (symbol: string, companyName: string, type: AssetType): string => {
+	return type === AssetType.stock ? yahooFinanceLink(symbol) : coinMarketCapLink(companyName); 
 };

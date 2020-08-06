@@ -13,7 +13,7 @@ import XE from '../components/xe/XE';
 import Order from '../components/order/Order';
 import Assessment from '../components/assessment/Assessment';
 import Trade from '../components/trade/Trade';
-import { formatDate, marketCap, yahooFinanceLink } from '../utils/util';
+import { formatDate, marketCap, assetLink } from '../utils/util';
 
 interface IStockTemplateStateProps {
 	currency: Currency
@@ -169,11 +169,11 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 						<div className='row font-weight-bold'>
 							<div className='col-6'>
 								<a
-									href={yahooFinanceLink(company.symbol)}
+									href={assetLink(company.symbol, company.name, company.type)}
 									target='_blank'
 									rel='noreferrer'
 								>
-									Yahoo Finance
+									{company.type === AssetType.stock ? 'Yahoo Finance' : 'CoinMarketCap'}
 								</a>
 							</div>
 						</div>
