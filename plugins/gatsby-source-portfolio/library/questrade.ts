@@ -417,23 +417,6 @@ export const getActiveOrders = async ():Promise<IQuestradeOrder[]> => {
 		.uniqBy('id')
 		.value();
 
-	if (!orders.length) {
-		orders.push({
-			id: 173577870,
-			symbol: 'dis',
-			symbolId: 16142,
-			openQuantity: 0,
-			totalQuantity: 0,
-			filledQuantity: 0,
-			orderType: QuestradeOrderType.Limit,
-			limitPrice: 200,
-			stopPrice: 0,
-			avgExecPrice: 0,
-			side: QuestradeOrderSide.Buy,
-			accountId: 0
-		});
-	}
-
 	orders.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
 	return orders;

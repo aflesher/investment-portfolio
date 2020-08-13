@@ -133,6 +133,16 @@ const hash = (content: string): string => {
 
 const isUsd = (symbol: string): boolean => (symbol.indexOf('.') === -1);
 
+exports.createSchemaCustomization = ({ actions }) => {
+	const { createTypes } = actions;
+	const typeDefs = `
+    type Order implements Node {
+      position: Position
+    }
+	`;
+	createTypes(typeDefs);
+};
+
 exports.sourceNodes = async (
 	{ actions, createNodeId },
 	configOptions
