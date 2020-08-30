@@ -39,3 +39,5 @@
 .art-vn { @include companyBase(#fff, rgb(9, 14, 20), linear-gradient(225deg, rgb(0, 141, 199) 0%, rgb(9, 51, 160) 100%)); }  
 .gbtc { @include companyBase(#000, #CCC, #000); }
 .msft { @include companyBase(#000, #fff, #000); }
+.twou { @include companyBase(#006bc4, #fff, #006bc4); }
+.otglf { @include companyBase(#000000, #f7f7f7, #070707); }
