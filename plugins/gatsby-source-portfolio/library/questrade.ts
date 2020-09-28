@@ -122,7 +122,6 @@ const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] =
 			position.totalCost += symbolPosition.totalCost;
 			position.openQuantity += symbolPosition.openQuantity;
 			position.averageEntryPrice = position.totalCost / position.openQuantity;
-			position.openQuantity += symbolPosition.openQuantity;
 			position.openPnl += symbolPosition.openPnl;
 		});
 		// @ts-ignore
