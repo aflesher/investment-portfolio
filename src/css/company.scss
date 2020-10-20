@@ -28,7 +28,7 @@
 .weed-to { @include companyBase(#fff, #817d58, #fff); }
 .btc { @include companyBase(#fff, #f7941d, #fff); }
 .eth, .ethe { @include companyBase(#8b91b1, #e6e6e6, #464b75) }
-.scr-vn { @include companyBase(#fff, linear-gradient(180deg, rgba(0,87,174,1) 0%, rgba(0,33,78,1) 100%), #fda529); }
+.scr-to { @include companyBase(#fff, linear-gradient(180deg, rgba(0,87,174,1) 0%, rgba(0,33,78,1) 100%), #fda529); }
 .sq { @include companyBase(#000, #fff, #000); }
 .gld { @include companyBase(#000, #d4af37, #000); }
 .roku { @include companyBase(#fff, #662d91, #fff); }
