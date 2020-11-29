@@ -236,7 +236,7 @@ interface ICryptoTradeDoc {
 }
 
 export interface ICryptoTrade extends
-	Pick<ITrade, 'symbol' | 'timestamp' | 'isSell' | 'quantity' | 'price' | 'type'> {}
+	Pick<ITrade, 'symbol' | 'timestamp' | 'isSell' | 'quantity' | 'price' | 'type' | 'pnl'> {}
 
 export const getCryptoTrades = async(): Promise<ICryptoTrade[]> => {
 	await initDeferredPromise.promise;
@@ -254,8 +254,40 @@ export const getCryptoTrades = async(): Promise<ICryptoTrade[]> => {
 			quantity: doc.quantity,
 			symbol: doc.symbol,
 			isSell: doc.isSell,
-			timestamp: doc.timestamp._seconds * 1000
+			timestamp: doc.timestamp._seconds * 1000,
+			pnl: 0
 		};
+	});
+};
+
+export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
+	const tradeTotals: {
+		[symbol: string]: { cost: number; shares: number };
+	} = {};
+	const orderedTrades = _.orderBy(trades, (t) => t.timestamp);
+	orderedTrades.forEach((trade) => {
+		if (!trade.isSell) {
+			tradeTotals[trade.symbol] = tradeTotals[trade.symbol] || {
+				cost: 0,
+				shares: 0,
+			};
+			tradeTotals[trade.symbol].cost += trade.price * trade.quantity;
+			tradeTotals[trade.symbol].shares += trade.quantity;
+		} else {
+			if (
+				tradeTotals[trade.symbol] &&
+				tradeTotals[trade.symbol].shares >= trade.quantity
+			) {
+				const totals = tradeTotals[trade.symbol];
+				const avg = totals.cost / totals.shares;
+				const cost = avg * trade.quantity;
+				const proceeds = trade.price * trade.quantity;
+	
+				trade.pnl = proceeds - cost;
+				totals.cost -= cost;
+				totals.shares -= trade.quantity;
+			}
+		}
 	});
 };
 

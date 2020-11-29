@@ -8,6 +8,7 @@ import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
 import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
+import { Quote } from '@primer/octicons-react';
 
 enum PostionsOrderBy {
 	symbol,
@@ -36,6 +37,7 @@ interface IPositionsQuery {
 					price: number,
 					priceCad: number,
 					priceUsd: number,
+					currency: Currency
 				}
 				company: {
 					pe: number,
@@ -140,6 +142,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 						shareProgress={position.assessment?.targetInvestmentProgress || 0}
 						priceProgress={position.assessment?.targetPriceProgress}
 						activeCurrency={currency}
+						quoteCurrency={position.quote.currency}
 					/>
 				))}
 				<div className='row'>
@@ -174,6 +177,7 @@ export const pageQuery = graphql`
 				quote {
 					price
 					priceCad
+					currency
 				}
 				company {
 					pe

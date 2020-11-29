@@ -1,15 +1,15 @@
 /* global console */
-import _ from'lodash';
-import crypto from'crypto';
-import path from'path';
-import moment from'moment';
+import _ from 'lodash';
+import crypto from 'crypto';
+import path from 'path';
+import moment from 'moment';
 
-import * as exchange from'./library/exchange';
-import * as firebase from'./library/firebase';
-import * as questrade from'./library/questrade';
-import * as questradeCloud from'./library/questrade-cloud';
-import * as cloud from'./library/cloud';
-import * as coinmarketcap from'./library/coinmarketcap';
+import * as exchange from './library/exchange';
+import * as firebase from './library/firebase';
+import * as questrade from './library/questrade';
+import * as questradeCloud from './library/questrade-cloud';
+import * as cloud from './library/cloud';
+import * as coinmarketcap from './library/coinmarketcap';
 import { IAssessment } from '../../src/utils/assessment';
 import { AssetType, Currency } from '../../src/utils/enum';
 import { IQuote } from '../../src/utils/quote';
@@ -616,9 +616,9 @@ exports.sourceNodes = async (
 		priceCad: trade.price,
 		priceUsd: trade.price * cadRate,
 		timestamp: trade.timestamp,
-		pnl: 0,
-		pnlCad: 0,
-		pnlUsd: 0,
+		pnl: trade.pnl,
+		pnlCad: trade.pnl,
+		pnlUsd: trade.pnl * cadRate,
 		currency: Currency.cad,
 		price: trade.price,
 		quantity: trade.quantity,

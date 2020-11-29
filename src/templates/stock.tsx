@@ -374,6 +374,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 									valueCad={position.currentMarketValueCad}
 									valueUsd={position.currentMarketValueUsd}
 									type={company.type}
+									quoteCurrency={quote.currency}
 								/>
 							).value() : '(no trades)'}
 						</div>

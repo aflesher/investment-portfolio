@@ -25,7 +25,8 @@ export interface IStockQuoteStateProps {
 	shareProgress: number | undefined,
 	priceProgress: number | undefined,
 	type: string,
-	activeCurrency: string
+	activeCurrency: string,
+	quoteCurrency: string
 }
 
 function HoverComponent({ children }: { children: JSX.Element }): JSX.Element {
@@ -50,7 +51,8 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 	shareProgress,
 	priceProgress,
 	type,
-	activeCurrency
+	activeCurrency,
+	quoteCurrency
 }) => {
 	const marginTopAbove = '-145px';
 	const marginTopBelow = '30px';
@@ -117,7 +119,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
 			>
-				{symbol}
+				{symbol.substr(0, 8)}
 			</Link>
 			{AppendedHoverComponent ? <AppendedHoverComponent>
 				<div style={_.assign(
@@ -138,7 +140,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 							</div>
 							<span>
 								{numeral(price).format('$0,000.00')}&nbsp;
-								{assetCurrency.toUpperCase()}
+								{quoteCurrency.toUpperCase()}
 							</span>&nbsp;
 							<span className={classNames({
 								'text-positive': isProfit,
