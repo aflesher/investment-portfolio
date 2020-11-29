@@ -245,7 +245,7 @@ export const getCryptoTrades = async(): Promise<ICryptoTrade[]> => {
 		.collection('cryptoTrades')
 		.get();
 	
-	return querySnapshot.docs.map(documentSnapshot => {
+	const trades =  querySnapshot.docs.map(documentSnapshot => {
 		const doc: ICryptoTradeDoc = documentSnapshot.data();
 		return {
 			currency: Currency.cad,
@@ -258,6 +258,10 @@ export const getCryptoTrades = async(): Promise<ICryptoTrade[]> => {
 			pnl: 0
 		};
 	});
+
+	setCryptoTradeGainsAndLosses(trades);
+
+	return trades;
 };
 
 export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
