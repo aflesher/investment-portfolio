@@ -42,6 +42,13 @@ interface IStockTemplateQuery {
 					openPnlUsd: number,
 					currentMarketValueCad: number,
 					currentMarketValueUsd: number,
+					positions: {
+						totalCost: number,
+						totalCostUsd: number,
+						totalCostCad: number,
+						currentMarketValueCad: number,
+						currentMarketValueUsd: number,
+					}[]
 				}
 				quote: {
 					price: number,
@@ -108,7 +115,8 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 		totalCostUsd: 0,
 		currentMarketValueUsd: 0,
 		currentMarketValueCad: 0,
-		averageEntryPrice: 0
+		averageEntryPrice: 0,
+		positions: []
 	};
 
 	const pAndLClosedCad = _.sumBy(trades, trade => trade.pnlCad || 0);
@@ -299,6 +307,28 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 								/>
 							</div>
 						</div>
+						{!!position?.positions.length &&
+						<div className='row font-weight-bold'>
+							<div className='col-6'>
+								Combined Value
+							</div>
+							<div className={classNames({
+								'col-6': true
+							})}>
+								<XE
+									cad={
+										position.currentMarketValueCad +
+										_.sumBy(position.positions, p => p.currentMarketValueCad)
+									}
+									usd={
+										position.currentMarketValueUsd 
+										+ _.sumBy(position.positions, p => p.currentMarketValueUsd)
+									}
+									currency={currency}
+								/>
+							</div>
+						</div>
+						}
 					</div>
 
 				</div>
@@ -336,7 +366,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 							minuses={assessment.minuses}
 							notes={assessment.notes}
 							questions={assessment.questions}
-							positionTotalCost={position?.totalCost || 0}
+							positionTotalCost={(position?.totalCost || 0) + _.sumBy(position?.positions, p => p.totalCostCad)}
 							targetInvestment={assessment.targetInvestment}
 							valuations={assessment.valuations}
 							name={''}
@@ -433,6 +463,15 @@ export const pageQuery = graphql`
 					openPnlUsd
 					currentMarketValueCad
 					currentMarketValueUsd
+					positions {
+						symbol
+						totalCost
+						totalCostUsd
+						totalCostCad
+						currentMarketValue
+						currentMarketValueCad
+						currentMarketValueUsd
+					}
 				}
 				quote {
 					price

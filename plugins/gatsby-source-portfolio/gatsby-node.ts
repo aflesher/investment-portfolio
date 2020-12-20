@@ -466,7 +466,8 @@ exports.sourceNodes = async (
 		dividends___NODE: string,
 		company___NODE: string,
 		quote___NODE: string,
-		assessment___NODE: string
+		assessment___NODE: string,
+		positions___NODE: string[]
 	}
 
 	const mapQuestradePositionToPosition = (
@@ -543,13 +544,25 @@ exports.sourceNodes = async (
 		);
 
 		return positions.map(position => {
+			const linkedPositions: string[] = [];
+
+			if (position.symbol === 'btc') {
+				linkedPositions.push(positionNodeIdsMap['qbtc.u.to']);
+				linkedPositions.push(positionNodeIdsMap['qbtc.to']);
+				linkedPositions.push(positionNodeIdsMap['gbtc']);
+			} else if (position.symbol === 'eth') {
+				linkedPositions.push(positionNodeIdsMap['qeth.u.to']);
+				linkedPositions.push(positionNodeIdsMap['qeth.to']);
+				linkedPositions.push(positionNodeIdsMap['qeth']);
+			}
 			const positionNode: IPositionNode = {
 				...position,
 				trades___NODE: tradeNodeIdsMap[position.symbol] || [],
 				dividends___NODE: dividendNodeIdsMap[position.symbol] || [],
 				company___NODE: companyNodeIdsMap[position.symbol] || null,
 				quote___NODE: quoteNodeIdsMap[position.symbol] || null,
-				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null
+				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null,
+				positions___NODE: _.filter(linkedPositions)
 			};
 
 			const content = JSON.stringify(positionNode);

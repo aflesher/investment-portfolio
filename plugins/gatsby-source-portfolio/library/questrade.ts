@@ -28,7 +28,7 @@ const ACCOUNT_LOOKUP = {
 const initDeferredPromise = util.deferredPromise();
 
 // use this to replace refresh token
-const overrideLoginToken = null; // 'h5kAC9rZI3k277QR6FrG25zSCwz4ftgO0';
+const overrideLoginToken = ''; // 'h5kAC9rZI3k277QR6FrG25zSCwz4ftgO0';
 
 const filteredPositions = ['ele.vn'];
 
