@@ -8,7 +8,6 @@ import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
 import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
-import { Quote } from '@primer/octicons-react';
 
 enum PostionsOrderBy {
 	symbol,
@@ -72,24 +71,25 @@ const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
 	currency
 });
 
-const getTotalCostCad = (position: IPositionNode): number => (
-	position.totalCostCad + _.sumBy(position.positions, p => p.totalCostCad)
-);
-
-const getCurrentValueCad = (position: IPositionNode): number => (
-	position.currentMarketValueCad + _.sumBy(position.positions, p => p.currentMarketValueCad)
-);
-
-const getTotalCostUsd = (position: IPositionNode): number => (
-	position.totalCostUsd + _.sumBy(position.positions, p => p.totalCostUsd)
-);
-
-const getCurrentValueUsd = (position: IPositionNode): number => (
-	position.currentMarketValueUsd + _.sumBy(position.positions, p => p.currentMarketValueUsd)
-);
-
 const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, data }) => {
 	const [orderBy, setOrderBy] = React.useState(PostionsOrderBy.profits);
+	const [combined, setCombined] = React.useState(true);
+
+	const getTotalCostCad = (position: IPositionNode): number => (
+		position.totalCostCad + (_.sumBy(position.positions, p => p.totalCostCad) * (combined ? 1 :0))
+	);
+	
+	const getCurrentValueCad = (position: IPositionNode): number => (
+		position.currentMarketValueCad + (_.sumBy(position.positions, p => p.currentMarketValueCad) * (combined ? 1 :0))
+	);
+	
+	const getTotalCostUsd = (position: IPositionNode): number => (
+		position.totalCostUsd + (_.sumBy(position.positions, p => p.totalCostUsd) * (combined ? 1 :0))
+	);
+	
+	const getCurrentValueUsd = (position: IPositionNode): number => (
+		position.currentMarketValueUsd + (_.sumBy(position.positions, p => p.currentMarketValueUsd) * (combined ? 1 :0))
+	);
 
 	const totalPositionValue = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueCad);
 	const totalPositionCost = _.sumBy(data.allPosition.nodes, p => p.totalCostCad);
@@ -102,7 +102,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 		.value();
 
 	const positions = _(data.allPosition.nodes)
-		.filter(position => !_.includes(filteredPositions, position.symbol))
+		.filter(position => !combined || !_.includes(filteredPositions, position.symbol))
 		.orderBy(position => {
 			switch (orderBy) {
 			case PostionsOrderBy.symbol:
@@ -123,8 +123,6 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 			}
 		}, orderBy == PostionsOrderBy.symbol ? 'asc' : 'desc')
 		.value();
-
-	
 
 	return (
 		<Layout>
@@ -160,12 +158,13 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 					<Position
 						key={position.symbol}
 						{...position}
+						symbol={position.symbol}
 						isFullPosition={true}
 						index={index + 1}
-						valueCad={position.currentMarketValueCad}
-						valueUsd={position.currentMarketValueUsd}
-						costCad={position.totalCostCad}
-						costUsd={position.totalCostUsd}
+						valueCad={getCurrentValueCad(position)}
+						valueUsd={getCurrentValueUsd(position)}
+						costCad={getTotalCostCad(position)}
+						costUsd={getTotalCostUsd(position)}
 						previousClosePrice={position.company.prevDayClosePrice}
 						price={position.quote.price}
 						name={position.company.name}
@@ -178,6 +177,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 						priceProgress={position.assessment?.targetPriceProgress}
 						activeCurrency={currency}
 						quoteCurrency={position.quote.currency}
+						symbolCharacter={combined && position.positions.length ? '*' : ''}
 					/>
 				))}
 				<div className='row'>
@@ -187,6 +187,11 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 							usd={totalPositionValueUsd - totalPositionCostUsd}
 							currency={currency}
 						/>
+					</div>
+				</div>
+				<div>
+					<div className='link' onClick={() => setCombined(!combined)}>
+						{combined && 'combined *' || 'not combined'}
 					</div>
 				</div>
 			</div>

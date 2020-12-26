@@ -26,7 +26,8 @@ export interface IStockQuoteStateProps {
 	priceProgress: number | undefined,
 	type: string,
 	activeCurrency: string,
-	quoteCurrency: string
+	quoteCurrency: string,
+	symbolCharacter?: string
 }
 
 function HoverComponent({ children }: { children: JSX.Element }): JSX.Element {
@@ -40,7 +41,6 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 	previousClosePrice,
 	price,
 	name,
-	assetCurrency,
 	marketCap,
 	quantity,
 	css,
@@ -52,7 +52,8 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 	priceProgress,
 	type,
 	activeCurrency,
-	quoteCurrency
+	quoteCurrency,
+	symbolCharacter
 }) => {
 	const marginTopAbove = '-145px';
 	const marginTopBelow = '30px';
@@ -119,7 +120,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
 			>
-				{symbol.substr(0, 8)}
+				{symbol.substr(0, 8) + (symbolCharacter || '')}
 			</Link>
 			{AppendedHoverComponent ? <AppendedHoverComponent>
 				<div style={_.assign(
