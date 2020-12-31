@@ -22,7 +22,7 @@ export default ({ element }): JSX.Element => {
 			projectId: config.firebase.projectId
 		});
 		
-		import('firebase/auth').then(() => {
+		Promise.all([import('firebase/auth'), import('firebase/firestore')]).then(() => {
 			firebase.auth().onAuthStateChanged(user => {
 				store.dispatch({type: SET_USER_ACTION, payload: user});
 				store.dispatch({type: SET_FIREBASE, payload: firebase});

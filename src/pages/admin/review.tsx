@@ -77,12 +77,12 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		setGrade('');
 	};
 
-	const loadReview = (year: string): void => {
+	const loadReview = (year: string, loadedReviews?: IFirebaseReview[]): void => {
 		if (!year) {
 			return setEmptyYear();
 		}
 
-		const review = _.find(reviews, q => q.year === Number(year));
+		const review = _.find(loadedReviews || reviews, q => q.year === Number(year));
 		if (!review) {
 			return setEmptyYear();
 		}
@@ -112,7 +112,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		);
 		
 		setReviews(reviews);
-		loadReview(year);
+		loadReview(year, reviews);
 	};
 
 	const saveReview = async () => {
