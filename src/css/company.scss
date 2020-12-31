@@ -26,9 +26,9 @@
 .irbt { @include companyBase(#64a70b, #fff, #64a70b); }
 .arkg { @include companyBase(#fff, #111370, #fff); }
 .weed-to { @include companyBase(#fff, #817d58, #fff); }
-.btc { @include companyBase(#fff, #f7941d, #fff); }
-.eth, .ethe { @include companyBase(#8b91b1, #e6e6e6, #464b75) }
-.scr-vn { @include companyBase(#fff, linear-gradient(180deg, rgba(0,87,174,1) 0%, rgba(0,33,78,1) 100%), #fda529); }
+.btc, .gbtc, .qbtc-to, .qbtc-u-to { @include companyBase(#fff, #f7941d, #fff); }
+.eth, .ethe, .qeth.to, .qeth-u-to { @include companyBase(#8b91b1, #e6e6e6, #464b75) }
+.scr-to { @include companyBase(#fff, linear-gradient(180deg, rgba(0,87,174,1) 0%, rgba(0,33,78,1) 100%), #fda529); }
 .sq { @include companyBase(#000, #fff, #000); }
 .gld { @include companyBase(#000, #d4af37, #000); }
 .roku { @include companyBase(#fff, #662d91, #fff); }
@@ -37,5 +37,10 @@
 .mana { @include companyBase(#e12973, linear-gradient(225deg, rgb(255, 57, 86) 0%, rgb(255, 170, 90) 100%), #ffc85b); }  
 .tcehy { @include companyBase(rgb(60, 139, 197), #fff, rgb(60, 139, 197)) }
 .art-vn { @include companyBase(#fff, rgb(9, 14, 20), linear-gradient(225deg, rgb(0, 141, 199) 0%, rgb(9, 51, 160) 100%)); }  
-.gbtc { @include companyBase(#000, #CCC, #000); }
 .msft { @include companyBase(#000, #fff, #000); }
+.twou { @include companyBase(#006bc4, #fff, #006bc4); }
+.otglf { @include companyBase(#000000, #f7f7f7, #d40019); }
+.glh-cn { @include companyBase(#fff, #12121b, #e28850); }
+.lulu { @include companyBase(#fff, #d31334, #fff); }
+.shop-to { @include companyBase(#fff, #90B944, #5B8A3C); }
+.gdnp-vn { @include companyBase(#fff, #62cbc9, #fff); }

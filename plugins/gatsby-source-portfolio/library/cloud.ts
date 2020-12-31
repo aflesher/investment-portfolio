@@ -85,6 +85,19 @@ export const getCustomTrades = (): ICloudTrade[] => ([
 		type: 'stock',
 		hash: '',
 		pnl: -1152		
+	},
+	{
+		symbol: 'trst.to',
+		date: new Date('2020-12-30'),
+		accountId: 26418215,
+		action: 'sell',
+		symbolId: 18521745,
+		currency: 'cad',
+		price: 0,
+		quantity: 480,
+		type: 'stock',
+		hash: '',
+		pnl: -4963.2		
 	}
 ]);
 

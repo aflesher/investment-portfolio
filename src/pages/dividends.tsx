@@ -49,7 +49,8 @@ interface IDividendsQueryProps {
 					currentMarketValueUsd: number
 				},
 				quote?: {
-					price: number
+					price: number,
+					currency: Currency
 				}
 			}[]
 		}
@@ -184,8 +185,8 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data
 						</div>
 					</div>
 				</div>
-				{dividends.map(dividend => (
-					<div className='row py-1 border-b' key={`${dividend.symbol}${dividend.timestamp}`}>
+				{dividends.map((dividend, index) => (
+					<div className='row py-1 border-b' key={`${dividend.symbol}${dividend.timestamp}${index}`}>
 						<div className='col-3'>
 							<StockHover
 								symbol={dividend.symbol}
@@ -203,6 +204,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data
 								valueUsd={dividend.position?.currentMarketValueUsd || 0}
 								price={dividend.quote?.price || 0}
 								type={dividend?.company?.type || AssetType.stock}
+								quoteCurrency={dividend?.quote?.currency || Currency.cad}
 							/>
 						</div>
 						<div className='col-3 text-right'>
@@ -268,6 +270,7 @@ export const pageQuery = graphql`
 				}
 				quote {
 					price
+					currency
 				}
 				position {
 					quantity

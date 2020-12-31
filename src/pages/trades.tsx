@@ -40,7 +40,8 @@ interface ITradeQuery {
 				quote: {
 					price: number,
 					priceUsd: number,
-					priceCad: number
+					priceCad: number,
+					currency: Currency
 				},
 				assessment?: {
 					targetInvestmentProgress: number,
@@ -217,6 +218,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 							valueCad={trade.position?.currentMarketValueCad || 0}
 							valueUsd={trade.position?.currentMarketValueUsd || 0}
 							activeCurrency={currency}
+							quoteCurrency={trade.quote.currency}
 						/>
 					))}
 				</div>
@@ -262,6 +264,7 @@ export const pageQuery = graphql`
 					price
 					priceUsd
 					priceCad
+					currency
 				}
 				position {
 					quantity

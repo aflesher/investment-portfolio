@@ -81,7 +81,8 @@ interface ILayoutGraphQL {
 			quote: {
 				price: number,
 				priceCad: number,
-				priceUsd: number
+				priceUsd: number,
+				currency: Currency
 			},
 			assessment?: {
 				targetInvestmentProgress: number,
@@ -112,7 +113,8 @@ interface ILayoutGraphQL {
 			quote: {
 				price: number,
 				priceUsd: number,
-				priceCad: number
+				priceCad: number,
+				currency: Currency
 			},
 			assessment?: {
 				targetInvestmentProgress: number,
@@ -149,7 +151,8 @@ interface ILayoutGraphQL {
 			quote: {
 				price: number,
 				priceUsd: number,
-				priceCad: number
+				priceCad: number,
+				currency: Currency
 			},
 			assessment?: {
 				targetInvestmentProgress: number,
@@ -198,6 +201,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 							price
 							priceCad
 							priceUsd
+							currency
 						}
 						company {
 							prevDayClosePrice
@@ -239,6 +243,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 							price
 							priceUsd
 							priceCad
+							currency
 						}
 						position {
 							quantity
@@ -276,6 +281,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 							price
 							priceUsd
 							priceCad
+							currency
 						}
 						position {
 							quantity
@@ -325,7 +331,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					percentageOfPortfolio: position.currentMarketValueCad / portfolioValue,
 					activeCurrency: currency,
 					shareProgress: position.assessment?.targetInvestmentProgress || 0,
-					priceProgress: position.assessment?.targetPriceProgress || 0
+					priceProgress: position.assessment?.targetPriceProgress || 0,
+					quoteCurrency: position.quote.currency
 				}
 			));
 		
@@ -348,7 +355,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					costCad: trade.position?.totalCostCad || 0,
 					costUsd: trade.position?.totalCostUsd || 0,
 					isSell: trade.action === 'sell',
-					type: trade.type
+					type: trade.type,
+					quoteCurrency: trade.quote.currency
 				}
 			));
 
@@ -371,7 +379,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					costUsd: dividend.position?.totalCostUsd || 0,
 					symbol: dividend.company.symbol,
 					type: AssetType.stock,
-					quantity: dividend.position?.quantity || 0
+					quantity: dividend.position?.quantity || 0,
+					quoteCurrency: dividend.quote.currency
 				}
 			));
 

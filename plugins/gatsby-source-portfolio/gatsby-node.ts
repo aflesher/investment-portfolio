@@ -1,15 +1,15 @@
 /* global console */
-import _ from'lodash';
-import crypto from'crypto';
-import path from'path';
-import moment from'moment';
+import _ from 'lodash';
+import crypto from 'crypto';
+import path from 'path';
+import moment from 'moment';
 
-import * as exchange from'./library/exchange';
-import * as firebase from'./library/firebase';
-import * as questrade from'./library/questrade';
-import * as questradeCloud from'./library/questrade-cloud';
-import * as cloud from'./library/cloud';
-import * as coinmarketcap from'./library/coinmarketcap';
+import * as exchange from './library/exchange';
+import * as firebase from './library/firebase';
+import * as questrade from './library/questrade';
+import * as questradeCloud from './library/questrade-cloud';
+import * as cloud from './library/cloud';
+import * as coinmarketcap from './library/coinmarketcap';
 import { IAssessment } from '../../src/utils/assessment';
 import { AssetType, Currency } from '../../src/utils/enum';
 import { IQuote } from '../../src/utils/quote';
@@ -466,7 +466,8 @@ exports.sourceNodes = async (
 		dividends___NODE: string,
 		company___NODE: string,
 		quote___NODE: string,
-		assessment___NODE: string
+		assessment___NODE: string,
+		positions___NODE: string[]
 	}
 
 	const mapQuestradePositionToPosition = (
@@ -543,13 +544,25 @@ exports.sourceNodes = async (
 		);
 
 		return positions.map(position => {
+			const linkedPositions: string[] = [];
+
+			if (position.symbol === 'btc') {
+				linkedPositions.push(positionNodeIdsMap['qbtc.u.to']);
+				linkedPositions.push(positionNodeIdsMap['qbtc.to']);
+				linkedPositions.push(positionNodeIdsMap['gbtc']);
+			} else if (position.symbol === 'eth') {
+				linkedPositions.push(positionNodeIdsMap['qeth.u.to']);
+				linkedPositions.push(positionNodeIdsMap['qeth.to']);
+				linkedPositions.push(positionNodeIdsMap['qeth']);
+			}
 			const positionNode: IPositionNode = {
 				...position,
 				trades___NODE: tradeNodeIdsMap[position.symbol] || [],
 				dividends___NODE: dividendNodeIdsMap[position.symbol] || [],
 				company___NODE: companyNodeIdsMap[position.symbol] || null,
 				quote___NODE: quoteNodeIdsMap[position.symbol] || null,
-				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null
+				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null,
+				positions___NODE: _.filter(linkedPositions)
 			};
 
 			const content = JSON.stringify(positionNode);
@@ -616,9 +629,9 @@ exports.sourceNodes = async (
 		priceCad: trade.price,
 		priceUsd: trade.price * cadRate,
 		timestamp: trade.timestamp,
-		pnl: 0,
-		pnlCad: 0,
-		pnlUsd: 0,
+		pnl: trade.pnl,
+		pnlCad: trade.pnl,
+		pnlUsd: trade.pnl * cadRate,
 		currency: Currency.cad,
 		price: trade.price,
 		quantity: trade.quantity,

@@ -28,9 +28,9 @@ const ACCOUNT_LOOKUP = {
 const initDeferredPromise = util.deferredPromise();
 
 // use this to replace refresh token
-const overrideLoginToken = null; // 'h5kAC9rZI3k277QR6FrG25zSCwz4ftgO0';
+const overrideLoginToken = ''; // 'h5kAC9rZI3k277QR6FrG25zSCwz4ftgO0';
 
-const filteredPositions = ['ele.vn'];
+const filteredPositions = ['ele.vn', 'trst.to'];
 
 const getLoginInfo = async (): Promise<void> => {
 	const auth = await firebase.getQuestradeAuth();
@@ -122,7 +122,6 @@ const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] =
 			position.totalCost += symbolPosition.totalCost;
 			position.openQuantity += symbolPosition.openQuantity;
 			position.averageEntryPrice = position.totalCost / position.openQuantity;
-			position.openQuantity += symbolPosition.openQuantity;
 			position.openPnl += symbolPosition.openPnl;
 		});
 		// @ts-ignore

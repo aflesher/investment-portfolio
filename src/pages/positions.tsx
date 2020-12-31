@@ -19,36 +19,46 @@ enum PostionsOrderBy {
 	cashProfits
 }
 
+interface IPositionNode {
+	currency: Currency,
+	totalCostCad: number,
+	totalCostUsd: number,
+	currentMarketValueCad: number,
+	currentMarketValueUsd: number,
+	quantity: number,
+	averageEntryPrice: number,
+	symbol: string,
+	type: AssetType,
+	quote: {
+		price: number,
+		priceCad: number,
+		priceUsd: number,
+		currency: Currency
+	}
+	company: {
+		pe: number,
+		yield: number,
+		prevDayClosePrice: number,
+		marketCap: number,
+		name: string
+	}
+	assessment?: {
+		targetInvestmentProgress: number,
+		targetPriceProgress: number
+	}
+	positions: {
+		symbol: string,
+		totalCostCad: number,
+		totalCostUsd: number,
+		currentMarketValueCad: number,
+		currentMarketValueUsd: number
+	}[]
+}
+
 interface IPositionsQuery {
 	data: {
 		allPosition: {
-			nodes: {
-				currency: Currency,
-				totalCostCad: number,
-				totalCostUsd: number,
-				currentMarketValueCad: number,
-				currentMarketValueUsd: number,
-				quantity: number,
-				averageEntryPrice: number,
-				symbol: string,
-				type: AssetType,
-				quote: {
-					price: number,
-					priceCad: number,
-					priceUsd: number,
-				}
-				company: {
-					pe: number,
-					yield: number,
-					prevDayClosePrice: number,
-					marketCap: number,
-					name: string
-				}
-				assessment?: {
-					targetInvestmentProgress: number,
-					targetPriceProgress: number
-				}
-			}[]
+			nodes: IPositionNode[]
 		}
 	}
 }
@@ -63,31 +73,56 @@ const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
 
 const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, data }) => {
 	const [orderBy, setOrderBy] = React.useState(PostionsOrderBy.profits);
+	const [combined, setCombined] = React.useState(true);
+
+	const getTotalCostCad = (position: IPositionNode): number => (
+		position.totalCostCad + (_.sumBy(position.positions, p => p.totalCostCad) * (combined ? 1 :0))
+	);
+	
+	const getCurrentValueCad = (position: IPositionNode): number => (
+		position.currentMarketValueCad + (_.sumBy(position.positions, p => p.currentMarketValueCad) * (combined ? 1 :0))
+	);
+	
+	const getTotalCostUsd = (position: IPositionNode): number => (
+		position.totalCostUsd + (_.sumBy(position.positions, p => p.totalCostUsd) * (combined ? 1 :0))
+	);
+	
+	const getCurrentValueUsd = (position: IPositionNode): number => (
+		position.currentMarketValueUsd + (_.sumBy(position.positions, p => p.currentMarketValueUsd) * (combined ? 1 :0))
+	);
 
 	const totalPositionValue = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueCad);
 	const totalPositionCost = _.sumBy(data.allPosition.nodes, p => p.totalCostCad);
 	const totalPositionValueUsd = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueUsd);
 	const totalPositionCostUsd = _.sumBy(data.allPosition.nodes, p => p.totalCostUsd);
+	const filteredPositions = _(data.allPosition.nodes)
+		.map(p => p.positions.map(q => q.symbol))
+		.flatten()
+		.uniq()
+		.value();
 
-	const positions = _.orderBy(data.allPosition.nodes, position => {
-		switch (orderBy) {
-		case PostionsOrderBy.symbol:
-			return position.symbol;
-		case PostionsOrderBy.profits:
-			return (position.currentMarketValueCad - position.totalCostCad) /
-				position.totalCostCad;
-		case PostionsOrderBy.position:
-			return position.currentMarketValueCad / totalPositionValue;
-		case PostionsOrderBy.investment:
-			return position.totalCostCad / totalPositionCost;
-		case PostionsOrderBy.pe:
-			return position.company.pe;
-		case PostionsOrderBy.dividendYield:
-			return position.company.yield;
-		case PostionsOrderBy.cashProfits:
-			return position.currentMarketValueCad - position.totalCostCad;
-		}
-	}, orderBy == PostionsOrderBy.symbol ? 'asc' : 'desc');
+	const positions = _(data.allPosition.nodes)
+		.filter(position => !combined || !_.includes(filteredPositions, position.symbol))
+		.orderBy(position => {
+			switch (orderBy) {
+			case PostionsOrderBy.symbol:
+				return position.symbol;
+			case PostionsOrderBy.profits:
+				return (getCurrentValueCad(position) - getTotalCostCad(position)) /
+				getTotalCostCad(position);
+			case PostionsOrderBy.position:
+				return getCurrentValueCad(position) / totalPositionValue;
+			case PostionsOrderBy.investment:
+				return getTotalCostCad(position) / totalPositionCost;
+			case PostionsOrderBy.pe:
+				return position.company.pe;
+			case PostionsOrderBy.dividendYield:
+				return position.company.yield;
+			case PostionsOrderBy.cashProfits:
+				return getCurrentValueCad(position) - getTotalCostCad(position);
+			}
+		}, orderBy == PostionsOrderBy.symbol ? 'asc' : 'desc')
+		.value();
 
 	return (
 		<Layout>
@@ -123,23 +158,26 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 					<Position
 						key={position.symbol}
 						{...position}
+						symbol={position.symbol}
 						isFullPosition={true}
 						index={index + 1}
-						valueCad={position.currentMarketValueCad}
-						valueUsd={position.currentMarketValueUsd}
-						costCad={position.totalCostCad}
-						costUsd={position.totalCostUsd}
+						valueCad={getCurrentValueCad(position)}
+						valueUsd={getCurrentValueUsd(position)}
+						costCad={getTotalCostCad(position)}
+						costUsd={getTotalCostUsd(position)}
 						previousClosePrice={position.company.prevDayClosePrice}
 						price={position.quote.price}
 						name={position.company.name}
 						assetCurrency={position.currency}
 						marketCap={position.company.marketCap}
-						percentageOfPortfolio={position.currentMarketValueCad / totalPositionValue}
-						percentageOfInvestment={position.totalCostCad / totalPositionCost}
+						percentageOfPortfolio={getCurrentValueCad(position) / totalPositionValue}
+						percentageOfInvestment={getTotalCostCad(position) / totalPositionCost}
 						classes={['colored-row']}
 						shareProgress={position.assessment?.targetInvestmentProgress || 0}
 						priceProgress={position.assessment?.targetPriceProgress}
 						activeCurrency={currency}
+						quoteCurrency={position.quote.currency}
+						symbolCharacter={combined && position.positions.length ? '*' : ''}
 					/>
 				))}
 				<div className='row'>
@@ -149,6 +187,11 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 							usd={totalPositionValueUsd - totalPositionCostUsd}
 							currency={currency}
 						/>
+					</div>
+				</div>
+				<div>
+					<div className='link' onClick={() => setCombined(!combined)}>
+						{combined && 'combined *' || 'not combined'}
 					</div>
 				</div>
 			</div>
@@ -174,6 +217,7 @@ export const pageQuery = graphql`
 				quote {
 					price
 					priceCad
+					currency
 				}
 				company {
 					pe
@@ -185,6 +229,13 @@ export const pageQuery = graphql`
 				assessment {
 					targetInvestmentProgress
 					targetPriceProgress
+				}
+				positions {
+					symbol
+					totalCostCad
+					totalCostUsd
+					currentMarketValueCad
+					currentMarketValueUsd
 				}
 			}
 		}

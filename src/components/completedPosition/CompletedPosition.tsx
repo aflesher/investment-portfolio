@@ -21,7 +21,7 @@ const CompletedPosition: React.FC<ICompletePositionStateProps> = ({
 	symbol, price, previousClosePrice, name, assetCurrency, marketCap, quantity, costCad,
 	costUsd, quantityBought, avgPricePaid, avgPriceSold, valueUsd, valueCad,
 	activeCurrency, pnlCad, pnlUsd, pnlPercentage, openedTimestamp, closedTimestamp, shareProgress,
-	priceProgress, type
+	priceProgress, type, quoteCurrency
 }) => {
 	return (
 		<tr className='colored-row'>
@@ -43,6 +43,7 @@ const CompletedPosition: React.FC<ICompletePositionStateProps> = ({
 					valueUsd={valueUsd}
 					activeCurrency={activeCurrency}
 					type={type}
+					quoteCurrency={quoteCurrency}
 				/>
 			</td>
 			<td className='text-right'>

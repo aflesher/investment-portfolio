@@ -98,7 +98,6 @@ const CompletedPositions: React.FC<ICompletedPositionsStateProps & ICompletedPos
 			_.find(runningCompletedPositions, q => q.symbol === trade.symbol);
 		if (!completedPosition) {
 			completedPosition = {
-				symbol: trade.symbol,
 				avgPricePaid: 0,
 				quantityBought: 0,
 				avgPriceSold: 0,
@@ -120,7 +119,8 @@ const CompletedPositions: React.FC<ICompletedPositionsStateProps & ICompletedPos
 				activeCurrency: currency,
 				shareProgress: trade.assessment?.targetInvestmentProgress || 0,
 				priceProgress: trade.assessment?.targetPriceProgress || 0,
-				type: trade.assessment?.type || AssetType.stock
+				type: trade.assessment?.type || AssetType.stock,
+				quoteCurrency: trade.quote.currency
 			};
 			runningCompletedPositions.push(completedPosition);
 		}
