@@ -30,7 +30,7 @@ const initDeferredPromise = util.deferredPromise();
 // use this to replace refresh token
 const overrideLoginToken = ''; // 'h5kAC9rZI3k277QR6FrG25zSCwz4ftgO0';
 
-const filteredPositions = ['ele.vn'];
+const filteredPositions = ['ele.vn', 'trst.to'];
 
 const getLoginInfo = async (): Promise<void> => {
 	const auth = await firebase.getQuestradeAuth();
