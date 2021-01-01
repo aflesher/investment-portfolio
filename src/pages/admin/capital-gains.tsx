@@ -29,7 +29,16 @@ interface ICapitalGainsQuery {
 	}
 }
 
-export const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
+interface ICapitalGains {
+	cost: number,
+	proceeds: number,
+	symbol: string,
+	shares: number
+}
+
+const years = [2019, 2020];
+
+const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	const [year, setYear] = React.useState(new Date().getFullYear());
 	const ratesMap: {[key: string]: number} = {};
 	data.allExchangeRate.nodes.forEach(rate => {
@@ -37,86 +46,120 @@ export const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	});
 
 	const getConversion = (trade: {currency: Currency, price: number, timestamp: number}): number => {
+		if (trade.currency === Currency.cad) {
+			return 1;
+		}
 		const date = moment(trade.timestamp).startOf('day').format('YYYY-MM-DD');
 		return ratesMap[date];
 	};
 
-	const trades = data.allTrade.nodes.map(trade => ({
-		...trade,
-		priceCad: trade.currency === Currency.cad ? trade.price : getConversion(trade)
-	}));
+	const trades = data.allTrade.nodes
+		.map(trade => ({
+			...trade,
+			priceCad: trade.currency === Currency.cad ? trade.price : getConversion(trade)
+		}));
 
-	
-	render() {
-		const capitalGains = _.filter(this.trades, trade => {
-			return trade.action == 'sell' && this.state.year == new Date(trade.date).getFullYear();
+	const groupedTrades = _.groupBy(trades, t => t.symbol);
+	const filteredGroupedTrades = _.filter(
+		groupedTrades,
+		trades => !!_.find(trades, t => t.action === 'sell' && moment(t.timestamp).year() === year && !t.symbol.match(/dlr/))
+	);
+
+	console.log(filteredGroupedTrades);
+
+	const capitalGains: ICapitalGains[] = [];
+
+	_.forEach(filteredGroupedTrades, trades => {
+		const orderedTrades = _.orderBy(trades, t => t.timestamp);
+		let shares = 0;
+		let cost = 0;
+
+		orderedTrades.forEach(t => {
+			if (t.action === 'buy') {
+				cost += t.quantity * t.price * getConversion(t);
+				shares += t.quantity;
+			} else {
+				const proceeds = t.quantity * t.price * getConversion(t);
+				console.log(cost,  shares * t.quantity);
+				const tradeCost = (cost / shares) * t.quantity;
+				if (moment(t.timestamp).year() === year) {
+					capitalGains.push({
+						proceeds,
+						cost: tradeCost,
+						symbol: t.symbol,
+						shares: t.quantity
+					});
+				}
+				cost -= tradeCost;
+				shares -= t.quantity;
+			}
 		});
+	});
 
-		const totalGains = _.sumBy(capitalGains, 'gains');
-		const totalProceeds = _.sumBy(capitalGains, 'proceeds');
-		const totalCost = _.sumBy(capitalGains, 'cost');
-		const rows = capitalGains.map((capitalGain, i) =>
-			<div className='row' key={i}>
-				<div className='col-2'>{capitalGain.symbol}</div>
-				<div className='col-2'>{numeral(capitalGain.quantity).format('0,0')}</div>
-				<div className='col-2'>{numeral(capitalGain.cost).format('$0,0.00')}</div>
-				<div className='col-2'>{numeral(capitalGain.proceeds).format('$0,0.00')}</div>
-				<div className='col-2'>{numeral(capitalGain.gains).format('$0,0.00')}</div>
-			</div>
-		);
+	console.log(capitalGains);
 
-		return (
-			<Layout>
-				<div className='p-4'>
-					<div className='row'>
-						<div className='col-md-3'>
-							<div className='form-group'>
-								<label htmlFor='shares'>Year</label>
-								<select
-									name='year'
-									value={this.state.year}
-									onChange={e => this.setState({year: parseInt(e.target.value)})}
-									className='form-control'
-								>
-									{this.years.map(year =>
-										<option key={year} value={year}>
-											{year}
-										</option>
-									)}
-								</select>
-							</div>
-						</div>
-					</div>
-					<div className='row font-weight-bold border-b mb-2 pb-2'>
-						<div className='col-2'>Symbol</div>
-						<div className='col-2'>Shares</div>
-						<div className='col-2'>Cost</div>
-						<div className='col-2'>Proceeds</div>
-						<div className='col-2'>Gains</div>
-					</div>
-					{rows}
-					<div className='row font-weight-bold border-t pt-2 mt-2'>
-						<div className='col-2 offset-4'>
-							{numeral(totalCost).format('$0,0.00')}
-						</div>
-						<div className='col-2'>
-							{numeral(totalProceeds).format('$0,0.00')}
-						</div>
-						<div className='col-2'>
-							{numeral(totalGains).format('$0,0.00')}
+	return (
+		<Layout>
+			<div className='p-4'>
+				<div className='row'>
+					<div className='col-md-3'>
+						<div className='form-group'>
+							<label htmlFor='shares'>Year</label>
+							<select
+								name='year'
+								value={year}
+								onChange={e => setYear(parseInt(e.target.value))}
+								className='form-control'
+							>
+								{years.map(year =>
+									<option key={year} value={year}>
+										{year}
+									</option>
+								)}
+							</select>
 						</div>
 					</div>
 				</div>
-			</Layout>
-		);
-	}
-}
+				<div className='row font-weight-bold border-b mb-2 pb-2'>
+					<div className='col-2'>Symbol</div>
+					<div className='col-2'>Shares</div>
+					<div className='col-2'>Cost</div>
+					<div className='col-2'>Proceeds</div>
+					<div className='col-2'>Gains</div>
+				</div>
+				{capitalGains.map((c, i) => (
+					<div className='row' key={i}>
+						<div className='col-2'>{c.symbol}</div>
+						<div className='col-2'>{numeral(c.shares).format('0,0')}</div>
+						<div className='col-2'>{numeral(c.cost).format('$0,0.00')}</div>
+						<div className='col-2'>{numeral(c.proceeds).format('$0,0.00')}</div>
+						<div className='col-2'>{numeral(c.proceeds - c.cost).format('$0,0.00')}</div>
+					</div>
+				))}
+				<div className='row font-weight-bold border-t pt-2 mt-2'>
+					<div className='col-2 offset-4'>
+						{numeral(_.sumBy(capitalGains, c => c.cost)).format('$0,0.00')}
+					</div>
+					<div className='col-2'>
+						{numeral(_.sumBy(capitalGains, c => c.proceeds)).format('$0,0.00')}
+					</div>
+					<div className='col-2'>
+						{numeral(
+							_.sumBy(capitalGains, c => c.proceeds) -
+							_.sumBy(capitalGains, c => c.cost)
+						).format('$0,0.00')}
+					</div>
+				</div>
+			</div>
+		</Layout>
+	);
+};
 
 export default CapitalGains;
 
 export const pageQuery = graphql`
 query {
-	allTrade(filter: {accountId: {eq: "26418215"}}) {
+	allTrade(filter: {accountId: {eq: 26418215}}) {
 		nodes {
 			symbol
 			quantity
