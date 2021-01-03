@@ -13,7 +13,7 @@ import XE from '../components/xe/XE';
 import Order from '../components/order/Order';
 import Assessment from '../components/assessment/Assessment';
 import Trade from '../components/trade/Trade';
-import { formatDate, marketCap, assetLink } from '../utils/util';
+import { formatDate, marketCap, assetLink, coinsPerShare } from '../utils/util';
 
 interface IStockTemplateStateProps {
 	currency: Currency
@@ -43,11 +43,13 @@ interface IStockTemplateQuery {
 					currentMarketValueCad: number,
 					currentMarketValueUsd: number,
 					positions: {
+						symbol: string,
 						totalCost: number,
 						totalCostUsd: number,
 						totalCostCad: number,
 						currentMarketValueCad: number,
 						currentMarketValueUsd: number,
+						quantity: number
 					}[]
 				}
 				quote: {
@@ -219,6 +221,19 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 								{numeral(position?.quantity).format(company.type === 'crypto' ? '0,0.0000' : '0,0')}
 							</div>
 						</div>
+						{!!position?.positions.length &&
+						<div className='row font-weight-bold'>
+							<div className='col-6'>
+								Combined Coins
+							</div>
+							<div className={classNames({
+								'col-6': true
+							})}>
+								{position.quantity +
+										_.sumBy(position.positions, p => p.quantity * coinsPerShare(p.symbol))}
+							</div>
+						</div>
+						}
 						<div className='row font-weight-bold'>
 							<div className='col-6'>Open P & L %</div>
 							<div className={classNames({
@@ -470,6 +485,7 @@ export const pageQuery = graphql`
 						totalCostCad
 						currentMarketValue
 						currentMarketValueCad
+						quantity
 						currentMarketValueUsd
 					}
 				}

@@ -62,10 +62,13 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	const groupedTrades = _.groupBy(trades, t => t.symbol);
 	const filteredGroupedTrades = _.filter(
 		groupedTrades,
-		trades => !!_.find(trades, t => t.action === 'sell' && moment(t.timestamp).year() === year && !t.symbol.match(/dlr/))
+		trades => !!_.find(
+			trades,
+			t => t.action === 'sell' && moment(t.timestamp).year() === year && !t.symbol.match(/dlr/)
+		)
 	);
 
-	console.log(filteredGroupedTrades);
+	console.log(ratesMap);
 
 	const capitalGains: ICapitalGains[] = [];
 
@@ -80,7 +83,6 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 				shares += t.quantity;
 			} else {
 				const proceeds = t.quantity * t.price * getConversion(t);
-				console.log(cost,  shares * t.quantity);
 				const tradeCost = (cost / shares) * t.quantity;
 				if (moment(t.timestamp).year() === year) {
 					capitalGains.push({
@@ -95,8 +97,6 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 			}
 		});
 	});
-
-	console.log(capitalGains);
 
 	return (
 		<Layout>

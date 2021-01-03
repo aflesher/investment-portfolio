@@ -61,3 +61,17 @@ export const coinMarketCapLink = (name: string): string => {
 export const assetLink = (symbol: string, companyName: string, type: AssetType): string => {
 	return type === AssetType.stock ? yahooFinanceLink(symbol) : coinMarketCapLink(companyName); 
 };
+
+export const coinsPerShare = (symbol: string): number => {
+	switch (symbol.toUpperCase()) {
+	case 'GBTC':
+		return 0.00095023;
+	case 'QBTC.TO':
+	case 'QBTC.U.TO':
+		return 0.001112;
+	case 'QETH.U.TO':
+		return 0.01777;
+	default:
+		return 0;
+	}
+};
