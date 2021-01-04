@@ -1,5 +1,6 @@
 import numeral from 'numeral';
 import moment from 'moment-timezone';
+import _ from 'lodash';
 import { AssetType } from './enum';
 
 export const displayMarketCap = (value: number): string => numeral(value).format('$1.00 a');
@@ -74,4 +75,23 @@ export const coinsPerShare = (symbol: string): number => {
 	default:
 		return 0;
 	}
+};
+
+export const cryptoPermium = (
+	stock: {symbol: string, priceCad: number},
+	btcPriceCad: number,
+	ethPriceCad: number
+): number => {
+	const cps = coinsPerShare(stock.symbol);
+
+	if (!cps) {
+		return 0;
+	}
+
+	const price = _.includes(['QETH.U.TO'], stock.symbol.toUpperCase()) ? ethPriceCad : btcPriceCad;
+	const nav = cps * price;
+
+	console.log(cps, price, nav, stock.priceCad);
+
+	return (stock.priceCad - nav) / nav;
 };

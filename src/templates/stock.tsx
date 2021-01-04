@@ -13,7 +13,7 @@ import XE from '../components/xe/XE';
 import Order from '../components/order/Order';
 import Assessment from '../components/assessment/Assessment';
 import Trade from '../components/trade/Trade';
-import { formatDate, marketCap, assetLink, coinsPerShare } from '../utils/util';
+import { formatDate, marketCap, assetLink, coinsPerShare, cryptoPermium } from '../utils/util';
 
 interface IStockTemplateStateProps {
 	currency: Currency
@@ -93,6 +93,14 @@ interface IStockTemplateQuery {
 				}[]
 			}[]
 		}
+		allQuote: {
+			nodes: {
+				symbol: string,
+				price: number,
+				priceCad: number,
+				priceUsd: number,
+			}[]
+		}
 	}
 }
 
@@ -102,6 +110,9 @@ const mapStateToProps = ({currency}: IStoreState): IStockTemplateStateProps => (
 
 const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, currency }) => {
 	const company = data.allCompany.nodes[0];
+	const cryptoQuotes = data.allQuote.nodes;
+	const btcQuote = _.find(cryptoQuotes, q => q.symbol === 'btc');
+	const ethQuote = _.find(cryptoQuotes, q => q.symbol === 'eth');
 	const { quote, assessment, trades, dividends } = company;
 	const position = company.position ||
 	{
@@ -130,7 +141,12 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 	const openingTrade = _.find(trades, t => t.isOpeningPositionTrade);
 	const openingSharePrice = openingTrade?.price || 0;
 	const openingToAverageSharePrice = (position.averageEntryPrice - openingSharePrice) / openingSharePrice;
-
+	const coins = coinsPerShare(company.symbol);
+	const premium = cryptoPermium(
+		{symbol: company.symbol, priceCad: quote.priceCad},
+		btcQuote?.priceCad || 0,
+		ethQuote?.priceCad || 0
+	);
 
 	return (
 		<Layout>
@@ -221,6 +237,22 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 								{numeral(position?.quantity).format(company.type === 'crypto' ? '0,0.0000' : '0,0')}
 							</div>
 						</div>
+						{!!coins &&
+						<React.Fragment>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Coins</div>
+								<div className='col-6'>
+									{numeral(position?.quantity * coins).format('0,0.0000')}
+								</div>
+							</div>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Premium</div>
+								<div className='col-6'>
+									{numeral(premium).format('0.00%')}
+								</div>
+							</div>
+						</React.Fragment>
+						}
 						{!!position?.positions.length &&
 						<div className='row font-weight-bold'>
 							<div className='col-6'>
@@ -533,6 +565,14 @@ export const pageQuery = graphql`
 					action
 					accountName
 				}
+			}
+		}
+		allQuote(filter: {type: {eq: "crypto"}}) {
+			nodes {
+				symbol
+				price
+				priceCad
+				priceUsd
 			}
 		}
 	}

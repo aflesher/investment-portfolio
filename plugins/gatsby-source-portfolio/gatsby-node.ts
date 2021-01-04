@@ -131,7 +131,7 @@ const hash = (content: string): string => {
 		.digest('hex');
 };
 
-const isUsd = (symbol: string): boolean => (symbol.indexOf('.') === -1);
+const isUsd = (symbol: string): boolean => (symbol.indexOf('.') === -1 || symbol.indexOf('.u.') !== -1);
 
 exports.createSchemaCustomization = ({ actions }) => {
 	const { createTypes } = actions;
