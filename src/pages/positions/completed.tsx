@@ -96,6 +96,9 @@ const CompletedPositions: React.FC<ICompletedPositionsStateProps & ICompletedPos
 	data.allTrade.nodes.forEach(trade => {
 		let completedPosition: ICompletedPosition | undefined =
 			_.find(runningCompletedPositions, q => q.symbol === trade.symbol);
+		if (!trade.company) {
+			return;
+		}
 		if (!completedPosition) {
 			completedPosition = {
 				avgPricePaid: 0,
