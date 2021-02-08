@@ -63,6 +63,9 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 	const totalUsd = equityUsd + cashUsd;
 	const totalCad = equityCad + cashCad;
 
+	const pnlUsd = openPnlUsd + closedPnlUsd + dividendsUsd;
+	const pnlCad = openPnlCad + closedPnlCad + dividendsCad;
+
 	return (
 		<Layout>
 			<div className='p-4 text-right'>
@@ -113,6 +116,20 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 					<div className='col-3'>{numeral(openPnlCad).format('$0,0')}</div>
 					<div className='col-3'>{numeral(closedPnlCad).format('$0,0')}</div>
 					<div className='col-3'>{numeral(dividendsCad).format('$0,0')}</div>
+				</div>
+			</div>
+			<div className='p-4 text-right'>
+				<div className='row font-weight-bold border-b mb-2 pb-2'>
+					<div className='col-3'>Cur.</div>
+					<div className='offset-6 col-3'>PnL</div>
+				</div>
+				<div className='row'>
+					<div className='col-3'>USD</div>
+					<div className='offset-6 col-3'>{numeral(pnlUsd).format('$0,0')}</div>
+				</div>
+				<div className='row'>
+					<div className='col-3'>CAD</div>
+					<div className='offset-6 col-3'>{numeral(pnlCad).format('$0,0')}</div>
 				</div>
 			</div>
 		</Layout>
