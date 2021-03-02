@@ -47,3 +47,5 @@
 .bb-to { @include companyBase(#000, #fff, #000); }
 .ipof { @include companyBase(#fff, #2bbeeb, rgb(15, 12, 27)); }
 .tigr { @include companyBase(#ffe100, #000, #ffe100); }
+.avax { @include companyBase(#fff, #e84142, #000); }
+.ada { @include companyBase(rgb(0, 51, 173), #fff, rgb(0, 51, 173)); }
