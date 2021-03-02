@@ -60,7 +60,9 @@ export const symbolToSlug = (symbol: string): string => {
 		xmr: 'monero',
 		neo: 'neo',
 		nano: 'nano',
-		mana: 'decentraland'
+		mana: 'decentraland',
+		ada: 'cardano',
+		avax: 'avalanche'
 	};
 
 	return lookup[symbol];
