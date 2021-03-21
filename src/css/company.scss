@@ -1,3 +1,5 @@
+@import "./images.scss";
+
 .company-banner {
   > div {
     height: 4px;
@@ -49,3 +51,4 @@
 .tigr { @include companyBase(#ffe100, #000, #ffe100); }
 .avax { @include companyBase(#fff, #e84142, #000); }
 .ada { @include companyBase(rgb(0, 51, 173), #fff, rgb(0, 51, 173)); }
+.rblx { @include companyBase(#fff, url($roblox) center / cover no-repeat, #fff); }

@@ -62,7 +62,9 @@ export const symbolToSlug = (symbol: string): string => {
 		nano: 'nano',
 		mana: 'decentraland',
 		ada: 'cardano',
-		avax: 'avalanche'
+		avax: 'avalanche',
+		nexo: 'nexo',
+		cel: 'celsius'
 	};
 
 	return lookup[symbol];

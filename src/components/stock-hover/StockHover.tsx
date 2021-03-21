@@ -153,13 +153,13 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 								({numeral(profitsLossesPercentage).format('0.00%')})
 							</span>
 							<div className='text-sub pt-1 row'>
-								<div className='col-6'>
+								<div className='col-6 text-nowrap'>
 									Market Cap:&nbsp;
 									<span className='font-weight-bold text-uppercase'>
 										{displayMarketCap(marketCap)}
 									</span>
 								</div>
-								<div className='col-6'>
+								<div className='col-6 text-nowrap'>
 									{type == 'crypto' ? 'Coins' : 'Shares' }:&nbsp;
 									<span className='font-weight-bold'>
 										{numeral(quantity)
@@ -168,7 +168,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 								</div>
 							</div>
 							<div className='text-sub pt-1 row'>
-								<div className='col-6'>
+								<div className='col-6 text-nowrap'>
 									Position:&nbsp;
 									<span className='font-weight-bold'>
 										<XE
@@ -178,7 +178,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 										/>
 									</span>
 								</div>
-								<div className='col-6'>
+								<div className='col-6 text-nowrap'>
 									P and L: <span className={classNames({
 										'font-weight-bold': true,
 										'text-negative': valueCad < costCad
@@ -199,7 +199,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 							</div>
 
 							<div className='text-sub pt-1 row'>
-								<div className='col-6'>
+								<div className='col-6 text-nowrap'>
 									Holdings Prog.:&nbsp;
 									<span className='font-weight-bold'>
 										{shareProgress ?
@@ -208,7 +208,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 										}
 									</span>
 								</div>
-								<div className='col-6'>
+								<div className='col-6 text-nowrap'>
 									Target Price:&nbsp;
 									<span className='font-weight-bold'>
 										{priceProgress ?
