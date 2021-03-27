@@ -65,7 +65,8 @@ export const symbolToSlug = (symbol: string): string => {
 		avax: 'avalanche',
 		nexo: 'nexo',
 		cel: 'celsius',
-		audio: 'audius'
+		audio: 'audius',
+		super: 'superfarm'
 	};
 
 	return lookup[symbol];

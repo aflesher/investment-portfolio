@@ -53,6 +53,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 			</div>
 			<div className={classNames({
 				'col-lg-2': isFullPosition,
+				'text-rtl': !isFullPosition && pnl >= 0,
 				'col-4': true,
 				'text-right': true,
 				'text-positive': pnl >= 0,
