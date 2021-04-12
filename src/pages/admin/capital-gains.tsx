@@ -68,8 +68,6 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 		)
 	);
 
-	console.log(ratesMap);
-
 	const capitalGains: ICapitalGains[] = [];
 
 	_.forEach(filteredGroupedTrades, trades => {

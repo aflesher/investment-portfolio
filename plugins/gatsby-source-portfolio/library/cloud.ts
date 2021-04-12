@@ -101,9 +101,11 @@ export const getCustomTrades = (): ICloudTrade[] => ([
 	}
 ]);
 
+export const filteredTrades = ['pm.vn'];
+
 export const readTrades = (): ICloudTrade[] => {
 	trades.forEach(q => q.accountId = Number(q.accountId));
-	return trades;
+	return trades.filter(q => !filteredTrades.includes(q.symbol));
 };
 
 export const addTrade = (trade: IQuestradeActivity): void => {
