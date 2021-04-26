@@ -15,6 +15,7 @@ export const faClassForSymbol = (symbol: string): string => {
 		fb: 'fab fa-facebook-f mr-2',
 		pins: 'fab fa-pinterest-p mr-2',
 		msft: 'fab fa-microsoft mr-2',
+		urnm: 'fas fa-radiation-alt mr-2'
 	};
 
 	return lookup[symbol] || '';

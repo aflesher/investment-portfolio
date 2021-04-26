@@ -52,3 +52,4 @@
 .avax { @include companyBase(#fff, #e84142, #000); }
 .ada { @include companyBase(rgb(0, 51, 173), #fff, rgb(0, 51, 173)); }
 .rblx { @include companyBase(#fff, url($roblox) center / cover no-repeat, #fff); }
+.urnm { @include companyBase(#000, rgb(250, 185, 45), #000); }
