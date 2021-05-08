@@ -148,6 +148,12 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 		ethQuote?.priceCad || 0
 	);
 
+	const lastBuy = _.maxBy(_.filter(trades, trade => trade.action === 'buy'), trade => trade.timestamp);
+	const acumlatedDividends = _.filter(dividends, d => d.timestamp > (lastBuy?.timestamp || 100000000));
+	const acumlatedDividendsCad = _.sumBy(acumlatedDividends, d => d.amountCad);
+	const acumlatedDividendsUsd = _.sumBy(acumlatedDividends, d => d.amountUsd);
+
+
 	return (
 		<Layout>
 			<div className='p-4'>
@@ -371,6 +377,20 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 										position.currentMarketValueUsd 
 										+ _.sumBy(position.positions, p => p.currentMarketValueUsd)
 									}
+									currency={currency}
+								/>
+							</div>
+						</div>
+						}
+						{!!acumlatedDividendsCad &&
+						<div className='row font-weight-bold font-italic'>
+							<div className='col-6'>
+								*unspent dividends
+							</div>
+							<div className='col-6'>
+								<XE
+									cad={acumlatedDividendsCad}
+									usd={acumlatedDividendsUsd}
 									currency={currency}
 								/>
 							</div>
