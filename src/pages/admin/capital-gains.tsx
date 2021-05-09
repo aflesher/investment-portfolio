@@ -36,7 +36,7 @@ interface ICapitalGains {
 	shares: number
 }
 
-const years = [2019, 2020];
+const years = [2019, 2020, 2021];
 
 const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	const [year, setYear] = React.useState(new Date().getFullYear());

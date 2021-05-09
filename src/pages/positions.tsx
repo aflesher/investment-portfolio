@@ -44,7 +44,10 @@ interface IPositionNode {
 	}
 	assessment?: {
 		targetInvestmentProgress: number,
-		targetPriceProgress: number
+		targetPriceProgress: number,
+		checklist: {
+			pristine: boolean | null
+		}
 	}
 	positions: {
 		symbol: string,
@@ -178,6 +181,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 						activeCurrency={currency}
 						quoteCurrency={position.quote.currency}
 						symbolCharacter={combined && position.positions.length ? '*' : ''}
+						isPristine={!!position.assessment?.checklist.pristine}
 					/>
 				))}
 				<div className='row'>
@@ -229,6 +233,9 @@ export const pageQuery = graphql`
 				assessment {
 					targetInvestmentProgress
 					targetPriceProgress
+					checklist {
+						pristine
+					}
 				}
 				positions {
 					symbol

@@ -63,7 +63,8 @@ const defaultChecklist = [
 	{id: 'othersBuying', value: false,
 		description: 'I\'m not buying just because someone else recommended the stock'},
 	{id: 'understandBusiness', value: false, description: 'I understand the business'},
-	{id: 'valuation', value: false, description: 'I have completed a valuation'}
+	{id: 'valuation', value: false, description: 'I have completed a valuation'},
+	{id: 'pristine', value: false, description: 'Is a pristine asset'}
 ];
 
 const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({

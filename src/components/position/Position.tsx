@@ -17,13 +17,14 @@ export interface IPositionStateProps extends IStockQuoteStateProps {
 	percentageOfPortfolio: number,
 	percentageOfInvestment: number,
 	pe?: number,
-	dividendYield?: number
+	dividendYield?: number,
+	isPristine: boolean
 }
 
 const Position: React.FC<IPositionStateProps> = (props) => {
 	const {
 		isFullPosition, activeCurrency, valueCad, costCad, valueUsd, costUsd, index,
-		percentageOfInvestment, percentageOfPortfolio, pe, dividendYield, classes, assetCurrency
+		percentageOfInvestment, percentageOfPortfolio, classes, isPristine
 	} = props;
 	const mainClasses = ['row', 'position'].concat(classes || []).join(' ');
 	const pnl = activeCurrency === Currency.cad ?
@@ -50,6 +51,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 						{...props}
 					/>
 				</div>
+				{isPristine && <span><i className='fas fa-award ml-2'></i></span>}
 			</div>
 			<div className={classNames({
 				'col-lg-2': isFullPosition,
