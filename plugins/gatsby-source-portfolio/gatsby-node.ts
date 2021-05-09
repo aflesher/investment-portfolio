@@ -787,6 +787,7 @@ exports.sourceNodes = async (
 			currency,
 			type: AssetType.stock,
 			afterHoursPrice: quote.lastTradePrice,
+			symbolId: quote.symbolId
 		};
 	};
 

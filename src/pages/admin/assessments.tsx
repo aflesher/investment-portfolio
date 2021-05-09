@@ -64,7 +64,7 @@ const defaultChecklist = [
 		description: 'I\'m not buying just because someone else recommended the stock'},
 	{id: 'understandBusiness', value: false, description: 'I understand the business'},
 	{id: 'valuation', value: false, description: 'I have completed a valuation'},
-	{id: 'pristine', value: false, description: 'Is a pristine asset'}
+	{id: 'pristine', value: false, description: '* Is a pristine asset'}
 ];
 
 const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
@@ -351,6 +351,14 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 								<label className='form-check-label' htmlFor='exampleCheck1'>{description}</label>
 							</div>
 						))}
+						<div className='text-sub mt-2'>
+							* A pristine asset has the following attributes:
+							<ul>
+								<li>best in class brand</li>
+								<li>positioned for the exponential age</li>
+								<li>little to no competition and a moat</li>
+							</ul>
+						</div>
 					</div>
 
 				</div>

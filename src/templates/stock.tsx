@@ -393,6 +393,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 									usd={acumlatedDividendsUsd}
 									currency={currency}
 								/>
+								<div>({ Math.floor(acumlatedDividendsCad / quote.priceCad) } shares)</div>
 							</div>
 						</div>
 						}

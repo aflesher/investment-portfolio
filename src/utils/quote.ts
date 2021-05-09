@@ -7,5 +7,6 @@ export interface IQuote {
 	type: AssetType,
 	afterHoursPrice: number,
 	priceCad: number,
-	priceUsd: number
+	priceUsd: number,
+	symbolId?: number
 }
