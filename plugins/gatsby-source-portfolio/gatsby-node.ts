@@ -807,6 +807,7 @@ exports.sourceNodes = async (
 			currency,
 			type: AssetType.crypto,
 			afterHoursPrice: quote.price,
+			symbolId: undefined
 		};
 	};
 

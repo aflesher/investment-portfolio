@@ -45,6 +45,10 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 		ratesMap[rate.date] = rate.rate;
 	});
 
+	// FYI I'm sure this is why captial gains aren't always working. The date conversion.
+	// custom rates
+	ratesMap['2021-01-07'] = 1.27;
+
 	const getConversion = (trade: {currency: Currency, price: number, timestamp: number}): number => {
 		if (trade.currency === Currency.cad) {
 			return 1;

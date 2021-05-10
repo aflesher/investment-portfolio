@@ -98,6 +98,19 @@ export const getCustomTrades = (): ICloudTrade[] => ([
 		type: 'stock',
 		hash: '',
 		pnl: -4963.2		
+	},
+	{
+		symbol: 'qbtc.u.to',
+		date: new Date('2021-01-08'),
+		accountId: 26418215,
+		action: 'buy',
+		symbolId: 30032314,
+		currency: 'usd',
+		price: 46,
+		quantity: 512,
+		type: 'stock',
+		hash: '',
+		pnl: 0
 	}
 ]);
 
