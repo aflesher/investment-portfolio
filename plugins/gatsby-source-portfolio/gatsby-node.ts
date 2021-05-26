@@ -33,7 +33,8 @@ const MARGIN_ACOUNT_ID = 26418215;
 const FILTER_SYMBOLS = [
 	'ausa.cn',
 	'dlr.to',
-	'dlr.u.to'
+	'dlr.u.to',
+	'glh.cn.11480862'
 ];
 
 const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
