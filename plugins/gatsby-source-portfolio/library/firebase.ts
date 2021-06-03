@@ -235,6 +235,48 @@ interface ICryptoTradeDoc {
 	}
 }
 
+export const calculateCryptoPositions = (trades: ICryptoTrade[]): ICryptoPosition[] => {
+	const orderedTrades = _.orderBy(trades, t => t.timestamp);
+
+	const positions: ICryptoPosition[] = [];
+	_.forEach(orderedTrades, t => {
+		let position = _.find(positions, p => p.symbol === t.symbol);
+		// if it's a sell and we don't have a position we can just return (bad state)
+		if (t.isSell && !position) {
+			console.log(`skipping ${t.symbol} ${new Date(t.timestamp)}`);
+			return;
+		}
+
+		// first buy
+		if (!position) {
+			position = {
+				currency: Currency.cad,
+				type: AssetType.crypto,
+				symbol: t.symbol,
+				averageEntryPrice: t.price,
+				quantity: t.quantity,
+				totalCostCad: t.price * t.quantity
+			};
+			positions.push(position);
+			return;
+		}
+
+		// buy
+		if (!t.isSell) {
+			position.totalCostCad += t.quantity * t.price;
+			position.quantity += t.quantity;
+			position.averageEntryPrice = position.totalCostCad / position.quantity;
+			return;
+		}
+
+		// sell
+		position.quantity = Math.max(position.quantity - t.quantity, 0);
+		position.totalCostCad = Math.max(position.quantity * position.averageEntryPrice, 0);
+	});
+
+	return _.filter(positions, p => p.quantity > 0 && p.totalCostCad > 0);
+}
+
 export interface ICryptoTrade extends
 	Pick<ITrade, 'symbol' | 'timestamp' | 'isSell' | 'quantity' | 'price' | 'type' | 'pnl'> {}
 

@@ -23,4 +23,10 @@ config.coinmarketcap = {
 	apiKey: process.env.COINMARKETCAP_API_KEY
 };
 
+config.binance = {
+	api: 'https://api.binance.com',
+	apiKey: process.env.BINANCE_API_KEY,
+	secretKey: process.env.BINANCE_API_SECRET
+}
+
 module.exports = config;

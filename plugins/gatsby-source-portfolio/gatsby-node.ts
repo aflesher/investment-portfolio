@@ -10,6 +10,7 @@ import * as questrade from './library/questrade';
 import * as questradeCloud from './library/questrade-cloud';
 import * as cloud from './library/cloud';
 import * as coinmarketcap from './library/coinmarketcap';
+import * as binance from './library/binanace';
 import { IAssessment } from '../../src/utils/assessment';
 import { AssetType, Currency } from '../../src/utils/enum';
 import { IQuote } from '../../src/utils/quote';
@@ -24,9 +25,9 @@ import { replaceSymbol } from './library/util';
 const assessmentsPromise = firebase.getAssessments();
 const questradeSync = questradeCloud.sync();
 const positionsPromise = questrade.getPositions();
-const cryptoPositionsPromise = firebase.getCryptoPositions();
 const ordersPromise = questrade.getActiveOrders();
 const cryptoTradesPromise = firebase.getCryptoTrades();
+const binanceOrdersPromise = binance.getOpenOrders();
 
 const MARGIN_ACOUNT_ID = 26418215;
 
@@ -36,6 +37,11 @@ const FILTER_SYMBOLS = [
 	'dlr.u.to',
 	'glh.cn.11480862'
 ];
+
+const cryptoPositionsPromise = (async () => {
+	const trades = await cryptoTradesPromise;
+	return firebase.calculateCryptoPositions(trades);
+})();
 
 const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 	const assessments = await assessmentsPromise;
@@ -99,6 +105,7 @@ const cryptoSlugsPromise = (async (): Promise<string[]> => {
 	const positions = await cryptoPositionsPromise;
 	const assessments = await assessmentsFillPromise;
 	const trades = await cryptoTradesPromise;
+	const orders = await binanceOrdersPromise;
 
 	const allSlugs = _.concat(
 		_(positions)
@@ -112,6 +119,10 @@ const cryptoSlugsPromise = (async (): Promise<string[]> => {
 			.value(),
 		_(trades)
 			.map(q => q.symbol)
+			.map(coinmarketcap.symbolToSlug)
+			.value(),
+		_(orders)
+			.map(o => o.symbol.replace('USDT', '').toLocaleLowerCase())
 			.map(coinmarketcap.symbolToSlug)
 			.value()
 	);
@@ -187,6 +198,7 @@ exports.sourceNodes = async (
 	coinmarketcap.init(configOptions.coinmarketcap.api, configOptions.coinmarketcap.apiKey);
 
 	questrade.init(configOptions.questrade.cryptSecret);
+	binance.init(configOptions.binance.api, configOptions.binance.apiKey, configOptions.binance.secretKey);
 
 	const getExchange = exchange.getRate('usd', 'cad', new Date());
 	const getNotes = firebase.getNotes();
@@ -259,6 +271,14 @@ exports.sourceNodes = async (
 		const nodeId = getOrderNodeId(order.symbol, index);
 		orderNodeIdsMap[order.symbol] = orderNodeIdsMap[order.symbol] || [];
 		orderNodeIdsMap[order.symbol].push(nodeId);
+	});
+
+	const binanceOrders = await binanceOrdersPromise;
+	_.forEach(binanceOrders, (order, index) => {
+		const symbol = order.symbol.replace('USDT', '').toLocaleLowerCase();
+		const nodeId = getOrderNodeId(symbol, index + orders.length);
+		orderNodeIdsMap[symbol] = orderNodeIdsMap[symbol] || [];
+		orderNodeIdsMap[symbol].push(nodeId);
 	});
 
 	// use crypto quotes to build company list
@@ -340,18 +360,39 @@ exports.sourceNodes = async (
 		assessment___NODE: string
 	}
 
-	const getOrderNodes = async (): Promise<IOrderNode[]> => {
-		const orders = await ordersPromise;
+	const mapBinanceOrders = async (binanceOrders: binance.IBinanceOrder[]): Promise<IOrder[]> => {
+		const usdToCadRate = await getExchange;
 
+		const orders: IOrder[] = binanceOrders.map(order => ({
+			symbol: order.symbol.replace('USDT', '').toLocaleLowerCase(),
+			limitPrice: Number(order.price),
+			limitPriceCad: Number(order.price) * Number(usdToCadRate),
+			limitPriceUsd: Number(order.price),
+			openQuantity: Number(order.origQty) - Number(order.executedQty),
+			filledQuantity: Number(order.executedQty),
+			totalQuantity: Number(order.origQty),
+			stopPrice: Number(order.stopPrice),
+			avgExecPrice: 0,
+			side: order.side,
+			accountId: 0,
+			action: order.side === 'BUY' ? 'buy' : 'sell',
+			type: order.type,
+			currency: Currency.usd,
+			orderType: order.type,
+			accountName: 'binance'
+		}));
+		return orders;
+	};
+
+	const mapQuestradeOrders = async (questradeOrders: questrade.IQuestradeOrder[]): Promise<IOrder[]> => {
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
 
-		const orderNodes = _.map(orders, (order, index) => {
+		const orders: IOrder[] = questradeOrders.map(order => {
 			const currency: Currency = isUsd(order.symbol) ? Currency.usd : Currency.cad;
 			const usdRate = currency === Currency.usd  ? 1 : cadToUsdRate;
 			const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
-
-			const orderNode: IOrderNode = {
+			return {
 				symbol: order.symbol,
 				limitPrice: order.limitPrice,
 				limitPriceUsd: order.limitPrice * usdRate,
@@ -368,6 +409,26 @@ exports.sourceNodes = async (
 				type: order.orderType,
 				accountName: questrade.getAccountName(order.accountId),
 				currency,
+			};
+		});
+		return orders;
+	}
+
+	const getOrderNodes = async (): Promise<IOrderNode[]> => {
+		const questradeOrders = await ordersPromise;
+		const binanceOrders = await binanceOrdersPromise;
+
+		const mappedQuestradeOrders = await mapQuestradeOrders(questradeOrders);
+		const mappedBinanceOrders = await mapBinanceOrders(binanceOrders);
+
+		const orders = _.concat(
+			mappedQuestradeOrders,
+			mappedBinanceOrders
+		);
+
+		const orderNodes = _.map(orders, (order, index) => {
+			const orderNode: IOrderNode = {
+				...order,
 				trades___NODE: tradeNodeIdsMap[order.symbol] || [],
 				dividends___NODE: dividendNodeIdsMap[order.symbol] || [],
 				company___NODE: companyNodeIdsMap[order.symbol] || null,

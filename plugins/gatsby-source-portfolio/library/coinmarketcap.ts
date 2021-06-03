@@ -2,7 +2,6 @@ import axios from 'axios';
 import _ from 'lodash';
 
 import { Currency, AssetType } from '../../../src/utils/enum';
-import { stringify } from 'querystring';
 
 let api = '';
 let apiKey = '';
@@ -66,7 +65,10 @@ export const symbolToSlug = (symbol: string): string => {
 		nexo: 'nexo',
 		cel: 'celsius',
 		audio: 'audius',
-		super: 'superfarm'
+		super: 'superfarm',
+		rune: 'thorchain',
+		bnb: 'binance-coin',
+		link: 'chainlink'
 	};
 
 	return lookup[symbol];

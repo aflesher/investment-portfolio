@@ -52,6 +52,7 @@ const SidebarLeft: React.FC<ISidebarLeftStateProps & ISidebarLeftDispatchProps> 
 					<ul>
 						<li><Link to='/admin/financials'>Financials</Link></li>
 						<li><Link to='/admin/assessments'>Stock Assessment</Link></li>
+						<li><Link to='/admin/crypto-trades'>Crypto Trades</Link></li>
 						<li><Link to='/admin/capital-gains'>Capital Gains</Link></li>
 						<li><Link to='/admin/review'>Year in Review</Link></li>
 					</ul>
