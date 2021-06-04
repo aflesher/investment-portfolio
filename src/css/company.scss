@@ -53,3 +53,5 @@
 .ada { @include companyBase(rgb(0, 51, 173), #fff, rgb(0, 51, 173)); }
 .rblx { @include companyBase(#fff, url($roblox) center / cover no-repeat, #fff); }
 .urnm { @include companyBase(#000, rgb(250, 185, 45), #000); }
+.rune { @include companyBase(rgb(0, 0, 0), rgb(0, 200, 178), #000); }
+.bnb { @include companyBase(rgb(13, 16, 18), linear-gradient(180deg, rgb(251, 199, 61) 0%, rgb(242, 174, 43) 100%), rgb(13, 16, 18)) }
