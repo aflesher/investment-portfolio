@@ -1,4 +1,6 @@
 import React from 'react';
+import firebase, { firestore } from 'firebase';
+import 'firebase/firestore';
 import numeral, { format } from 'numeral';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
@@ -8,7 +10,6 @@ import { connect } from 'react-redux';
 import Layout from '../../components/layout';
 import { Currency } from '../../utils/enum';
 import { IStoreState } from '../../store/store';
-import firebase, { firestore } from 'firebase';
 
 interface ICryptoTradesQuery {
 	data: {
