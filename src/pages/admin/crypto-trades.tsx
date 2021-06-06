@@ -89,7 +89,8 @@ const CryptoTrades: React.FC<ICryptoTradesQuery & ICryptoTradeStateProps> = ({ f
 	};
 
     React.useEffect(() => {
-		if (!firestore && firebase && user) {
+        console.log(firebase);
+		if (!firestore && firebase && firebase.firestore && user) {
 			const db = firebase.firestore();
 			setFirestore(db);
 			fetchCryptoTrades(db);
