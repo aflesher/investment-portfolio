@@ -27,6 +27,16 @@ const Order: React.FC<IOrderStateProps> = ({
 			(positionQuantity + openQuantity) :
 		(action == 'buy' ? limitPrice : positionCost / positionQuantity);
 
+	const gapColor = (gap: number): string => {
+		const scale = Math.min(gap * 10, 1);
+		console.log(gap, scale);
+		const red = 9 + ((255 - 9) * scale);
+		const green = 246 + ((255 - 246) * scale);
+		const blue = 12 + ((255 - 12) * scale);
+
+		return `rgb(${red}, ${green}, ${blue})`;
+	}
+
 	return (
 		<div className='border-top-normal'>
 			<div className='d-block d-sm-none'>
@@ -108,7 +118,7 @@ const Order: React.FC<IOrderStateProps> = ({
 						Quote: {numeral(quotePrice).format('$0,0.00')}
 					</div>
 					<div className='col-4 text-right'>
-						Gap: <span className='font-weight-bold'>
+						Gap: <span className='font-weight-bold' style={{color: gapColor(gap)}}>
 							{numeral(gap).format('0.00%')}
 						</span>
 					</div>

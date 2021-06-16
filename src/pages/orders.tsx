@@ -45,7 +45,11 @@ const mapStateToProps = ({ currency }: IStoreState): IOrdersStateProps => ({
 });
 
 const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({ currency, data }) => {
-	const orders = data.allOrder.nodes;
+	const orders = _.orderBy(data.allOrder.nodes, ({action, quote, limitPrice}) => (
+		action == 'buy' ?
+		(quote.price - limitPrice) / quote.price :
+		(limitPrice - quote.price) / limitPrice
+	));
 	return (
 		<Layout>
 			<div className='p-4'>
