@@ -103,6 +103,8 @@ interface ILayoutGraphQL {
 			pnlUsd: number,
 			currency: Currency,
 			type: AssetType,
+			priceCad: number,
+			priceUsd: number,
 			company: {
 				name: string,
 				marketCap: number,
@@ -227,6 +229,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						pnlUsd
 						currency
 						type
+						priceCad
+						priceUsd
 						assessment {
 							targetInvestmentProgress
 							targetPriceProgress
@@ -349,7 +353,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					activeCurrency: currency,
 					shareProgress: trade.assessment?.targetInvestmentProgress || 0,
 					priceProgress: trade.assessment?.targetPriceProgress || 0,
-					tradePrice: trade.price,
+					tradePrice: trade.type === 'crypto' ? trade.priceUsd : trade.price,
 					valueCad: trade.position?.currentMarketValueCad || 0,
 					valueUsd: trade.position?.currentMarketValueUsd || 0,
 					costCad: trade.position?.totalCostCad || 0,

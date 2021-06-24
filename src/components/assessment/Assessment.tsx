@@ -82,7 +82,7 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 								className='bar'
 								style={{
 									width:
-									`${(quotePrice /targetPrice) * 100}%`
+									`${Math.min((quotePrice /targetPrice) * 100, 120)}%`
 								}}
 							>
 								<div className='right-value'>

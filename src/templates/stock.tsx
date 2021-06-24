@@ -65,7 +65,9 @@ interface IStockTemplateQuery {
 					timestamp: number,
 					pnlCad: number,
 					pnlUsd: number,
-					isOpeningPositionTrade: boolean
+					isOpeningPositionTrade: boolean,
+					priceCad: number,
+					priceUsd: number
 				}[]
 				assessment?: {
 					minuses: string[],
@@ -464,7 +466,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 									priceProgress={quote.price / (assessment?.targetPrice || 0)}
 									activeCurrency={currency}
 									assetCurrency={quote.currency}
-									tradePrice={trade.price}
+									tradePrice={company.type === 'crypto' ? trade.priceUsd : trade.price}
 									pnlCad={trade.pnlCad}
 									pnlUsd={trade.pnlUsd}
 									costCad={position.totalCostCad}
@@ -557,6 +559,8 @@ export const pageQuery = graphql`
 					pnlCad
 					pnlUsd
 					isOpeningPositionTrade
+					priceUsd
+					priceCad
 				}
 				assessment {
 					symbol

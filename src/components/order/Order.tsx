@@ -66,7 +66,7 @@ const Order: React.FC<IOrderStateProps> = ({
 				</div>
 				<div className='row'>
 					<div className='col-6'>
-						Cost:&nbsp;
+						{action === 'buy' ? 'Cost' : 'Proceeds'}:&nbsp;
 						<XE
 							cad={openQuantity * limitPriceCad}
 							usd={openQuantity * limitPriceUsd}
@@ -125,7 +125,7 @@ const Order: React.FC<IOrderStateProps> = ({
 				</div>
 				<div className='row'>
 					<div className='col-4'>
-						Cost:&nbsp;
+					{action === 'buy' ? 'Cost' : 'Proceeds'}:&nbsp;
 						<XE
 							cad={openQuantity * limitPriceCad}
 							usd={openQuantity * limitPriceUsd}

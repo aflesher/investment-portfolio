@@ -92,7 +92,5 @@ export const cryptoPermium = (
 	const price = _.includes(['QETH.U.TO'], stock.symbol.toUpperCase()) ? ethPriceCad : btcPriceCad;
 	const nav = cps * price;
 
-	console.log(cps, price, nav, stock.priceCad);
-
 	return (stock.priceCad - nav) / nav;
 };
