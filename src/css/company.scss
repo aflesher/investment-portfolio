@@ -56,3 +56,4 @@
 .rune { @include companyBase(rgb(0, 0, 0), rgb(0, 200, 178), #000); }
 .bnb { @include companyBase(rgb(13, 16, 18), linear-gradient(180deg, rgb(251, 199, 61) 0%, rgb(242, 174, 43) 100%), rgb(13, 16, 18)) }
 .crypto-link { @include companyBase(rgb(34, 48, 106), rgb(224, 231, 249), #fff); }
+.bitf-vn { @include companyBase(rgb(30, 210, 150), rgb(16, 26, 46), #fff); }
