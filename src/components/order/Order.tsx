@@ -29,7 +29,6 @@ const Order: React.FC<IOrderStateProps> = ({
 
 	const gapColor = (gap: number): string => {
 		const scale = Math.min(gap * 10, 1);
-		console.log(gap, scale);
 		const red = 9 + ((255 - 9) * scale);
 		const green = 246 + ((255 - 246) * scale);
 		const blue = 12 + ((255 - 12) * scale);
