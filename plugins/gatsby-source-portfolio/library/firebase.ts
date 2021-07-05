@@ -1,5 +1,6 @@
 import admin from 'firebase-admin';
 import _ from 'lodash';
+import firebase from 'firebase';
 
 import { deferredPromise } from './util';
 import { IAssessment } from '../../../src/utils/assessment';
@@ -8,6 +9,7 @@ import { IPosition } from '../../../src/utils/position';
 import { Currency, AssetType } from '../../../src/utils/enum';
 import { IReview } from '../../../src/utils/review';
 import { ITrade } from '../../../src/utils/trade';
+import { ICoinMarketCapQuote } from './coinmarketcap';
 
 const serviceAccount = require('../json/firebase.json');
 let firestore;
@@ -345,4 +347,74 @@ export const getReviews = async (): Promise<IReview[]> => {
 		.get();
 	
 	return querySnapshot.docs.map(documentSnapshot => documentSnapshot.data());
+};
+
+interface ICryptoMetaDataDoc extends firebase.firestore.DocumentData {
+	symbol: string,
+	allTimeHighUsd: number,
+	oneYearLowUsd: number,
+	oneYearLowTimestamp: {
+		_seconds: number,
+		_nanoseconds: number
+	}
+}
+
+export interface ICryptoMetaData extends Omit<ICryptoMetaDataDoc, 'oneYearLowTimestamp'> {
+	oneYearLowTimestamp: number
+}
+
+export const checkAndUpdateCryptoMetaData = async (quotesPromise: Promise<ICoinMarketCapQuote[]>) => {
+	await initDeferredPromise.promise;
+	const quotes = await quotesPromise;
+
+	const querySnapshot = await firestore
+		.collection('cryptoMetaData')
+		.get();
+	
+	return querySnapshot.docs.map(async documentSnapshot => { 
+		const data: ICryptoMetaDataDoc = documentSnapshot.data();
+
+		const quote = _.find(quotes, q => q.symbol === data.symbol);
+		if (!quote || (quote.price < data.allTimeHighUsd && quote.price > data.oneYearLowUsd)) {
+			return;
+		}
+
+		if (quote.price > data.allTimeHighUsd) {
+			data.allTimeHighUsd = quote.price;
+		}
+
+		if (quote.price < data.oneYearLowUsd) {
+			data.oneYearLowUsd = quote.price;
+			data.oneYearLowTimestamp = new Date() as any;
+		}
+
+		console.log('updating crypto metadata', documentSnapshot.data(), data);
+		await documentSnapshot?.ref?.set(data, {merge: true});
+	});
+};
+
+export const getCryptoMetaData = async (): Promise<ICryptoMetaData[]> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore
+		.collection('cryptoMetaData')
+		.get();
+	
+	return querySnapshot.docs.map(documentSnapshot => { 
+		const {
+			symbol,
+			allTimeHighUsd,
+			oneYearLowUsd,
+			oneYearLowTimestamp
+		}: ICryptoMetaDataDoc = documentSnapshot.data();
+	
+		const data: ICryptoMetaData = {
+			symbol,
+			allTimeHighUsd,
+			oneYearLowUsd,
+			oneYearLowTimestamp: oneYearLowTimestamp._seconds * 1000
+		};
+
+		return data;
+	});
 };

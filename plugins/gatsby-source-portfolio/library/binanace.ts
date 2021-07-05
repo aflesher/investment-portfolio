@@ -41,6 +41,11 @@ export const init = (_api: string, _apiKey: string, _secretKey: string): void =>
 	initDeferredPromise.resolve();
 };
 
+const getSignature = (params: {}): string => {
+	const queryString = new URLSearchParams(params).toString();
+	return crypto.createHmac('sha256', secretKey).update(queryString).digest('hex');
+};
+
 export const getOpenOrders = async (): Promise<IBinanceOrder[]> => {
 	await initDeferredPromise.promise;
 	const timestamp = moment().unix() * 1000;
@@ -61,9 +66,4 @@ export const getOpenOrders = async (): Promise<IBinanceOrder[]> => {
 	}
 
 	return resp.data;
-}
-
-const getSignature = (params: {}): string => {
-	const queryString = new URLSearchParams(params).toString();
-	return crypto.createHmac('sha256', secretKey).update(queryString).digest('hex');
-}
+};

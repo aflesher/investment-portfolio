@@ -28,6 +28,7 @@ const positionsPromise = questrade.getPositions();
 const ordersPromise = questrade.getActiveOrders();
 const cryptoTradesPromise = firebase.getCryptoTrades();
 const binanceOrdersPromise = binance.getOpenOrders();
+const cryptoMetaDataPromise = firebase.getCryptoMetaData();
 
 const MARGIN_ACOUNT_ID = 26418215;
 
@@ -936,7 +937,8 @@ exports.sourceNodes = async (
 		};
 	};
 
-	const mapCryptoQuoteToCompany = (q: coinmarketcap.ICoinMarketCapQuote): ICompany => {
+	const mapCryptoQuoteToCompany = (q: coinmarketcap.ICoinMarketCapQuote, allMetaData: firebase.ICryptoMetaData[]): ICompany => {
+		const metaData = _.find(allMetaData, m => m.symbol === q.symbol);
 		return {
 			marketCap: q.marketCap,
 			symbol: q.symbol,
@@ -946,18 +948,19 @@ exports.sourceNodes = async (
 			yield: 0,
 			prevDayClosePrice: q.prevDayClosePrice,
 			type: AssetType.crypto,
-			highPrice52: q.price,
-			lowPrice52: q.price
+			highPrice52: metaData?.allTimeHighUsd || q.price,
+			lowPrice52: metaData?.oneYearLowUsd || q.price
 		};
 	};
 
 	const getCompanyNodes = async (): Promise<ICompanyNode[]> => {
 		const stockCompanies = await companiesPromise;
 		const cryptoQuotes = await cryptoQuotesPromise;
+		const cryptoMetaData = await cryptoMetaDataPromise;
 
 		const companies = _.concat(
 			stockCompanies.map(mapQuestradeSymbolToCompany),
-			cryptoQuotes.map(mapCryptoQuoteToCompany)
+			cryptoQuotes.map(q => mapCryptoQuoteToCompany(q, cryptoMetaData))
 		);
 
 		return companies.map(company => {
@@ -1191,6 +1194,8 @@ exports.sourceNodes = async (
 		const orderNodes = await orderNodesPromise;
 		// const buildTimeNodes = getBuildTimeNode();
 		const reviewNodes = await reviewNodesPromise;
+
+		await firebase.checkAndUpdateCryptoMetaData(cryptoQuotesPromise);
 
 		return _.concat(
 			assessments as any[],
