@@ -155,6 +155,13 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 	const acumlatedDividendsCad = _.sumBy(acumlatedDividends, d => d.amountCad);
 	const acumlatedDividendsUsd = _.sumBy(acumlatedDividends, d => d.amountUsd);
 
+	const potentialAth = (company.highPrice52 - quote.price) * position.quantity;
+	const cadToUsd = quote.priceCad / quote.priceUsd;
+	const usdToCad = cadToUsd / 1.0;
+	const potentialAthUsd = quote.currency === 'usd' ? potentialAth : potentialAth * cadToUsd;
+	const potentialAthCad = quote.currency === 'cad' ? potentialAth : potentialAth * usdToCad;
+
+
 
 	return (
 		<Layout>
@@ -399,6 +406,20 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 							</div>
 						</div>
 						}
+						<div className='row'>
+							<div className='col-6'>
+								Potential to ATH
+							</div>
+							<div className={classNames({
+								'col-6': true
+							})}>
+								<XE
+									cad={potentialAthCad}
+									usd={potentialAthUsd}
+									currency={currency}
+								/>
+							</div>
+						</div>
 					</div>
 
 				</div>
