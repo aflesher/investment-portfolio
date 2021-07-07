@@ -1033,52 +1033,6 @@ exports.sourceNodes = async (
 		return balances;
 	};
 
-	// const getProfitsAndLossesNodes = async () => {
-	// 	await questradeSync;
-
-	// 	const profitsAndLosses = cloud.getProfitsAndLosses();
-
-	// 	const usdToCadRate = await getExchange;
-	// 	const cadToUsdRate = 1 / usdToCadRate;
-
-	// 	const cadTotal = _.find(profitsAndLosses, {currency: 'cad'}).total;
-	// 	const usdTotal = _.find(profitsAndLosses, {currency: 'usd'}).total;
-
-	// 	profitsAndLosses.push({
-	// 		currency: 'cad',
-	// 		total: cadTotal + (usdTotal * usdToCadRate),
-	// 		combined: true
-	// 	});
-
-	// 	profitsAndLosses.push({
-	// 		currency: 'usd',
-	// 		total: usdTotal + (cadTotal * cadToUsdRate),
-	// 		combined: true
-	// 	});
-
-	// 	profitsAndLosses.forEach(profitsAndLosses => {
-	// 		let content = JSON.stringify(profitsAndLosses);
-	// 		_.defaults(
-	// 			profitsAndLosses, {
-	// 				id: createNodeId(
-	// 					hash(
-	// 						`pandl${profitsAndLosses.currency}${profitsAndLosses.combined}`
-	// 					)
-	// 				),
-	// 				parent: null,
-	// 				children: [],
-	// 				internal: {
-	// 					type: 'Profit',
-	// 					content,
-	// 					contentDigest: hash(content)
-	// 				}
-	// 			}
-	// 		);
-	// 	});
-
-	// 	return profitsAndLosses;
-	// };
-
 	interface IRate {
 		key: string,
 		rate: number,
@@ -1144,28 +1098,6 @@ exports.sourceNodes = async (
 			return rateNode;
 		});
 	};
-
-	// const getBuildTimeNode = () => {
-	// 	const buildTime = {date: new Date()};
-
-	// 	let content = JSON.stringify(buildTime);
-	// 	_.defaults(
-	// 		buildTime, {
-	// 			id: createNodeId(
-	// 				hash('buildTime')
-	// 			),
-	// 			parent: null,
-	// 			children: [],
-	// 			internal: {
-	// 				type: 'BuildTime',
-	// 				content,
-	// 				contentDigest: hash(content)
-	// 			}
-	// 		}
-	// 	);
-
-	// 	return [buildTime];
-	// };
 
 	const getAll = async (): Promise<any[]> => {
 		const assessmentsPromise = getAssessmentNodes();

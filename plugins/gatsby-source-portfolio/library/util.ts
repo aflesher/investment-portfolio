@@ -1,7 +1,7 @@
 interface IDeferredPromise {
-	promise: Promise<any>,
-	resolve: (value?: any) => void,
-	reject: (value?: any) => void
+	promise: Promise<any>;
+	resolve: (value?: any) => void;
+	reject: (value?: any) => void;
 }
 
 export const deferredPromise = (): IDeferredPromise => {
@@ -12,7 +12,7 @@ export const deferredPromise = (): IDeferredPromise => {
 		reject = rej;
 	});
 
-	return {promise, resolve, reject};
+	return { promise, resolve, reject };
 };
 
 export const replaceSymbol = (symbol: string): string => {
