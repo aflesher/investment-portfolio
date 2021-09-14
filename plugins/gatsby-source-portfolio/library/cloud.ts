@@ -65,7 +65,9 @@ export const updateTrades = async (): Promise<void> => {
 
 export const getTrades = async (): Promise<void> => {
 	const data = await tradesFile.download();
+	// const data = fs.readFileSync('trades.json', {encoding:'utf8', flag:'r'});
 	trades = JSON.parse(data[0].toString());
+	// trades = JSON.parse(data);
 	_.forEach(trades, trade => {
 		tradesMap[trade.hash] = true;
 		trade.type = 'stock';
@@ -163,7 +165,9 @@ export const updateDividends = async (): Promise<void> => {
 
 export const getDividends = async (): Promise<void> => {
 	const data = await dividendsFile.download();
+	// const data = fs.readFileSync('dividends.json', {encoding:'utf8', flag:'r'});
 	dividends = JSON.parse(data[0].toString());
+	// dividends = JSON.parse(data);
 	_.forEach(dividends, dividend => {
 		dividendsMap[dividend.hash] = true;
 	});
