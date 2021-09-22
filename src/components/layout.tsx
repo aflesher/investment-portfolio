@@ -353,7 +353,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					activeCurrency: currency,
 					shareProgress: trade.assessment?.targetInvestmentProgress || 0,
 					priceProgress: trade.assessment?.targetPriceProgress || 0,
-					tradePrice: trade.type === 'crypto' ? trade.priceUsd : trade.price,
+					tradePrice: trade.price,
 					valueCad: trade.position?.currentMarketValueCad || 0,
 					valueUsd: trade.position?.currentMarketValueUsd || 0,
 					costCad: trade.position?.totalCostCad || 0,

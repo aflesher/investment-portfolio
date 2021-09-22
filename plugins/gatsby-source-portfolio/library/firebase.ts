@@ -10,9 +10,10 @@ import { Currency, AssetType } from '../../../src/utils/enum';
 import { IReview } from '../../../src/utils/review';
 import { ITrade } from '../../../src/utils/trade';
 import { ICoinMarketCapQuote } from './coinmarketcap';
+import moment from 'moment';
 
 const serviceAccount = require('../json/firebase.json');
-let firestore;
+let firestore: FirebaseFirestore.Firestore;
 let questradeAuthDocumentSnapshot;
 let stateDocumentSnapshot;
 
@@ -61,7 +62,7 @@ export const getAssessments = async (): Promise<IAssessment[]> => {
 		doc.targetInvestment = doc.targetInvestment || 0;
 		doc.targetPrice = doc.targetPrice || 0;
 		doc.valuations = doc.valuations || [];
-		return _.omit(doc, 'lastUpdated');
+		return _.omit(doc, 'lastUpdated') as IAssessment;
 	});
 };
 
@@ -82,26 +83,10 @@ export const getExchangeRates = async (): Promise<IExchangeRate[]> => {
 	await initDeferredPromise.promise;
 
 	const querySnapshot = await firestore
-		.collection('exchange')
+		.collection('exchangeRates')
 		.get();
 	
-	return querySnapshot.docs.map(documentSnapshot => documentSnapshot.data());
-};
-
-export const setExchangeRates = async (key: string, value: number): Promise<void> => {
-	await initDeferredPromise.promise;
-
-	const querySnapshot = await firestore
-		.collection('exchange')
-		.where('key', '==', key)
-		.get();
-	
-	_.forEach(querySnapshot.docs, queryDocumentSnapshot => {
-		queryDocumentSnapshot.ref.set({
-			value,
-			updated: new Date()
-		}, {merge: true});
-	});
+	return querySnapshot.docs.map(documentSnapshot => documentSnapshot.data() as IExchangeRate);
 };
 
 export interface IFirebaseNote {
@@ -115,7 +100,7 @@ export const getNotes = async (): Promise<IFirebaseNote[]> => {
 		.collection('notes')
 		.get();
 
-	return querySnapshot.docs.map(documentSnapshot => documentSnapshot.data());
+	return querySnapshot.docs.map(documentSnapshot => documentSnapshot.data() as IFirebaseNote);
 };
 
 export const getQuestradeAuth = async (): Promise<IQuestradeAuth> => {
@@ -165,11 +150,22 @@ export const setQuestradeActivityDate = async (questradeActivityDate: Date): Pro
 	});
 };
 
-export const setExchangeRate = async (key: string, date: Date, rate: number): Promise<void> => {
+export const setExchangeRate = async (key: string, date: string, rate: number): Promise<void> => {
 	await initDeferredPromise.promise;
 
+	const querySnapshot = await firestore
+		.collection('exchangeRates')
+		.where('key', '==', key)
+		.where('date', '==', date)
+		.get();
+	
+	if (querySnapshot.docs.length) {
+		console.log('rate already exists for', date);
+		return;
+	}
+
 	const docRef = await firestore
-		.collection('exchange')
+		.collection('exchangeRates')
 		.doc();
 	
 	await docRef.set({
@@ -179,70 +175,55 @@ export const setExchangeRate = async (key: string, date: Date, rate: number): Pr
 	});
 };
 
-export const getExchangeRate = async (key: string, date: Date): Promise<IExchangeRate | null> => {
-	await initDeferredPromise.promise;
-
+export const updateExchangeRates = async (): Promise<void> => {
 	const querySnapshot = await firestore
 		.collection('exchange')
-		.where('key', '==', key)
-		.where('date', '==', date)
 		.get();
 	
-	if (querySnapshot.docs.length == 0) {
-		return null;
-	}
+	querySnapshot.docs.forEach(async (doc) => {
+		const data = doc.data();
+		console.log('iteration', moment(data.date._seconds * 1000).format('YYYY-MM-DD'));
 
-	return querySnapshot.docs[0].data();
-};
+		const docRef = await firestore
+			.collection('exchangeRates')
+			.doc();
 
-interface ICryptoPositionDoc {
-	averageEntryPrice: number,
-	quantity: number,
-	symbol: string,
-	totalCost: number
-}
-
-export interface ICryptoPosition extends Pick<IPosition, 'currency' | 'type' |
-'averageEntryPrice' | 'quantity' | 'symbol' | 'totalCostCad' > {}
-
-export const getCryptoPositions = async (): Promise<ICryptoPosition[]> =>
-{
-	await initDeferredPromise.promise;
-	
-	const querySnapshot = await firestore
-		.collection('cryptoPositions')
-		.get();
-	
-	return querySnapshot.docs.map(documentSnapshot => {
-		const doc: ICryptoPositionDoc = documentSnapshot.data();
-		return {
-			currency: Currency.cad,
-			type: AssetType.crypto,
-			averageEntryPrice: doc.averageEntryPrice,
-			quantity: doc.quantity,
-			symbol: doc.symbol,
-			totalCostCad: doc.totalCost
-		};
+		await docRef.set({
+			rate: data.rate,
+			key: data.key,
+			date: moment(data.date._seconds * 1000).format('YYYY-MM-DD')
+		});
 	});
 };
+
+export interface ICryptoPosition extends Pick<IPosition, 'currency' | 'type' |
+'averageEntryPrice' | 'quantity' | 'symbol' | 'totalCostCad' > { averageEntryPriceCad: number, totalCostUsd: number }
 
 interface ICryptoTradeDoc {
 	symbol: string,
 	isSell: boolean,
 	quantity: number,
 	price: number,
+	priceCad: number,
+	priceUsd: number,
 	timestamp: {
 		_seconds: number,
 		_nanoseconds: number
 	}
 }
 
-export const calculateCryptoPositions = (trades: ICryptoTrade[]): ICryptoPosition[] => {
+export const calculateCryptoPositions = (trades: ICryptoTrade[], rates: IExchangeRate[]): ICryptoPosition[] => {
 	const orderedTrades = _.orderBy(trades, t => t.timestamp);
+	const ratesMap = _.keyBy(rates, r => r.date);
 
 	const positions: ICryptoPosition[] = [];
 	_.forEach(orderedTrades, t => {
 		let position = _.find(positions, p => p.symbol === t.symbol);
+		const rate = ratesMap[moment(t.timestamp).format('YYYY-MM-DD')];
+		if (!rate) {
+			console.log(`missing rate for ${t.symbol} ${new Date(t.timestamp)}`);
+			return;
+		}
 		// if it's a sell and we don't have a position we can just return (bad state)
 		if (t.isSell && !position) {
 			console.log(`skipping ${t.symbol} ${new Date(t.timestamp)}`);
@@ -252,12 +233,14 @@ export const calculateCryptoPositions = (trades: ICryptoTrade[]): ICryptoPositio
 		// first buy
 		if (!position) {
 			position = {
-				currency: Currency.cad,
+				currency: Currency.usd,
 				type: AssetType.crypto,
 				symbol: t.symbol,
 				averageEntryPrice: t.price,
+				averageEntryPriceCad: t.price * rate.rate,
 				quantity: t.quantity,
-				totalCostCad: t.price * t.quantity
+				totalCostUsd: t.price * t.quantity,
+				totalCostCad: t.price * t.quantity * rate.rate
 			};
 			positions.push(position);
 			return;
@@ -265,15 +248,18 @@ export const calculateCryptoPositions = (trades: ICryptoTrade[]): ICryptoPositio
 
 		// buy
 		if (!t.isSell) {
-			position.totalCostCad += t.quantity * t.price;
+			position.totalCostCad += t.quantity * t.price * rate.rate;
+			position.totalCostUsd += t.quantity * t.price;
 			position.quantity += t.quantity;
-			position.averageEntryPrice = position.totalCostCad / position.quantity;
+			position.averageEntryPrice = position.totalCostUsd / position.quantity;
+			position.averageEntryPriceCad = position.totalCostCad / position.quantity;
 			return;
 		}
 
 		// sell
 		position.quantity = Math.max(position.quantity - t.quantity, 0);
-		position.totalCostCad = Math.max(position.quantity * position.averageEntryPrice, 0);
+		position.totalCostCad = Math.max(position.quantity * position.averageEntryPriceCad, 0);
+		position.totalCostUsd = Math.max(position.quantity * position.averageEntryPrice, 0);
 	});
 
 	return _.filter(positions, p => p.quantity > 0 && p.totalCostCad > 0);
@@ -290,9 +276,9 @@ export const getCryptoTrades = async(): Promise<ICryptoTrade[]> => {
 		.get();
 	
 	const trades =  querySnapshot.docs.map(documentSnapshot => {
-		const doc: ICryptoTradeDoc = documentSnapshot.data();
+		const doc: ICryptoTradeDoc = documentSnapshot.data() as ICryptoTradeDoc;
 		return {
-			currency: Currency.cad,
+			currency: Currency.usd,
 			type: AssetType.crypto,
 			price: doc.price,
 			quantity: doc.quantity,
@@ -346,7 +332,7 @@ export const getReviews = async (): Promise<IReview[]> => {
 		.collection('reviews')
 		.get();
 	
-	return querySnapshot.docs.map(documentSnapshot => documentSnapshot.data());
+	return querySnapshot.docs.map(documentSnapshot => documentSnapshot.data() as IReview);
 };
 
 interface ICryptoMetaDataDoc extends firebase.firestore.DocumentData {
@@ -372,7 +358,7 @@ export const checkAndUpdateCryptoMetaData = async (quotesPromise: Promise<ICoinM
 		.get();
 	
 	return querySnapshot.docs.map(async documentSnapshot => { 
-		const data: ICryptoMetaDataDoc = documentSnapshot.data();
+		const data: ICryptoMetaDataDoc = documentSnapshot.data() as ICryptoMetaDataDoc;
 
 		const quote = _.find(quotes, q => q.symbol === data.symbol);
 		if (!quote || (quote.price < data.allTimeHighUsd && quote.price > data.oneYearLowUsd)) {
@@ -406,7 +392,7 @@ export const getCryptoMetaData = async (): Promise<ICryptoMetaData[]> => {
 			allTimeHighUsd,
 			oneYearLowUsd,
 			oneYearLowTimestamp
-		}: ICryptoMetaDataDoc = documentSnapshot.data();
+		}: ICryptoMetaDataDoc = documentSnapshot.data() as ICryptoMetaDataDoc;
 	
 		const data: ICryptoMetaData = {
 			symbol,
@@ -416,5 +402,19 @@ export const getCryptoMetaData = async (): Promise<ICryptoMetaData[]> => {
 		};
 
 		return data;
+	});
+};
+
+export const updateCryptoTrades = async(rates: IExchangeRate[]): Promise<void> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore
+		.collection('cryptoTrades')
+		.get();
+	
+	querySnapshot.docs.map(documentSnapshot => {
+		const doc: ICryptoTradeDoc = documentSnapshot.data() as ICryptoTradeDoc;
+		doc.price = doc.priceUsd;
+		documentSnapshot.ref.set(doc, {merge: true});
 	});
 };

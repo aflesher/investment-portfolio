@@ -109,6 +109,8 @@ const CryptoTrades: React.FC<ICryptoTradesQuery & ICryptoTradeStateProps> = ({ f
             isSell,
             symbol,
             price: Number(price || 0),
+            priceCad: Number(price || 0) * Number(usdCad),
+            priceUsd: Number(price || 0),
             quantity: Number(quantity || 0),
             timestamp: moment(tradeDate, DATE_FORMAT).toDate() as any
 		};

@@ -21,6 +21,7 @@ import { ITrade } from '../../src/utils/trade';
 import { IDividend } from '../../src/utils/dividend';
 import { ICompany } from '../../src/utils/company';
 import { replaceSymbol } from './library/util';
+import { IExchangeRate } from '../../src/utils/exchange';
 
 const assessmentsPromise = firebase.getAssessments();
 const questradeSync = questradeCloud.sync();
@@ -29,6 +30,7 @@ const ordersPromise = questrade.getActiveOrders();
 const cryptoTradesPromise = firebase.getCryptoTrades();
 const binanceOrdersPromise = binance.getOpenOrders();
 const cryptoMetaDataPromise = firebase.getCryptoMetaData();
+const ratesPromise = firebase.getExchangeRates();
 
 const MARGIN_ACOUNT_ID = 26418215;
 
@@ -36,7 +38,8 @@ const FILTER_SYMBOLS = ['ausa.cn', 'dlr.to', 'dlr.u.to', 'glh.cn.11480862'];
 
 const cryptoPositionsPromise = (async () => {
 	const trades = await cryptoTradesPromise;
-	return firebase.calculateCryptoPositions(trades);
+	const rates = await ratesPromise;
+	return firebase.calculateCryptoPositions(trades, rates);
 })();
 
 const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
@@ -213,7 +216,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		configOptions.binance.secretKey
 	);
 
-	const getExchange = exchange.getRate('usd', 'cad', new Date());
+	const getExchange = exchange.getRate('usd', 'cad', moment().format('YYYY-MM-DD'));
 	const getNotes = firebase.getNotes();
 	const getReviewsPromise = firebase.getReviews();
 
@@ -582,25 +585,25 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		// quote in usd, position in cad
 		const quote = _.find(cryptoQuotes, { symbol: position.symbol });
 		const price = quote?.price || 0;
-		const totalCost = position.averageEntryPrice * position.quantity;
-		const currentMarketValue = price * position.quantity * usdToCadRate;
-		const openPnl = currentMarketValue - totalCost;
+		const totalCostUsd = position.totalCostUsd;
+		const currentMarketValueUsd = price * position.quantity;
+		const openPnlUsd = currentMarketValueUsd - totalCostUsd;
 
 		return {
 			symbol: position.symbol,
 			currency: position.currency,
-			currentMarketValue,
-			totalCost,
-			totalCostUsd: totalCost * cadToUsdRate,
-			totalCostCad: totalCost,
-			currentMarketValueCad: currentMarketValue,
-			currentMarketValueUsd: currentMarketValue * cadToUsdRate,
+			currentMarketValue: currentMarketValueUsd,
+			totalCost: totalCostUsd,
+			totalCostUsd: totalCostUsd,
+			totalCostCad: position.totalCostCad,
+			currentMarketValueCad: currentMarketValueUsd * usdToCadRate,
+			currentMarketValueUsd,
 			quantity: position.quantity,
 			averageEntryPrice: position.averageEntryPrice,
 			type: AssetType.crypto,
-			openPnl,
-			openPnlCad: openPnl,
-			openPnlUsd: openPnl * cadToUsdRate,
+			openPnl: openPnlUsd,
+			openPnlCad: openPnlUsd * usdToCadRate,
+			openPnlUsd: openPnlUsd,
 		};
 	};
 
@@ -774,7 +777,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				assessment___NODE: assessmentNodeIdsMap[trade.symbol] || null,
 				exchange___NODE: getExchangeNodeId(
 					'USD_CAD',
-					moment(trade.timestamp).startOf('day').format('YYYY-MM-DD')
+					moment(trade.timestamp).format('YYYY-MM-DD')
 				),
 			};
 
@@ -1023,10 +1026,17 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
 
+		const usdBalance = _.find(balances, (q) => q.currency === Currency.usd);
+		if (usdBalance) {
+			usdBalance.cash += (10209 + 1167 + 1193 + 8628 + 3073) // binance, binance, nexo, blockfi, blockfi
+		}
+
 		const cadCash =
 			_.find(balances, (q) => q.currency === Currency.cad)?.cash || 0;
 		const usdCash =
 			_.find(balances, (q) => q.currency === Currency.usd)?.cash || 0;
+		
+		
 
 		balances.push({
 			currency: Currency.cad,
@@ -1057,13 +1067,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return balances;
 	};
 
-	interface IRate {
-		key: string;
-		rate: number;
-		date: string;
-	}
-
-	interface IRateNode extends IRate, INode {}
+	interface IRateNode extends IExchangeRate, INode {}
 
 	const getExchangeRateNodes = async (): Promise<IRateNode[]> => {
 		await questradeSync;
@@ -1076,7 +1080,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			.filter(
 				(q) => q.accountId === MARGIN_ACOUNT_ID && q.currency === Currency.usd
 			)
-			.map((trade) => moment(trade.date).startOf('day').format('YYYY-MM-DD'))
+			.map((trade) => moment(trade.date).format('YYYY-MM-DD'))
 			.uniq()
 			.value();
 
@@ -1084,12 +1088,12 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			.filter(
 				(q) => q.accountId === MARGIN_ACOUNT_ID && q.currency === Currency.usd
 			)
-			.map((dividend) => moment(dividend.date).startOf('day').format('YYYY-MM-DD'))
+			.map((dividend) => moment(dividend.date).format('YYYY-MM-DD'))
 			.uniq()
 			.value();
 
 		const cryptoTradeDates = _(cryptoTrades)
-			.map((trade) => moment(trade.timestamp).startOf('day').format('YYYY-MM-DD'))
+			.map((trade) => moment(trade.timestamp).format('YYYY-MM-DD'))
 			.uniq()
 			.value();
 
@@ -1102,21 +1106,23 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			.uniq()
 			.value();
 
-		const rates: IRate[] = [];
-		for (let i = 0; i < dates.length; i++) {
-			const date = dates[i];
-			const rate = await exchange.getRate('usd', 'cad', date);
-			if (rate != null) {
-				rates.push({ key: 'USD_CAD', rate, date });
-			}
-		}
+		const rates: IExchangeRate[] = await ratesPromise;
+		const exchangeRateDates = rates.map(r => r.date);
+		console.log('missing rates', _.without(dates,  ...exchangeRateDates));
+		// for (let i = 0; i < dates.length; i++) {
+		// 	const date = dates[i];
+		// 	const rate = await exchange.getRate('usd', 'cad', date);
+		// 	if (rate != null) {
+		// 		rates.push({ key: 'USD_CAD', rate, date });
+		// 	}
+		// }
 
-		const usdToCad = await getExchange;
-		rates.push({
-			key: 'USD_CAD',
-			rate: usdToCad,
-			date: moment().format('YYYY-MM-DD'),
-		});
+		// const usdToCad = await getExchange;
+		// rates.push({
+		// 	key: 'USD_CAD',
+		// 	rate: usdToCad,
+		// 	date: moment().format('YYYY-MM-DD'),
+		// });
 
 		return rates.map((rate) => {
 			const rateNode = rate;
@@ -1150,21 +1156,28 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const reviewNodesPromise = getReviewNodes();
 
 		const assessments = await assessmentsPromise;
+		console.log('assessments cleared');
 		const notes = await notesPromise;
+		console.log('notes cleared');
 		const questradePositions = await positionNodesPromise;
+		console.log('positions cleared');
 		const questradeTrades = await tradeNodesPromise;
+		console.log('trades cleared');
 		const questradeDividends = await dividendNodesPromise;
+		console.log('dividends cleared');
 		const questradeQuotes = await quoteNodesPromise;
 		const questradeCompanies = await companyNodesPromise;
 		const balanceNodes = await balanceNodesPromise;
 		// const profitsAndLossesNodes = await profitsAndLossesNodesPromise;
 		const exchangeRateNodes = await exchangeRateNodesPromise;
+		console.log('exchangeRateNodes cleared');
 		const orderNodes = await orderNodesPromise;
 		// const buildTimeNodes = getBuildTimeNode();
 		const reviewNodes = await reviewNodesPromise;
 
 		await firebase.checkAndUpdateCryptoMetaData(cryptoQuotesPromise);
 
+		console.log('all clear');
 		return _.concat(
 			assessments as any[],
 			notes,

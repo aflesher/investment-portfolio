@@ -2,7 +2,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import moment from 'moment-timezone';
 
-import { getExchangeRate, setExchangeRate } from './firebase';
+import { setExchangeRate } from './firebase';
 
 let api = '';
 let apiKey = '';
@@ -12,19 +12,12 @@ export const init = (_api: string, _apiKey: string): void => {
 	apiKey = _apiKey;
 };
 
-export const getRate = async (from, to, date): Promise<number> => {
+export const getRate = async (from: string, to: string, date: string): Promise<number> => {
 	const key = `${from.toUpperCase()}_${to.toUpperCase()}`;
-	date = moment(date).startOf('day').toDate();
-	const dateString = moment(date).format('YYYY-MM-DD');
-
-	const rateInfo = await getExchangeRate(key, date);
-	if (rateInfo) {
-		return rateInfo.rate;
-	}
 
 	// This is a restriction of the endpoint. I think you'll need to manually backfill
-	if (date <= moment().startOf('day').subtract(1, 'year').toDate()) {
-		console.error(dateString, '    is missing for rates');
+	if (moment(date).toDate() <= moment().startOf('day').subtract(1, 'year').toDate()) {
+		console.error(date, '    is missing for rates');
 		return 1;
 	}
 
@@ -34,7 +27,7 @@ export const getRate = async (from, to, date): Promise<number> => {
 				q: key,
 				compact: 'ultra',
 				apiKey,
-				date: dateString,
+				date,
 			},
 		})
 		.catch(console.log);
@@ -43,7 +36,7 @@ export const getRate = async (from, to, date): Promise<number> => {
 		return 1;
 	}
 
-	const rate = resp.data[key][dateString];
+	const rate = resp.data[key][date];
 
 	await setExchangeRate(key, date, rate);
 
