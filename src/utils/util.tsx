@@ -2,6 +2,7 @@ import numeral from 'numeral';
 import moment from 'moment-timezone';
 import _ from 'lodash';
 import { AssetType } from './enum';
+import { number } from 'yargs';
 
 export const displayMarketCap = (value: number): string => numeral(value).format('$1.00 a');
 
@@ -94,3 +95,23 @@ export const cryptoPermium = (
 
 	return (stock.priceCad - nav) / nav;
 };
+
+export const lerp = (value1: number, value2: number, amount: number) => {
+	amount = amount < 0 ? 0 : amount;
+	amount = amount > 1 ? 1 : amount;
+	return value1 + (value2 - value1) * amount;
+};
+
+export interface IColor {
+	red: number,
+	green: number,
+	blue: number
+}
+
+export const lerpColor = (start: IColor, finish: IColor, interpolate: number): string => {
+	const red = lerp(start.red, finish.red, interpolate);
+	const green = lerp(start.green, finish.green, interpolate);
+	const blue = lerp(start.blue, finish.blue, interpolate);
+
+	return `rgb(${red}, ${green}, ${blue})`;
+}

@@ -32,7 +32,7 @@ const binanceOrdersPromise = binance.getOpenOrders();
 const cryptoMetaDataPromise = firebase.getCryptoMetaData();
 const ratesPromise = firebase.getExchangeRates();
 
-const MARGIN_ACOUNT_ID = 26418215;
+const MARGIN_ACCOUNT_ID = 26418215;
 
 const FILTER_SYMBOLS = ['ausa.cn', 'dlr.to', 'dlr.u.to', 'glh.cn.11480862'];
 
@@ -696,6 +696,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			action: trade.action,
 			type: AssetType.stock,
 			isOpeningPositionTrade: false,
+			taxable: trade.accountId === MARGIN_ACCOUNT_ID
 		};
 	};
 
@@ -719,6 +720,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		action: trade.isSell ? 'sell' : 'buy',
 		type: AssetType.crypto,
 		isOpeningPositionTrade: false,
+		taxable: true
 	});
 
 	const setOpeningTrade = (trades: ITrade[]): void => {
@@ -1078,7 +1080,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		const marginUsdTradeDates = _(trades)
 			.filter(
-				(q) => q.accountId === MARGIN_ACOUNT_ID && q.currency === Currency.usd
+				(q) => q.accountId === MARGIN_ACCOUNT_ID && q.currency === Currency.usd
 			)
 			.map((trade) => moment(trade.date).format('YYYY-MM-DD'))
 			.uniq()
@@ -1086,7 +1088,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		const marginUsdDividendDates = _(dividends)
 			.filter(
-				(q) => q.accountId === MARGIN_ACOUNT_ID && q.currency === Currency.usd
+				(q) => q.accountId === MARGIN_ACCOUNT_ID && q.currency === Currency.usd
 			)
 			.map((dividend) => moment(dividend.date).format('YYYY-MM-DD'))
 			.uniq()

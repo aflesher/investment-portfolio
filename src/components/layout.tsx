@@ -418,10 +418,6 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 							className='mobile-nav-link'
 							onClick={(): void => setShowSidebar(!showSidebar)}
 						></div>
-						<div className='main-header'>
-							<img src={headerImage} className='cover' />
-							<img src={headerSpacerImage} className='cover' />
-						</div>
 						<div className='main-content'>
 							{children}
 						</div>

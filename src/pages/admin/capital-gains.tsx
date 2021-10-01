@@ -17,7 +17,10 @@ interface ICapitalGainsQuery {
 				pnl: number,
 				timestamp: number,
 				currency: Currency,
-				action: string
+				action: string,
+				exchange?: {
+					rate: number
+				}
 			}[]
 		},
 		allExchangeRate: {
@@ -161,7 +164,7 @@ export default CapitalGains;
 
 export const pageQuery = graphql`
 query {
-	allTrade(filter: {accountId: {eq: 26418215}}) {
+	allTrade(filter: {taxable: {eq: true}}) {
 		nodes {
 			symbol
 			quantity
@@ -170,6 +173,9 @@ query {
 			timestamp
 			currency
 			action
+			exchange {
+				rate
+			}
 		}
 	}
 	allExchangeRate(filter: {key: {eq: "USD_CAD"}}) {
