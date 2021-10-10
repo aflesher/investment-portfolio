@@ -9,14 +9,15 @@ import { Currency, AssetType } from '../utils/enum';
 import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
 
-enum PostionsOrderBy {
+export enum PositionsOrderBy {
 	symbol,
 	profits,
 	position,
 	investment,
 	pe,
 	dividendYield,
-	cashProfits
+	cashProfits,
+	rank
 }
 
 interface IPositionNode {
@@ -75,7 +76,7 @@ const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
 });
 
 const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, data }) => {
-	const [orderBy, setOrderBy] = React.useState(PostionsOrderBy.profits);
+	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.profits);
 	const [combined, setCombined] = React.useState(true);
 
 	const getTotalCostCad = (position: IPositionNode): number => (
@@ -108,52 +109,55 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 		.filter(position => !combined || !_.includes(filteredPositions, position.symbol))
 		.orderBy(position => {
 			switch (orderBy) {
-			case PostionsOrderBy.symbol:
+			case PositionsOrderBy.symbol:
 				return position.symbol;
-			case PostionsOrderBy.profits:
+			case PositionsOrderBy.profits:
 				return (getCurrentValueCad(position) - getTotalCostCad(position)) /
 				getTotalCostCad(position);
-			case PostionsOrderBy.position:
+			case PositionsOrderBy.position:
 				return getCurrentValueCad(position) / totalPositionValue;
-			case PostionsOrderBy.investment:
+			case PositionsOrderBy.investment:
 				return getTotalCostCad(position) / totalPositionCost;
-			case PostionsOrderBy.pe:
+			case PositionsOrderBy.pe:
 				return position.company.pe;
-			case PostionsOrderBy.dividendYield:
+			case PositionsOrderBy.dividendYield:
 				return position.company.yield;
-			case PostionsOrderBy.cashProfits:
+			case PositionsOrderBy.cashProfits:
 				return getCurrentValueCad(position) - getTotalCostCad(position);
 			}
-		}, orderBy == PostionsOrderBy.symbol ? 'asc' : 'desc')
+		}, orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc')
 		.value();
+
+	const rankPortfolio = ["btc","eth","sq","lulu","amd","amzn","scr.to","pins","fb","ntdoy","wwe","tcehy","aw.un.to","urnm","link","gld","bitf.vn","weed.to","avax","rune","mana","spxs","bnb","gme","audio","chal.cn"];
+	const rankInvestment = ["btc","eth","sq","lulu","amd","ntdoy","amzn","fb","pins","tcehy","scr.to","wwe","aw.un.to","urnm","link","bitf.vn","rune","avax","gld","weed.to","mana","spxs","bnb","gme","audio","chal.cn"];
 
 	return (
 		<Layout>
 			<div className='grid p-4'>
 				<div className='row pb-1'>
 					<div
-						className='col-4 col-lg-2 offset-lg-1 link'
-						onClick={() => setOrderBy(PostionsOrderBy.symbol)}>
+						className='col-4 col-lg-2 offset-lg-2 link'
+						onClick={() => setOrderBy(PositionsOrderBy.symbol)}>
 							SYMBOL
 					</div>
 					<div
-						className='col-4 col-lg-2 text-right link'
-						onClick={() => setOrderBy(PostionsOrderBy.profits)}>
+						className='col-4 col-lg-1 text-right link'
+						onClick={() => setOrderBy(PositionsOrderBy.profits)}>
 							P&L
 					</div>
 					<div
 						className='col-2 text-right link'
-						onClick={() => setOrderBy(PostionsOrderBy.position)}>
+						onClick={() => setOrderBy(PositionsOrderBy.position)}>
 							%oP
 					</div>
 					<div
 						className='col-2 text-right link'
-						onClick={() => setOrderBy(PostionsOrderBy.investment)}>
+						onClick={() => setOrderBy(PositionsOrderBy.investment)}>
 							%oI
 					</div>
 					<div
 						className='d-none d-lg-block col-3 text-right link'
-						onClick={() => setOrderBy(PostionsOrderBy.cashProfits)}>
+						onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}>
 							$P&L
 					</div>
 				</div>
@@ -182,6 +186,9 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 						quoteCurrency={position.quote.currency}
 						symbolCharacter={combined && position.positions.length ? '*' : ''}
 						isPristine={!!position.assessment?.checklist.pristine}
+						portfolioRank={rankPortfolio.indexOf(position.symbol) + 1}
+						investmentRank={rankInvestment.indexOf(position.symbol) + 1}
+						positionsOrderBy={orderBy}
 					/>
 				))}
 				<div className='row'>
