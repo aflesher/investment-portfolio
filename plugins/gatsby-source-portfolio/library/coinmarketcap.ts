@@ -68,7 +68,8 @@ export const symbolToSlug = (symbol: string): string => {
 		super: 'superfarm',
 		rune: 'thorchain',
 		bnb: 'binance-coin',
-		link: 'chainlink'
+		link: 'chainlink',
+		hnt: 'helium'
 	};
 
 	return lookup[symbol];

@@ -2,7 +2,7 @@ import numeral from 'numeral';
 import moment from 'moment-timezone';
 import _ from 'lodash';
 import { AssetType } from './enum';
-import { number } from 'yargs';
+import { clamp } from 'lodash';
 
 export const displayMarketCap = (value: number): string => numeral(value).format('$1.00 a');
 
@@ -114,4 +114,8 @@ export const lerpColor = (start: IColor, finish: IColor, interpolate: number): s
 	const blue = lerp(start.blue, finish.blue, interpolate);
 
 	return `rgb(${red}, ${green}, ${blue})`;
+}
+
+export const interpolate = (start: number, end: number, value: number): number => {
+	return clamp((value - start) / (end - start), start, end);
 }

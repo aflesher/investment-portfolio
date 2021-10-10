@@ -150,6 +150,22 @@ const hash = (content: string): string => {
 	return crypto.createHash('md5').update(content).digest('hex');
 };
 
+const getTodaysRate = async (): Promise<number> => {
+	const date = moment().format('YYYY-MM-DD');
+	let rate = await exchange.getRate('usd', 'cad', date);
+	if (rate) {
+		return rate;
+	}
+
+	const rates = await ratesPromise;
+	rate = _.find(rates, r => r.date === date)?.rate || null;
+	if (rate) {
+		return rate;
+	}
+
+	return 1;
+}
+
 const isUsd = (symbol: string): boolean =>
 	symbol.indexOf('.') === -1 || symbol.indexOf('.u.') !== -1;
 
@@ -216,7 +232,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		configOptions.binance.secretKey
 	);
 
-	const getExchange = exchange.getRate('usd', 'cad', moment().format('YYYY-MM-DD'));
+	const getExchange = getTodaysRate();
 	const getNotes = firebase.getNotes();
 	const getReviewsPromise = firebase.getReviews();
 

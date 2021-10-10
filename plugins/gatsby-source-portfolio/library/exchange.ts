@@ -12,7 +12,7 @@ export const init = (_api: string, _apiKey: string): void => {
 	apiKey = _apiKey;
 };
 
-export const getRate = async (from: string, to: string, date: string): Promise<number> => {
+export const getRate = async (from: string, to: string, date: string): Promise<number | null> => {
 	const key = `${from.toUpperCase()}_${to.toUpperCase()}`;
 
 	// This is a restriction of the endpoint. I think you'll need to manually backfill
@@ -33,7 +33,7 @@ export const getRate = async (from: string, to: string, date: string): Promise<n
 		.catch(console.log);
 
 	if (!resp) {
-		return 1;
+		return null;
 	}
 
 	const rate = resp.data[key][date];
