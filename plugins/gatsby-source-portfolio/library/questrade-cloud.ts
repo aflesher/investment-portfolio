@@ -35,7 +35,6 @@ export const sync = async (): Promise<void> => {
 
 	let complete = false;
 	while (!complete) {
-		console.log('loop');
 		complete = await addActivities();
 	}
 

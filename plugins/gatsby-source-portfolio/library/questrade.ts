@@ -193,7 +193,7 @@ export const getActivities = async (): Promise<{activities: IQuestradeActivity[]
 		complete = true;
 	}
 
-	console.log('times', startTime, endTime);
+	// console.log('times', startTime, endTime);
 
 	const accountIds = _.map(accounts, 'number');
 	const resps = await Promise.all(

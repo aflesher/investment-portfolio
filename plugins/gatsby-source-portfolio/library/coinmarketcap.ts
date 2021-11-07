@@ -69,7 +69,10 @@ export const symbolToSlug = (symbol: string): string => {
 		rune: 'thorchain',
 		bnb: 'binance-coin',
 		link: 'chainlink',
-		hnt: 'helium'
+		hnt: 'helium',
+		blok: 'bloktopia',
+		enj: 'enjin-coin',
+		dot: 'polkadot-new'
 	};
 
 	return lookup[symbol];

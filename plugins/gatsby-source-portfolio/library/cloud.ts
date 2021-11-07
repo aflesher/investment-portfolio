@@ -74,7 +74,7 @@ export const getTrades = async (): Promise<void> => {
 	});
 };
 
-export const getCustomTrades = (): ICloudTrade[] => ([
+const getCustomTrades = (): ICloudTrade[] => ([
 	{
 		symbol: 'spy17apr20p200.00',
 		date: new Date('2020-04-20'),
@@ -113,6 +113,32 @@ export const getCustomTrades = (): ICloudTrade[] => ([
 		type: 'stock',
 		hash: '',
 		pnl: 0
+	},
+	{
+		symbol: 'scr.to',
+		date: new Date('2021-10-22'),
+		accountId: 51443858,
+		action: 'sell',
+		symbolId: 34561047,
+		currency: 'cad',
+		price: 44.65,
+		quantity: 1492,
+		type: 'stock',
+		hash: '',
+		pnl: 56361.27
+	},
+	{
+		symbol: 'penn',
+		date: new Date('2021-10-22'),
+		accountId: 51443858,
+		action: 'buy',
+		symbolId: 31627,
+		currency: 'usd',
+		price: 74.63,
+		quantity: 356,
+		type: 'stock',
+		hash: '',
+		pnl: 0
 	}
 ]);
 
@@ -120,7 +146,7 @@ export const filteredTrades = ['pm.vn'];
 
 export const readTrades = (): ICloudTrade[] => {
 	trades.forEach(q => q.accountId = Number(q.accountId));
-	return trades.filter(q => !filteredTrades.includes(q.symbol));
+	return trades.filter(q => !filteredTrades.includes(q.symbol)).concat(getCustomTrades());
 };
 
 export const addTrade = (trade: IQuestradeActivity): void => {

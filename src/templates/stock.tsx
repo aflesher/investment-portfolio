@@ -137,6 +137,16 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 		positions: []
 	};
 
+	const proceeds = 66617.8;
+	console.log(_.sumBy(trades, t => t.quantity * (t.action === 'sell' ? -1 : 1)));
+	console.log(1492 * 44.65);
+	console.log(_.sumBy(trades, t => (t.quantity * t.priceCad) * (t.action === 'sell' ? -1 : 1)));
+	const cost = _.sumBy(trades.filter(t => t.action === 'buy'), t => t.priceCad * t.quantity);
+	const shares = _.sumBy(trades.filter(t => t.action === 'buy'), t => t.quantity);
+	console.log(cost);
+	console.log(shares);
+	console.log(proceeds - (cost * (1492 / 2492)));
+
 	const pAndLClosedCad = _.sumBy(trades, trade => trade.pnlCad || 0);
 	const pAndLClosedUsd = _.sumBy(trades, trade => trade.pnlUsd || 0);
 	const dividendsTotalCad = _.sumBy(dividends, d => d.amountCad);
@@ -406,6 +416,34 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 									currency={currency}
 								/>
 								<div>({ Math.floor(acumlatedDividendsCad / quote.priceCad) } shares)</div>
+							</div>
+						</div>
+						}
+						{company.symbol === 'mana' &&
+						<div className='row font-weight-bold font-italic'>
+							<div className='col-6'>
+								LAND
+							</div>
+							<div className='col-6'>
+								<XE
+									cad={11000 * quote.priceCad}
+									usd={11000 * quote.priceUsd}
+									currency={currency}
+								/>
+							</div>
+						</div>
+						}
+						{company.symbol === 'mana' &&
+						<div className='row font-weight-bold font-italic'>
+							<div className='col-6'>
+								TOKENS
+							</div>
+							<div className='col-6'>
+								<XE
+									cad={((position?.quantity || 0) - 11000) * quote.priceCad}
+									usd={((position?.quantity || 0) - 11000) * quote.priceUsd}
+									currency={currency}
+								/>
 							</div>
 						</div>
 						}

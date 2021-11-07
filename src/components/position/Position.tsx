@@ -41,10 +41,10 @@ const startColor: IColor = {
 const Position: React.FC<IPositionStateProps> = (props) => {
 	const {
 		isFullPosition, activeCurrency, valueCad, costCad, valueUsd, costUsd, index,
-		percentageOfInvestment, percentageOfPortfolio, classes, isPristine, investmentRank, portfolioRank, positionsOrderBy
+		percentageOfInvestment, percentageOfPortfolio, classes, isPristine, investmentRank, portfolioRank, positionsOrderBy, quoteCurrency
 	} = props;
 	const mainClasses = ['row', 'position'].concat(classes || []).join(' ');
-	const pnl = activeCurrency === Currency.cad ?
+	const pnl = quoteCurrency === Currency.cad ?
 		(valueCad - costCad) / costCad :
 		(valueUsd - costUsd) / costUsd;
 	const investmentRankDiff = (investmentRank || 0) - index;

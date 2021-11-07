@@ -3,6 +3,7 @@ import _ from 'lodash';
 import crypto from 'crypto';
 import path from 'path';
 import moment from 'moment';
+import 'colors';
 
 import * as exchange from './library/exchange';
 import * as firebase from './library/firebase';
@@ -35,6 +36,7 @@ const ratesPromise = firebase.getExchangeRates();
 const MARGIN_ACCOUNT_ID = 26418215;
 
 const FILTER_SYMBOLS = ['ausa.cn', 'dlr.to', 'dlr.u.to', 'glh.cn.11480862'];
+const SYMBOLS_TO_VIEW_IDS: string[] = [];
 
 const cryptoPositionsPromise = (async () => {
 	const trades = await cryptoTradesPromise;
@@ -135,7 +137,7 @@ const cryptoSlugsPromise = (async (): Promise<string[]> => {
 			.value()
 	);
 
-	return _.uniq(allSlugs);
+	return _.uniq(allSlugs.filter(q => !!q));
 })();
 
 const cryptoQuotesPromise = (async (): Promise<
@@ -257,6 +259,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		tradeNodeIdsMap[trade.symbol] = tradeNodeIdsMap[trade.symbol] || [];
 		tradeNodeIdsMap[trade.symbol].push(nodeId);
 	});
+
 	const cryptoTrades = await cryptoTradesPromise;
 	_.forEach(cryptoTrades, (trade, index) => {
 		const nodeId = getTradeNodeId(trade.symbol, index);
@@ -574,6 +577,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
 		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
 
+		if (SYMBOLS_TO_VIEW_IDS.includes(position.symbol)) {
+			console.log(`${position.symbol} : ${position.symbolId}`);
+		}
+
 		return {
 			symbol: position.symbol,
 			currency,
@@ -619,7 +626,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			type: AssetType.crypto,
 			openPnl: openPnlUsd,
 			openPnlCad: openPnlUsd * usdToCadRate,
-			openPnlUsd: openPnlUsd,
+			openPnlUsd: openPnlUsd
 		};
 	};
 
@@ -696,6 +703,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
 		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
 
+		if (SYMBOLS_TO_VIEW_IDS.includes(trade.symbol)) {
+			console.log(`${trade.symbol} : ${trade.symbolId}`);
+		}
+
 		return {
 			isSell: trade.action === 'sell',
 			symbol: trade.symbol,
@@ -764,7 +775,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		const cryptoTrades = await cryptoTradesPromise;
 		const cloudTrades = cloud.readTrades();
-		const customCloudTrades = cloud.getCustomTrades();
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
 
@@ -774,9 +784,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			),
 			_.map(cryptoTrades, (t) =>
 				mapCryptoTradeToTrade(t, cadToUsdRate, usdToCadRate)
-			),
-			_.map(customCloudTrades, (t) =>
-				mapQuestradeTradesToTrades(t, cadToUsdRate, usdToCadRate)
 			)
 		);
 
@@ -1046,7 +1053,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		const usdBalance = _.find(balances, (q) => q.currency === Currency.usd);
 		if (usdBalance) {
-			usdBalance.cash += (10209 + 1167 + 1193 + 8628 + 3073) // binance, binance, nexo, blockfi, blockfi
+			usdBalance.cash += (9378.11 + 2638.65 + 4440.13 + 1193 + 8628 + 3073) // binance, binance, nexo, blockfi, blockfi
 		}
 
 		const cadCash =
@@ -1125,22 +1132,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			.value();
 
 		const rates: IExchangeRate[] = await ratesPromise;
-		const exchangeRateDates = rates.map(r => r.date);
-		console.log('missing rates', _.without(dates,  ...exchangeRateDates));
-		// for (let i = 0; i < dates.length; i++) {
-		// 	const date = dates[i];
-		// 	const rate = await exchange.getRate('usd', 'cad', date);
-		// 	if (rate != null) {
-		// 		rates.push({ key: 'USD_CAD', rate, date });
-		// 	}
-		// }
-
-		// const usdToCad = await getExchange;
-		// rates.push({
-		// 	key: 'USD_CAD',
-		// 	rate: usdToCad,
-		// 	date: moment().format('YYYY-MM-DD'),
-		// });
+		const exchangeRateDates = rates.map(r => r.date);	
+		// console.log('missing rates', _.without(dates,  ...exchangeRateDates));
 
 		return rates.map((rate) => {
 			const rateNode = rate;
@@ -1159,6 +1152,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
+	const outputCleared = (text: string): void => {
+		console.log(`cleared`.magenta + ' ' + text);
+	};
+
 	const getAll = async (): Promise<any[]> => {
 		const assessmentsPromise = getAssessmentNodes();
 		const notesPromise = getNoteNodes();
@@ -1174,28 +1171,31 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const reviewNodesPromise = getReviewNodes();
 
 		const assessments = await assessmentsPromise;
-		console.log('assessments cleared');
+		outputCleared('assessments');
 		const notes = await notesPromise;
-		console.log('notes cleared');
+		outputCleared('notes');
 		const questradePositions = await positionNodesPromise;
-		console.log('positions cleared');
+		outputCleared('positions');
 		const questradeTrades = await tradeNodesPromise;
-		console.log('trades cleared');
+		outputCleared('trades');
 		const questradeDividends = await dividendNodesPromise;
-		console.log('dividends cleared');
+		outputCleared('dividends');
 		const questradeQuotes = await quoteNodesPromise;
+		outputCleared('quotes');
 		const questradeCompanies = await companyNodesPromise;
+		outputCleared('companies');
 		const balanceNodes = await balanceNodesPromise;
-		// const profitsAndLossesNodes = await profitsAndLossesNodesPromise;
+		outputCleared('balances');
 		const exchangeRateNodes = await exchangeRateNodesPromise;
-		console.log('exchangeRateNodes cleared');
+		outputCleared('exchange rates');
 		const orderNodes = await orderNodesPromise;
-		// const buildTimeNodes = getBuildTimeNode();
+		outputCleared('orders');
 		const reviewNodes = await reviewNodesPromise;
+		outputCleared('reviews');
 
 		await firebase.checkAndUpdateCryptoMetaData(cryptoQuotesPromise);
 
-		console.log('all clear');
+		outputCleared('ALL!');
 		return _.concat(
 			assessments as any[],
 			notes,

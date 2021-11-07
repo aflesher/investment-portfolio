@@ -65,5 +65,11 @@ export const getOpenOrders = async (): Promise<IBinanceOrder[]> => {
 		return [];
 	}
 
+	resp.data.forEach(order => {
+		if (order.symbol === 'MANABUSD') {
+			order.symbol = 'MANA';
+		}
+	})
+
 	return resp.data;
 };
