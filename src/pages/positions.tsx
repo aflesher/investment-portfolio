@@ -128,7 +128,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 		}, orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc')
 		.value();
 
-	const rankPortfolio = ["btc","eth","sq","lulu","amd","amzn","scr.to","pins","fb","ntdoy","wwe","tcehy","aw.un.to","urnm","link","gld","bitf.vn","weed.to","avax","rune","mana","spxs","bnb","gme","audio","chal.cn"];
+	const rankPortfolio = ["btc","eth","sq","lulu","amd","amzn","pins","fb","ntdoy","tcehy","wwe","aw.un.to","urnm","bitf.vn","link","rune","avax","mana","bnb","gld","weed.to","spxs","gme","chal.cn"];
 	const rankInvestment = ["btc","eth","sq","lulu","amd","ntdoy","amzn","fb","pins","tcehy","scr.to","wwe","aw.un.to","urnm","link","bitf.vn","rune","avax","gld","weed.to","mana","spxs","bnb","gme","audio","chal.cn"];
 
 	return (
