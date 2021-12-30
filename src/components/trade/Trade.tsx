@@ -9,13 +9,13 @@ import { formatDateShort } from '../../utils/util';
 
 export interface ITradeStateProps extends
 	Omit<IStockQuoteStateProps, 'quantity' >,
-	Pick<ITrade, 'isSell' | 'quantity' | 'timestamp' | 'pnlCad' | 'pnlUsd' | 'currency'>
+	Pick<ITrade, 'isSell' | 'quantity' | 'timestamp' | 'pnlCad' | 'pnlUsd' | 'currency' | 'accountName'>
 {
 	tradePrice: number
 }
 
 const Trade: React.FC<ITradeStateProps> = (props) => {
-	const { symbol, isSell, quantity, timestamp, pnlCad, pnlUsd, currency, tradePrice, type } = props;
+	const { symbol, isSell, quantity, timestamp, pnlCad, pnlUsd, currency, tradePrice, type, accountName } = props;
 	return (
 		<div className='trade border-top-normal'>
 			<div className='row'>
@@ -42,6 +42,7 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 					</span>
 				</div>
 				<div className='col-4 text-sub text-right'>
+					<span className='text-subtle'>{accountName}&nbsp;</span>
 					{formatDateShort(timestamp)}
 				</div>
 			</div>

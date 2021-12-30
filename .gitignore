@@ -140,3 +140,5 @@ public
 plugins/gatsby-source-portfolio/**/*.js
 src/utils/*.js
 key.json
+
+.vscode

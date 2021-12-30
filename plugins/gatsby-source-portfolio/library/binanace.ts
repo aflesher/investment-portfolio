@@ -66,9 +66,7 @@ export const getOpenOrders = async (): Promise<IBinanceOrder[]> => {
 	}
 
 	resp.data.forEach(order => {
-		if (order.symbol === 'MANABUSD') {
-			order.symbol = 'MANA';
-		}
+		order.symbol = order.symbol.replace('BUSD', '');
 	})
 
 	return resp.data;

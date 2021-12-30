@@ -72,7 +72,9 @@ export const symbolToSlug = (symbol: string): string => {
 		hnt: 'helium',
 		blok: 'bloktopia',
 		enj: 'enjin-coin',
-		dot: 'polkadot-new'
+		dot: 'polkadot-new',
+		efi: 'efinity',
+		sol: 'solana'
 	};
 
 	return lookup[symbol];

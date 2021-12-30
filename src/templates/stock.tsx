@@ -70,7 +70,8 @@ interface IStockTemplateQuery {
 					priceUsd: number,
 					exchange?: {
 						rate: number
-					}
+					},
+					accountName: string
 				}[]
 				assessment?: {
 					minuses: string[],
@@ -537,6 +538,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 									valueUsd={position.currentMarketValueUsd}
 									type={company.type}
 									quoteCurrency={quote.currency}
+									accountName={trade.accountName}
 								/>
 							).value() : '(no trades)'}
 						</div>
@@ -626,6 +628,7 @@ export const pageQuery = graphql`
 					exchange {
 						rate
 					}
+					accountName
 				}
 				assessment {
 					symbol

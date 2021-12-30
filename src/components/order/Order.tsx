@@ -20,7 +20,7 @@ const Order: React.FC<IOrderStateProps> = ({
 }) => {
 	const gap = action == 'buy' ?
 		(quotePrice - limitPrice) / quotePrice :
-		(limitPrice - quotePrice) / limitPrice;
+		(limitPrice - quotePrice) / quotePrice;
 
 	const newAvgPrice = action == 'buy' && positionQuantity ?
 		(positionCost + (limitPrice * openQuantity)) /

@@ -21,6 +21,7 @@ interface ITradeQuery {
 		allTrade: {
 			nodes: {
 				accountId: number,
+				accountName: string,
 				quantity: number,
 				price: number,
 				action: string,
@@ -219,6 +220,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 							valueUsd={trade.position?.currentMarketValueUsd || 0}
 							activeCurrency={currency}
 							quoteCurrency={trade.quote.currency}
+							accountName={trade.accountName}
 						/>
 					))}
 				</div>
@@ -239,6 +241,7 @@ export const pageQuery = graphql`
 		allTrade(sort: {fields: [timestamp], order: DESC}) {
 			nodes {
 				accountId
+				accountName
 				quantity
 				price
 				action

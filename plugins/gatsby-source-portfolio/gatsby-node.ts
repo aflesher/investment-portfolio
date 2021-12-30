@@ -723,7 +723,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			action: trade.action,
 			type: AssetType.stock,
 			isOpeningPositionTrade: false,
-			taxable: trade.accountId === MARGIN_ACCOUNT_ID
+			taxable: trade.accountId === MARGIN_ACCOUNT_ID,
+			accountName: questrade.getAccountName(trade.accountId),
 		};
 	};
 
@@ -747,7 +748,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		action: trade.isSell ? 'sell' : 'buy',
 		type: AssetType.crypto,
 		isOpeningPositionTrade: false,
-		taxable: true
+		taxable: true,
+		accountName: 'binance'
 	});
 
 	const setOpeningTrade = (trades: ITrade[]): void => {

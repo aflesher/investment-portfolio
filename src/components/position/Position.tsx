@@ -26,6 +26,11 @@ export interface IPositionStateProps extends IStockQuoteStateProps {
 	positionsOrderBy?: PositionsOrderBy
 }
 
+export interface IPositionDispatchProps {
+	increaseRank?: () => void,
+	decreaseRank?: () => void
+}
+
 const endColor: IColor = {
 	red: 255,
 	green: 0,
@@ -38,10 +43,11 @@ const startColor: IColor = {
 	blue: 255
 }
 
-const Position: React.FC<IPositionStateProps> = (props) => {
+const Position: React.FC<IPositionStateProps & IPositionDispatchProps> = (props) => {
 	const {
 		isFullPosition, activeCurrency, valueCad, costCad, valueUsd, costUsd, index,
-		percentageOfInvestment, percentageOfPortfolio, classes, isPristine, investmentRank, portfolioRank, positionsOrderBy, quoteCurrency
+		percentageOfInvestment, percentageOfPortfolio, classes, isPristine, investmentRank, portfolioRank, positionsOrderBy, quoteCurrency,
+		increaseRank, decreaseRank
 	} = props;
 	const mainClasses = ['row', 'position'].concat(classes || []).join(' ');
 	const pnl = quoteCurrency === Currency.cad ?
@@ -53,12 +59,12 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		<div className={mainClasses}>
 			<div className={classNames({
 				'd-none': !isFullPosition,
-				'col-1': isFullPosition,
+				'col-1': isFullPosition && increaseRank && decreaseRank,
 				'text-right': false,
 				'text-subtle': true
 			})}>
-				<span><i className='fas fa-arrow-circle-up mr-1'></i></span>
-				<span><i className='fas fa-arrow-circle-down mr-1'></i></span>
+				<span><i className='fas fa-arrow-circle-up mr-1' onClick={increaseRank}></i></span>
+				<span><i className='fas fa-arrow-circle-down mr-1' onClick={decreaseRank}></i></span>
 			</div>
 			<div className={classNames({
 				'd-none': true,
@@ -89,7 +95,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 				'text-positive': pnl >= 0,
 				'text-negative': pnl < 0
 			})}>
-				{numeral(pnl).format('0.00%')}
+				{numeral(pnl).format('0,0.00%')}
 			</div>
 			<div className={classNames({
 				'col-4': !isFullPosition,

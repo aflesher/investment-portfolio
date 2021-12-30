@@ -36,6 +36,12 @@ interface IFinancialsQuery {
 				cash: number
 			}[]
 		}
+		allQuote: {
+			nodes: {
+				priceCad: number,
+				priceUsd: number
+			}[]
+		}
 	}
 }
 
@@ -44,6 +50,8 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 	const trades = data.allTrade.nodes;
 	const dividends = data.allDividend.nodes;
 	const balances = data.allBalance.nodes;
+	const btcQuote = data.allQuote.nodes[0];
+	const usdToBtc = btcQuote.priceUsd;
 
 	const equityUsd = _.sumBy(positions, q => q.currentMarketValueUsd);
 	const equityCad = _.sumBy(positions, q => q.currentMarketValueCad);
@@ -97,6 +105,16 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 					</div>
 					<div className='col-3'>{numeral(totalCad).format('$0,0')}</div>
 				</div>
+				<div className='row'>
+					<div className='col-3'>BTC</div>
+					<div className='col-3'>&#8383;
+						{numeral(equityUsd / usdToBtc).format('0,0.00')}
+					</div>
+					<div className='col-3'>&#8383;
+						{numeral(cashUsd / usdToBtc).format('0,0.00')}
+					</div>
+					<div className='col-3'>&#8383;{numeral(totalUsd / usdToBtc).format('0,0.00')}</div>
+				</div>
 			</div>
 			<div className='p-4 text-right'>
 				<div className='row font-weight-bold border-b mb-2 pb-2'>
@@ -117,6 +135,12 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 					<div className='col-3'>{numeral(closedPnlCad).format('$0,0')}</div>
 					<div className='col-3'>{numeral(dividendsCad).format('$0,0')}</div>
 				</div>
+				<div className='row'>
+					<div className='col-3'>BTC</div>
+					<div className='col-3'>&#8383;{numeral(openPnlUsd / usdToBtc).format('0,0.00')}</div>
+					<div className='col-3'>&#8383;{numeral(closedPnlUsd / usdToBtc).format('0,0.00')}</div>
+					<div className='col-3'>&#8383;{numeral(dividendsUsd / usdToBtc).format('0,0.00')}</div>
+				</div>
 			</div>
 			<div className='p-4 text-right'>
 				<div className='row font-weight-bold border-b mb-2 pb-2'>
@@ -130,6 +154,10 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 				<div className='row'>
 					<div className='col-3'>CAD</div>
 					<div className='offset-6 col-3'>{numeral(pnlCad).format('$0,0')}</div>
+				</div>
+				<div className='row'>
+					<div className='col-3'>BTC</div>
+					<div className='offset-6 col-3'>&#8383;{numeral(pnlUsd / usdToBtc).format('0,0.00')}</div>
 				</div>
 			</div>
 		</Layout>
@@ -166,6 +194,12 @@ export const pageQuery = graphql`
 			nodes {
 				currency
 				cash
+			}
+		}
+		allQuote(filter: {symbol: {eq: "btc"}}) {
+			nodes {
+				priceCad
+				priceUsd
 			}
 		}
 	}

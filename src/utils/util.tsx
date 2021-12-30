@@ -4,6 +4,10 @@ import _ from 'lodash';
 import { AssetType } from './enum';
 import { clamp } from 'lodash';
 
+const MARGIN_ACCOUNT_ID = 26418215;
+const TFSA_ACCOUNT_ID = 51443858;
+const RRSP_ACCOUNT_ID = 51637118;
+
 export const displayMarketCap = (value: number): string => numeral(value).format('$1.00 a');
 
 export const faClassForSymbol = (symbol: string): string => {

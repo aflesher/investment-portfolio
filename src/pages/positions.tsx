@@ -1,7 +1,7 @@
 import React from 'react';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
-import { connect } from 'react-redux';
+import { connect, ResolveArrayThunks } from 'react-redux';
 
 import Position from '../components/position/Position';
 import Layout from '../components/layout';
@@ -17,7 +17,8 @@ export enum PositionsOrderBy {
 	pe,
 	dividendYield,
 	cashProfits,
-	rank
+	rank,
+	investmentRank
 }
 
 interface IPositionNode {
@@ -75,9 +76,65 @@ const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
 	currency
 });
 
+type Rank = 'rankPortfolio' | 'rankInvestment';
+
+const getRanks = (type: Rank): string[] => {
+	if (!window) {
+		return [];
+	}
+
+	const symbols =  window.localStorage.getItem(type);
+	if (!symbols) {
+		return [];
+	}
+
+	return JSON.parse(symbols);
+};
+
+const cleanUpSymbols = (type: Rank, symbols: string[]): void => {
+	const rankedSymbols = getRanks(type);
+	const cleanedUpSymbols = _(rankedSymbols).intersection(symbols).concat(symbols).uniq().value();
+	setRanks(type, cleanedUpSymbols);
+}
+
+const setRanks = (type: Rank, symbols: string[]): void => {
+	if (!window) {
+		return;
+	}
+
+	window.localStorage.setItem(type, JSON.stringify(symbols));
+};
+
+const increaseRank = (type: Rank, symbol: string, symbols: string[]): void => {
+	const index = symbols.indexOf(symbol);
+	if (index === -1) {
+		return;
+	}
+
+	const replace = symbols[index - 1];
+	symbols[index] = replace;
+	symbols[index - 1] = symbol;
+
+	setRanks(type, symbols);
+};
+
+const decreaseRank = (type: Rank, symbol: string, symbols: string[]): void => {
+	const index = symbols.indexOf(symbol);
+	if (index === -1) {
+		return;
+	}
+
+	const replace = symbols[index + 1];
+	symbols[index] = replace;
+	symbols[index + 1] = symbol;
+
+	setRanks(type, symbols);
+};
+
 const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, data }) => {
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.profits);
 	const [combined, setCombined] = React.useState(true);
+	const [investmentRank, setInvestmentRank] = React.useState<string[]>([]);
 
 	const getTotalCostCad = (position: IPositionNode): number => (
 		position.totalCostCad + (_.sumBy(position.positions, p => p.totalCostCad) * (combined ? 1 :0))
@@ -118,6 +175,8 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 				return getCurrentValueCad(position) / totalPositionValue;
 			case PositionsOrderBy.investment:
 				return getTotalCostCad(position) / totalPositionCost;
+			case PositionsOrderBy.investmentRank:
+				return investmentRank.indexOf(position.symbol) * -1;
 			case PositionsOrderBy.pe:
 				return position.company.pe;
 			case PositionsOrderBy.dividendYield:
@@ -129,7 +188,21 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 		.value();
 
 	const rankPortfolio = ["btc","eth","sq","lulu","amd","amzn","pins","fb","ntdoy","tcehy","wwe","aw.un.to","urnm","bitf.vn","link","rune","avax","mana","bnb","gld","weed.to","spxs","gme","chal.cn"];
-	const rankInvestment = ["btc","eth","sq","lulu","amd","ntdoy","amzn","fb","pins","tcehy","scr.to","wwe","aw.un.to","urnm","link","bitf.vn","rune","avax","gld","weed.to","mana","spxs","bnb","gme","audio","chal.cn"];
+	
+	if (!investmentRank.length) {
+		cleanUpSymbols('rankInvestment', positions.map(q => q.symbol));
+		setInvestmentRank(getRanks('rankInvestment'));
+	}
+
+	const increaseInvestmentRank = (symbol: string) => {
+		increaseRank('rankInvestment', symbol, investmentRank);
+		setInvestmentRank(getRanks('rankInvestment'));
+	}
+
+	const decreaseInvestmentRank = (symbol: string) => {
+		decreaseRank('rankInvestment', symbol, investmentRank);
+		setInvestmentRank(getRanks('rankInvestment'));
+	}
 
 	return (
 		<Layout>
@@ -150,10 +223,13 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 						onClick={() => setOrderBy(PositionsOrderBy.position)}>
 							%oP
 					</div>
-					<div
-						className='col-2 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.investment)}>
+					<div className='col-2 text-right'>
+						<span className='link' onClick={() => setOrderBy(PositionsOrderBy.investment)}>
 							%oI
+						</span>&nbsp;
+						<span className='link' onClick={() => setOrderBy(PositionsOrderBy.investmentRank)}>
+							(R)
+						</span>
 					</div>
 					<div
 						className='d-none d-lg-block col-3 text-right link'
@@ -187,8 +263,10 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 						symbolCharacter={combined && position.positions.length ? '*' : ''}
 						isPristine={!!position.assessment?.checklist.pristine}
 						portfolioRank={rankPortfolio.indexOf(position.symbol) + 1}
-						investmentRank={rankInvestment.indexOf(position.symbol) + 1}
+						investmentRank={investmentRank.indexOf(position.symbol) + 1}
 						positionsOrderBy={orderBy}
+						increaseRank={() => { increaseInvestmentRank(position.symbol) }}
+						decreaseRank={() => { decreaseInvestmentRank(position.symbol) }}
 					/>
 				))}
 				<div className='row'>

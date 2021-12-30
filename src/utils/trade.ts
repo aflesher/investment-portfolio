@@ -24,5 +24,6 @@ export interface ITrade {
 	accountId: number,
 	type: AssetType,
 	isOpeningPositionTrade: boolean,
-	taxable: boolean
+	taxable: boolean,
+	accountName: string
 }

@@ -39,6 +39,7 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 		.orderBy(q => q.timestamp, 'desc')
 		.slice(0, 5)
 		.value();
+	console.log()
 
 	return (
 		<div>
@@ -70,15 +71,15 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 						case PositionOrderBy.symbol:
 							return position.symbol;
 						case PositionOrderBy.profits:
+							console.log(position.symbol, position.valueCad, position.costCad, (position.valueCad - position.costCad) / position.costCad);
 							return (position.valueCad - position.costCad) / position.costCad;
 						case PositionOrderBy.position:
 							return position.valueCad / portfolioTotalValue;
 						}
 					}, orderBy == PositionOrderBy.symbol ? 'asc' : 'desc')
-					.map((position, index) => (
+					.map((position) => (
 						<Position
 							key={position.symbol}
-							index={index}
 							{ ...position }
 						/>
 					))
