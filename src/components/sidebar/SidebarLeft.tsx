@@ -55,6 +55,7 @@ const SidebarLeft: React.FC<ISidebarLeftStateProps & ISidebarLeftDispatchProps> 
 						<li><Link to='/admin/crypto-trades'>Crypto Trades</Link></li>
 						<li><Link to='/admin/capital-gains'>Capital Gains</Link></li>
 						<li><Link to='/admin/review'>Year in Review</Link></li>
+						<li><Link to='/admin/options'>Options</Link></li>
 					</ul>
 				</div>
 				<div className={classNames({'d-none': authenticated})}>

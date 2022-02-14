@@ -7,7 +7,7 @@ export const wrapRootElement = wrapWithProvider;
 
 export const onRenderBody = ({ setHeadComponents }) => {
 	setHeadComponents([
-		<title key='title'>Dollar Jockey</title>,
+		<title key='title'>Investments</title>,
 		<link key='favicon' rel='shortcut icon' href={favicon} type='image/png' />,
 		<script
 			src="https://kit.fontawesome.com/0bccacb939.js"

@@ -13,7 +13,7 @@ import XE from '../components/xe/XE';
 import Order from '../components/order/Order';
 import Assessment from '../components/assessment/Assessment';
 import Trade from '../components/trade/Trade';
-import { formatDate, marketCap, assetLink, coinsPerShare, cryptoPermium } from '../utils/util';
+import { formatDate, marketCap, assetLink, coinsPerShare, cryptoPremium } from '../utils/util';
 
 interface IStockTemplateStateProps {
 	currency: Currency
@@ -138,16 +138,6 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 		positions: []
 	};
 
-	const proceeds = 66617.8;
-	console.log(_.sumBy(trades, t => t.quantity * (t.action === 'sell' ? -1 : 1)));
-	console.log(1492 * 44.65);
-	console.log(_.sumBy(trades, t => (t.quantity * t.priceCad) * (t.action === 'sell' ? -1 : 1)));
-	const cost = _.sumBy(trades.filter(t => t.action === 'buy'), t => t.priceCad * t.quantity);
-	const shares = _.sumBy(trades.filter(t => t.action === 'buy'), t => t.quantity);
-	console.log(cost);
-	console.log(shares);
-	console.log(proceeds - (cost * (1492 / 2492)));
-
 	const pAndLClosedCad = _.sumBy(trades, trade => trade.pnlCad || 0);
 	const pAndLClosedUsd = _.sumBy(trades, trade => trade.pnlUsd || 0);
 	const dividendsTotalCad = _.sumBy(dividends, d => d.amountCad);
@@ -158,16 +148,16 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 	const openingSharePrice = openingTrade?.price || 0;
 	const openingToAverageSharePrice = (position.averageEntryPrice - openingSharePrice) / openingSharePrice;
 	const coins = coinsPerShare(company.symbol);
-	const premium = cryptoPermium(
+	const premium = cryptoPremium(
 		{symbol: company.symbol, priceCad: quote.priceCad},
 		btcQuote?.priceCad || 0,
 		ethQuote?.priceCad || 0
 	);
 
 	const lastBuy = _.maxBy(_.filter(trades, trade => trade.action === 'buy'), trade => trade.timestamp);
-	const acumlatedDividends = _.filter(dividends, d => d.timestamp > (lastBuy?.timestamp || 100000000));
-	const acumlatedDividendsCad = _.sumBy(acumlatedDividends, d => d.amountCad);
-	const acumlatedDividendsUsd = _.sumBy(acumlatedDividends, d => d.amountUsd);
+	const accumulatedDividends = _.filter(dividends, d => d.timestamp > (lastBuy?.timestamp || 100000000));
+	const accumulatedDividendsCad = _.sumBy(accumulatedDividends, d => d.amountCad);
+	const accumulatedDividendsUsd = _.sumBy(accumulatedDividends, d => d.amountUsd);
 
 	const potentialAth = (company.highPrice52 - quote.price) * position.quantity;
 	const cadToUsd = quote.priceCad / quote.priceUsd;
@@ -405,18 +395,18 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 							</div>
 						</div>
 						}
-						{!!acumlatedDividendsCad &&
+						{!!accumulatedDividendsCad &&
 						<div className='row font-weight-bold font-italic'>
 							<div className='col-6'>
 								*unspent dividends
 							</div>
 							<div className='col-6'>
 								<XE
-									cad={acumlatedDividendsCad}
-									usd={acumlatedDividendsUsd}
+									cad={accumulatedDividendsCad}
+									usd={accumulatedDividendsUsd}
 									currency={currency}
 								/>
-								<div>({ Math.floor(acumlatedDividendsCad / quote.priceCad) } shares)</div>
+								<div>({ Math.floor(accumulatedDividendsCad / quote.priceCad) } shares)</div>
 							</div>
 						</div>
 						}
@@ -455,7 +445,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 							<div className={classNames({
 								'col-6': true
 							})}>
-								<XE
+								+<XE
 									cad={potentialAthCad}
 									usd={potentialAthUsd}
 									currency={currency}

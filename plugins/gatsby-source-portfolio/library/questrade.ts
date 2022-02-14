@@ -342,7 +342,8 @@ export enum QuestradeOrderType {
 
 export enum QuestradeOrderSide {
 	Buy = 'Buy',
-	Sell = 'Sell'
+	Sell = 'Sell',
+	BTO = 'BTO'
 }
 
 export interface IQuestradeOrder {

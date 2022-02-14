@@ -7,6 +7,7 @@ import numeral from 'numeral';
 import Position, { IPositionStateProps } from '../position/Position';
 import Trade, { ITradeStateProps } from '../trade/Trade';
 import Dividend, { IDividendStateProps } from '../dividend/Dividend';
+import { Currency } from '../../utils/enum';
 
 interface ISidebarRightStateProps {
 	positions: IPositionStateProps[],
@@ -71,8 +72,9 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 						case PositionOrderBy.symbol:
 							return position.symbol;
 						case PositionOrderBy.profits:
-							console.log(position.symbol, position.valueCad, position.costCad, (position.valueCad - position.costCad) / position.costCad);
-							return (position.valueCad - position.costCad) / position.costCad;
+							return position.quoteCurrency === Currency.cad ?
+							(position.valueCad - position.costCad) / position.costCad :
+							(position.valueUsd - position.costUsd) / position.costUsd;
 						case PositionOrderBy.position:
 							return position.valueCad / portfolioTotalValue;
 						}
@@ -85,19 +87,6 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 					))
 					.value()
 				}
-			</div>
-			<div className='totals text-right'>
-				<div className='d-inline-block'>Open P & L</div>
-				<div className={classNames({
-					'd-inline-block': true,
-					'text-positive': inTheBlack,
-					'text-negative': !inTheBlack
-				})}>
-					{numeral(
-						(portfolioTotalValue - portfolioTotalCost)
-						/ portfolioTotalCost
-					).format('0.00%')}
-				</div>
 			</div>
 
 			<div className='pt-2'>

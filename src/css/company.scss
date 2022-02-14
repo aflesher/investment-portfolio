@@ -41,7 +41,7 @@
 .art-vn { @include companyBase(#fff, rgb(9, 14, 20), linear-gradient(225deg, rgb(0, 141, 199) 0%, rgb(9, 51, 160) 100%)); }  
 .msft { @include companyBase(#000, #fff, #000); }
 .twou { @include companyBase(#006bc4, #fff, #006bc4); }
-.otglf { @include companyBase(#000000, #f7f7f7, #d40019); }
+.otgly { @include companyBase(rgb(0, 0, 0), rgb(252, 239, 80), rgb(113, 189, 213)); }
 .glh-cn { @include companyBase(#fff, #12121b, #e28850); }
 .lulu { @include companyBase(#fff, #d31334, #fff); }
 .shop-to { @include companyBase(#fff, #90B944, #5B8A3C); }
@@ -61,3 +61,4 @@
 .enj, .efi { @include companyBase(rgb(115, 105, 200), rgb(255, 255, 255), rgb(115, 105, 200)); }
 .rivn { @include companyBase(rgb(255,255,255), rgb(19, 53, 73), rgb(255, 255, 255)); }
 .sol { @include companyBase(rgb(0,0,0), linear-gradient(270deg, rgb(171, 102, 255) 0%, rgb(20, 241, 149) 101.39%), rgb(255, 255, 255)); }
+.crsp { @include companyBase(#fff, rgb(114, 152, 221), rgb(233, 234, 80)); }

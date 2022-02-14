@@ -452,7 +452,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				avgExecPrice: order.avgExecPrice,
 				side: order.side,
 				accountId: Number(order.accountId),
-				action: order.side === questrade.QuestradeOrderSide.Buy ? 'buy' : 'sell',
+				action: [questrade.QuestradeOrderSide.Buy, questrade.QuestradeOrderSide.BTO].includes(order.side) ? 'buy' : 'sell',
 				type: order.orderType,
 				accountName: questrade.getAccountName(order.accountId),
 				currency,

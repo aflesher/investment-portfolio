@@ -83,7 +83,7 @@ export const coinsPerShare = (symbol: string): number => {
 	}
 };
 
-export const cryptoPermium = (
+export const cryptoPremium = (
 	stock: {symbol: string, priceCad: number},
 	btcPriceCad: number,
 	ethPriceCad: number

@@ -169,8 +169,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 			case PositionsOrderBy.symbol:
 				return position.symbol;
 			case PositionsOrderBy.profits:
-				return (getCurrentValueCad(position) - getTotalCostCad(position)) /
-				getTotalCostCad(position);
+				return 	(position.quote.price - position.averageEntryPrice) / position.averageEntryPrice;
 			case PositionsOrderBy.position:
 				return getCurrentValueCad(position) / totalPositionValue;
 			case PositionsOrderBy.investment:
