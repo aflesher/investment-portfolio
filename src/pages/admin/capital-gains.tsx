@@ -5,7 +5,19 @@ import _ from 'lodash';
 import moment from 'moment';
 
 import Layout from '../../components/layout';
-import { Currency } from '../../utils/enum';
+import { AssetType, Currency } from '../../utils/enum';
+
+enum CapitalGainsFilter {
+	none = 'none',
+	stocks = 'stocks',
+	crypto = 'crypto'
+}
+
+const filterOptions = [
+	CapitalGainsFilter.none,
+	CapitalGainsFilter.stocks,
+	CapitalGainsFilter.crypto
+];
 
 interface ICapitalGainsQuery {
 	data: {
@@ -18,6 +30,7 @@ interface ICapitalGainsQuery {
 				timestamp: number,
 				currency: Currency,
 				action: string,
+				type: AssetType,
 				exchange?: {
 					rate: number
 				}
@@ -43,6 +56,7 @@ const years = [2019, 2020, 2021];
 
 const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	const [year, setYear] = React.useState(new Date().getFullYear());
+	const [filter, setFilter] = React.useState(CapitalGainsFilter.none);
 	const ratesMap: {[key: string]: number} = {};
 	data.allExchangeRate.nodes.forEach(rate => {
 		ratesMap[rate.date] = rate.rate;
@@ -64,7 +78,16 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 		.map(trade => ({
 			...trade,
 			priceCad: trade.currency === Currency.cad ? trade.price : getConversion(trade)
-		}));
+		})).filter(trade => {
+			switch (filter) {
+				case CapitalGainsFilter.none:
+					return true;
+				case CapitalGainsFilter.crypto:
+					return trade.type === AssetType.crypto;
+				case CapitalGainsFilter.stocks:
+					return trade.type === AssetType.stock;
+			}
+		});
 
 	const groupedTrades = _.groupBy(trades, t => t.symbol);
 	const filteredGroupedTrades = _.filter(
@@ -124,6 +147,23 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 							</select>
 						</div>
 					</div>
+					<div className='col-md-3'>
+						<div className='form-group'>
+							<label htmlFor='filter'>Filter</label>
+							<select
+								name='filter'
+								value={filter}
+								onChange={e => setFilter(e.target.value as CapitalGainsFilter)}
+								className='form-control'
+							>
+								{filterOptions.map(item =>
+									<option key={item} value={item}>
+										{item}
+									</option>
+								)}
+							</select>
+						</div>
+					</div>
 				</div>
 				<div className='row font-weight-bold border-b mb-2 pb-2'>
 					<div className='col-2'>Symbol</div>
@@ -173,6 +213,7 @@ query {
 			timestamp
 			currency
 			action
+			type
 			exchange {
 				rate
 			}
