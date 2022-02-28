@@ -62,3 +62,4 @@
 .rivn { @include companyBase(rgb(255,255,255), rgb(19, 53, 73), rgb(255, 255, 255)); }
 .sol { @include companyBase(rgb(0,0,0), linear-gradient(270deg, rgb(171, 102, 255) 0%, rgb(20, 241, 149) 101.39%), rgb(255, 255, 255)); }
 .crsp { @include companyBase(#fff, rgb(114, 152, 221), rgb(233, 234, 80)); }
+.asan { @include companyBase(#fff, #333, rgb(224, 114, 110)); }

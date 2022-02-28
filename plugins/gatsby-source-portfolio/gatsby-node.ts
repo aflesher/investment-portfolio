@@ -38,6 +38,15 @@ const MARGIN_ACCOUNT_ID = 26418215;
 const FILTER_SYMBOLS = ['ausa.cn', 'dlr.to', 'dlr.u.to', 'glh.cn.11480862'];
 const SYMBOLS_TO_VIEW_IDS: string[] = [];
 
+const checkExchangeRate = async () => {
+	const rate = process.env.USD_CAD;
+	if (!rate) {
+		return;
+	}
+
+	return firebase.setExchangeRate('USD_CAD', moment().format('YYYY-MM-DD'), Number(rate));
+};
+
 const cryptoPositionsPromise = (async () => {
 	const trades = await cryptoTradesPromise;
 	const rates = await ratesPromise;
@@ -153,6 +162,7 @@ const hash = (content: string): string => {
 };
 
 const getTodaysRate = async (): Promise<number> => {
+	await checkExchangeRate();
 	const date = moment().format('YYYY-MM-DD');
 	let rate = await exchange.getRate('usd', 'cad', date);
 	if (rate) {
