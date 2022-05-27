@@ -38,6 +38,8 @@ const MARGIN_ACCOUNT_ID = 26418215;
 const FILTER_SYMBOLS = ['ausa.cn', 'dlr.to', 'dlr.u.to', 'glh.cn.11480862'];
 const SYMBOLS_TO_VIEW_IDS: string[] = [];
 
+const SYMBOL_ID_REPLACEMENTS = [{ original: 20682, replacement: 11419766}, { original: 28114781, replacement: 41822360}];
+
 const checkExchangeRate = async () => {
 	const rate = process.env.USD_CAD;
 	if (!rate) {
@@ -101,7 +103,7 @@ const symbolIdsPromise = (async (): Promise<number[]> => {
 			.value()
 	);
 
-	allSymbols = _(allSymbols).uniq().filter().value();
+	allSymbols = _(allSymbols).map(symbolId => SYMBOL_ID_REPLACEMENTS.find(s => s.original === symbolId)?.replacement || symbolId).uniq().filter().value();
 
 	return allSymbols;
 })();
@@ -589,6 +591,12 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		if (SYMBOLS_TO_VIEW_IDS.includes(position.symbol)) {
 			console.log(`${position.symbol} : ${position.symbolId}`);
+		}
+
+		if (position.symbol === 'urnm') {
+			position.totalCost = 11224.92;
+			position.averageEntryPrice = 61.67;
+			position.openPnl = position.currentMarketValue - position.totalCost;
 		}
 
 		return {

@@ -14,6 +14,7 @@ import Order from '../components/order/Order';
 import Assessment from '../components/assessment/Assessment';
 import Trade from '../components/trade/Trade';
 import { formatDate, marketCap, assetLink, coinsPerShare, cryptoPremium } from '../utils/util';
+import moment from 'moment-timezone';
 
 interface IStockTemplateStateProps {
 	currency: Currency
@@ -164,8 +165,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 	const usdToCad = cadToUsd / 1.0;
 	const potentialAthUsd = quote.currency === 'usd' ? potentialAth : potentialAth * cadToUsd;
 	const potentialAthCad = quote.currency === 'cad' ? potentialAth : potentialAth * usdToCad;
-
-
+	const timeHeld = new Date().getTime() - (openingTrade?.timestamp || new Date().getTime());
 
 	return (
 		<Layout>
@@ -452,6 +452,18 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({ data, curr
 								/>
 							</div>
 						</div>
+						{Boolean(openingTrade) &&
+							<div className='row'>
+								<div className='col-6'>
+									Time held
+								</div>
+								<div className={classNames({
+									'col-6': true
+								})}>
+									Y:{Math.floor(timeHeld / 31557600000)} M:{Math.floor((timeHeld % 31557600000) / 2629800000)}
+								</div>
+							</div>
+						}
 					</div>
 
 				</div>

@@ -23,5 +23,9 @@ export const replaceSymbol = (symbol: string): string => {
 	if (symbol.match(/^scr/)) {
 		return 'scr.to';
 	}
+
+	if (symbol.match(/^bitf/)) {
+		return 'bitf.to';
+	}
 	return symbol;
 };

@@ -56,10 +56,26 @@
 .rune { @include companyBase(rgb(0, 0, 0), rgb(0, 200, 178), #000); }
 .bnb { @include companyBase(rgb(13, 16, 18), linear-gradient(180deg, rgb(251, 199, 61) 0%, rgb(242, 174, 43) 100%), rgb(13, 16, 18)) }
 .crypto-link { @include companyBase(rgb(34, 48, 106), rgb(224, 231, 249), #fff); }
-.bitf-vn { @include companyBase(rgb(30, 210, 150), rgb(16, 26, 46), #fff); }
+.bitf-to { @include companyBase(rgb(30, 210, 150), rgb(16, 26, 46), #fff); }
 .amd { @include companyBase(rgb(255, 255, 255), rgb(0, 0, 0), rgb(53, 118, 78)); }
 .enj, .efi { @include companyBase(rgb(115, 105, 200), rgb(255, 255, 255), rgb(115, 105, 200)); }
 .rivn { @include companyBase(rgb(255,255,255), rgb(19, 53, 73), rgb(255, 255, 255)); }
 .sol { @include companyBase(rgb(0,0,0), linear-gradient(270deg, rgb(171, 102, 255) 0%, rgb(20, 241, 149) 101.39%), rgb(255, 255, 255)); }
 .crsp { @include companyBase(#fff, rgb(114, 152, 221), rgb(233, 234, 80)); }
 .asan { @include companyBase(#fff, #333, rgb(224, 114, 110)); }
+.comb { @include companyBase(rgb(93,198,180,), #fff, #000); }
+.googl {
+  background-color: white;
+  span:nth-child(4n - 3) {
+    color: rgb(88,166,92);
+  }
+  span:nth-child(4n - 2) {
+    color: rgb(83, 133, 236);
+  }
+  span:nth-child(4n - 1) {
+    color: rgb(216,81,64);
+  }
+  span:nth-child(4n) {
+    color: rgb(241, 190, 66);
+  }
+}

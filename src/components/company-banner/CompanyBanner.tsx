@@ -10,7 +10,7 @@ export interface ICompanyBannerStateProps {
 const CompanyBanner: React.FC<ICompanyBannerStateProps> = ({ symbol, name }) => (
 	<div className={`company-banner text-emphasis text-center ${symbol.replace(/\./g, '-').replace('link', 'crypto-link')}`}>
 		<i className={faClassForSymbol(symbol)}></i>
-		{name}
+		{name.split('').map(l => (<span>{l}</span>))}
 		<div></div>
 	</div>
 );

@@ -120,7 +120,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
 			>
-				{symbol.substr(0, 8) + (symbolCharacter || '')}
+				{symbol.substring(0, 8) + (symbolCharacter || '')}
 			</Link>
 			{AppendedHoverComponent ? <AppendedHoverComponent>
 				<div style={_.assign(
@@ -134,7 +134,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 					})}>
 						<div className='p-2'>
 							<div
-								style={{overflow: 'hidden', whiteSpace: 'nowrap'}}
+								style={{overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '300px'}}
 								className='font-weight-bold text-emphasis'
 							>
 								{name}

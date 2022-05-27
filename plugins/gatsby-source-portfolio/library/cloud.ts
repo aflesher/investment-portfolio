@@ -195,6 +195,10 @@ export const getDividends = async (): Promise<void> => {
 	dividends = JSON.parse(data[0].toString());
 	// dividends = JSON.parse(data);
 	_.forEach(dividends, dividend => {
+		if (dividend.symbol === '8ag5554.90') {
+			dividend.symbol = 'tcehy';
+			dividend.symbolId = 38411;
+		}
 		dividendsMap[dividend.hash] = true;
 	});
 };

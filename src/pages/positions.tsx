@@ -186,7 +186,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 		}, orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc')
 		.value();
 
-	const rankPortfolio = ["btc","eth","sq","lulu","amd","amzn","pins","fb","ntdoy","tcehy","wwe","aw.un.to","urnm","bitf.vn","link","rune","avax","mana","bnb","gld","weed.to","spxs","gme","chal.cn"];
+	const rankPortfolio = ["btc","eth","ntdoy","sq","lulu","amd","amzn","aw.un.to","gld","fb","pins","tcehy","wwe","urnm","comb","crsp","otgly","bitf.vn","rune","link","avax","sol","mana","bnb","weed.to","spxs","gme","chal.cn"];
 	
 	if (!investmentRank.length) {
 		cleanUpSymbols('rankInvestment', positions.map(q => q.symbol));
