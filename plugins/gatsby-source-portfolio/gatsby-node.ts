@@ -1073,7 +1073,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		const usdBalance = _.find(balances, (q) => q.currency === Currency.usd);
 		if (usdBalance) {
-			usdBalance.cash += (9378.11 + 2638.65 + 4440.13 + 1193 + 8628 + 3073) // binance, binance, nexo, blockfi, blockfi
+			usdBalance.cash += (22214 + 9158 + 3261) // binance, blockfi, blockfi
 		}
 
 		const cadCash =
