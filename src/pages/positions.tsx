@@ -60,10 +60,19 @@ interface IPositionNode {
 	}[]
 }
 
+interface IBalanceNode {
+	currency: Currency,
+	cash: number,
+	combined: boolean
+}
+
 interface IPositionsQuery {
 	data: {
 		allPosition: {
 			nodes: IPositionNode[]
+		}
+		allBalance: {
+			nodes: IBalanceNode[]
 		}
 	}
 }
@@ -131,7 +140,42 @@ const decreaseRank = (type: Rank, symbol: string, symbols: string[]): void => {
 	setRanks(type, symbols);
 };
 
+const addCurrencyToPositions = (usd: IBalanceNode, cad: IBalanceNode): IPositionNode => {
+	const position: IPositionNode = {
+		currency: Currency.cad,
+		totalCostCad: cad.cash,
+		totalCostUsd: usd.cash,
+		currentMarketValueCad: cad.cash,
+		currentMarketValueUsd: usd.cash,
+		quantity: cad.cash,
+		averageEntryPrice: 1,
+		symbol: 'CAD',
+		type: AssetType.cash,
+		quote: {
+			price: 1,
+			priceCad: 1,
+			priceUsd: 1,
+			currency: Currency.cad
+		},
+		company: {
+			pe: 1,
+			yield: 0,
+			prevDayClosePrice: 1,
+			marketCap: 106930000000,
+			name: 'Bank of Canada'
+		},
+		positions: []
+	};
+
+	return position;
+}
+
 const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, data }) => {
+	const usdCash = data.allBalance.nodes.find(q => q.currency === Currency.usd);
+	const cadCash = data.allBalance.nodes.find(q => q.currency === Currency.cad);
+	const positionNodes = data.allPosition.nodes.slice();
+	positionNodes.push(addCurrencyToPositions(usdCash!, cadCash!));
+
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.profits);
 	const [combined, setCombined] = React.useState(true);
 	const [investmentRank, setInvestmentRank] = React.useState<string[]>([]);
@@ -152,17 +196,17 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 		position.currentMarketValueUsd + (_.sumBy(position.positions, p => p.currentMarketValueUsd) * (combined ? 1 :0))
 	);
 
-	const totalPositionValue = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueCad);
-	const totalPositionCost = _.sumBy(data.allPosition.nodes, p => p.totalCostCad);
-	const totalPositionValueUsd = _.sumBy(data.allPosition.nodes, p => p.currentMarketValueUsd);
-	const totalPositionCostUsd = _.sumBy(data.allPosition.nodes, p => p.totalCostUsd);
-	const filteredPositions = _(data.allPosition.nodes)
+	const totalPositionValue = _.sumBy(positionNodes, p => p.currentMarketValueCad);
+	const totalPositionCost = _.sumBy(positionNodes, p => p.totalCostCad);
+	const totalPositionValueUsd = _.sumBy(positionNodes, p => p.currentMarketValueUsd);
+	const totalPositionCostUsd = _.sumBy(positionNodes, p => p.totalCostUsd);
+	const filteredPositions = _(positionNodes)
 		.map(p => p.positions.map(q => q.symbol))
 		.flatten()
 		.uniq()
 		.value();
 
-	const positions = _(data.allPosition.nodes)
+	const positions = _(positionNodes)
 		.filter(position => !combined || !_.includes(filteredPositions, position.symbol))
 		.orderBy(position => {
 			switch (orderBy) {
@@ -328,6 +372,13 @@ export const pageQuery = graphql`
 					currentMarketValueCad
 					currentMarketValueUsd
 				}
+			}
+		}
+		allBalance(filter: {combined: {eq: true}}) {
+			nodes {
+			  cash
+			  currency
+			  combined
 			}
 		}
 	}
