@@ -110,6 +110,9 @@ export interface IQuestradePosition {
 	isUnderReorg: boolean
 }
 
+// this is flawed. Think of a scenario where a position is open in two different
+// accounts then closed in one. The average entry price would be represented by the open position and
+// not the combined trades of both accounts
 const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] => {
 	const positionsMap = _.groupBy(positions, 'symbol');
 	_.forEach(positionsMap, (symbolPositions, symbol) => {

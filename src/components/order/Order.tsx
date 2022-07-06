@@ -36,6 +36,9 @@ const Order: React.FC<IOrderStateProps> = ({
 		return `rgb(${red}, ${green}, ${blue})`;
 	}
 
+	const curAvgPrice = positionCost / positionQuantity;
+	const avgPriceDiff = (curAvgPrice - newAvgPrice) / curAvgPrice;
+
 	return (
 		<div className='border-top-normal'>
 			<div className='d-block d-sm-none'>
@@ -85,6 +88,7 @@ const Order: React.FC<IOrderStateProps> = ({
 					<div className='col-7 text-right'>
 						New Avg:&nbsp;
 						{numeral(newAvgPrice).format('$0,0.00')}
+						<span className='text-sub'>({numeral(positionCost / positionQuantity).format('$0,0.00')})</span>
 					</div>
 				</div>
 			</div>
@@ -131,10 +135,15 @@ const Order: React.FC<IOrderStateProps> = ({
 							currency={currency}
 						/>
 					</div>
-					<div className='col-4'>
+					{action === 'buy' && <div className='col-4'>
 						New Avg Price:&nbsp;
 						{numeral(newAvgPrice).format('$0,0.00')}
-					</div>
+					</div>}
+					{action === 'buy' && <div className='col-4 text-right text-sub'>
+						Cur Avg Price:&nbsp;
+						{numeral(curAvgPrice).format('$0,0.00')}
+						<span>&nbsp;({newAvgPrice < curAvgPrice ? '-' : '+'}{numeral(avgPriceDiff).format('0.00%')})</span>
+					</div>}
 				</div>
 			</div>
 		</div>

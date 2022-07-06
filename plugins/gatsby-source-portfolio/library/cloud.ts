@@ -52,7 +52,8 @@ let profitsAndLosses: IProfitAndLose[] = [];
 
 const symbolChange = {
 	'twd.vn': 'weed.to',
-	'acb': 'acb.to'
+	'acb': 'acb.to',
+	'fb': 'meta'
 };
 
 const changeSymbol = (symbol: string): string => {
@@ -145,7 +146,10 @@ const getCustomTrades = (): ICloudTrade[] => ([
 export const filteredTrades = ['pm.vn'];
 
 export const readTrades = (): ICloudTrade[] => {
-	trades.forEach(q => q.accountId = Number(q.accountId));
+	trades.forEach(q => {
+		q.accountId = Number(q.accountId);
+		q.symbol = changeSymbol(q.symbol.toLowerCase())
+	});
 	return trades.filter(q => !filteredTrades.includes(q.symbol)).concat(getCustomTrades());
 };
 
@@ -192,13 +196,18 @@ export const updateDividends = async (): Promise<void> => {
 export const getDividends = async (): Promise<void> => {
 	const data = await dividendsFile.download();
 	// const data = fs.readFileSync('dividends.json', {encoding:'utf8', flag:'r'});
-	dividends = JSON.parse(data[0].toString());
-	// dividends = JSON.parse(data);
-	_.forEach(dividends, dividend => {
-		if (dividend.symbol === '8ag5554.90') {
-			dividend.symbol = 'tcehy';
-			dividend.symbolId = 38411;
-		}
+	dividends = JSON.parse(data[0].toString()).filter(d => !!d.amount);
+	// const tcehy1 = dividends.find(d => d.amount === 18.15);
+	// const tcehy2 = dividends.find(d => d.amount === 67.7);
+	// if (tcehy1 && tcehy2) {
+	// 	dividends = dividends.filter(d => d.amount !== 18.15 && d.amount !== 67.7);
+	// 	dividends.push(tcehy1);
+	// 	dividends.push(tcehy2);
+	// 	console.log('fixed');
+	// 	console.log(tcehy1);
+	// 	console.log(tcehy2);
+	// }
+	dividends.forEach(dividend => {
 		dividendsMap[dividend.hash] = true;
 	});
 };

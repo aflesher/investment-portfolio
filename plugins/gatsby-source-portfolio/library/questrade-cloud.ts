@@ -13,6 +13,42 @@ const addActivities = async (): Promise<boolean> => {
 	const activitiesDetails = await questrade.getActivities();
 	const activities = activitiesDetails.activities;
 
+	// cloud.addDividend({
+	// 	symbol: 'TCEHY',
+	// 	symbolId: 38411,
+	// 	tradeDate: new Date('2022/04/18'),
+	// 	action: '',
+	// 	transactionDate: new Date('2022/04/18'),
+	// 	settlementDate: new Date('2022/04/18'),
+	// 	description: 'dividend',
+	// 	currency: 'USD',
+	// 	quantity: 292,
+	// 	price: 382.54,
+	// 	grossAmount: 382.54,
+	// 	commission: 0,
+	// 	netAmount: 382.54,
+	// 	type: 'Dividends',
+	// 	accountId: '51637118' as any
+	// });
+
+	// cloud.addDividend({
+	// 	symbol: 'TCEHY',
+	// 	symbolId: 38411,
+	// 	tradeDate: new Date('2022/04/18'),
+	// 	action: '',
+	// 	transactionDate: new Date('2022/04/18'),
+	// 	settlementDate: new Date('2022/04/18'),
+	// 	description: 'dividend',
+	// 	currency: 'USD',
+	// 	quantity: 34,
+	// 	price: 44.54,
+	// 	grossAmount: 44.54,
+	// 	commission: 0,
+	// 	netAmount: 44.54,
+	// 	type: 'Dividends',
+	// 	accountId: '51443858' as any
+	// });
+
 	_.forEach(activities, activity => {
 		if (activity.type == 'Trades') {
 			cloud.addTrade(activity);
