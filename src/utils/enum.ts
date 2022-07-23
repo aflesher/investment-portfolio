@@ -5,5 +5,6 @@ export enum Currency {
 
 export enum AssetType {
 	crypto = 'crypto',
-	stock = 'stock'
+	stock = 'stock',
+	cash = 'cash'
 }

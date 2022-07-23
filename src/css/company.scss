@@ -64,6 +64,8 @@
 .crsp { @include companyBase(#fff, rgb(114, 152, 221), rgb(233, 234, 80)); }
 .asan { @include companyBase(#fff, #333, rgb(224, 114, 110)); }
 .comb { @include companyBase(rgb(93,198,180,), #fff, #000); }
+.hymtf { @include companyBase(#fff, rgb(14,44,92), #fff); }	
+.copx { @include companyBase(#fff, rgb(169, 114, 62), #fff); }
 .googl {
   background-color: white;
   span:nth-child(4n - 3) {
@@ -77,5 +79,20 @@
   }
   span:nth-child(4n) {
     color: rgb(241, 190, 66);
+  }
+}
+
+.voo {
+  position: relative;
+  background: url($flagbg) center/contain repeat-x;
+  color: rgb(59,60,107);
+  text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+  > div {
+    position: absolute;
+    left: 0;
+    top: -5px;
+    height: 100%;
+    width: 94px;
+    background: url($flag) center /contain no-repeat;
   }
 }

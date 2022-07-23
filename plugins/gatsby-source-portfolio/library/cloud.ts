@@ -72,6 +72,11 @@ export const getTrades = async (): Promise<void> => {
 	_.forEach(trades, trade => {
 		tradesMap[trade.hash] = true;
 		trade.type = 'stock';
+		// Example stock split
+		// if (trade.symbol.toLocaleLowerCase() === 'googl') {
+		// 	trade.price = trade.price / 20;
+		// 	trade.quantity = trade.quantity * 20;
+		// }
 	});
 };
 
