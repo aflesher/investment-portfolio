@@ -44,7 +44,7 @@ const SidebarLeft: React.FC<ISidebarLeftStateProps & ISidebarLeftDispatchProps> 
 				<Link to='/orders'>Orders</Link>
 			</div>
 			<div>
-				<Link to='/disclaimer'>Disclaimer</Link>
+				<Link to='/calendar'>Calendar</Link>
 			</div>
 			<div className='border-t mt-2 pt-2'>
 				<div className={classNames({'d-none': !authenticated})}>

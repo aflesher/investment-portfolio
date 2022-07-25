@@ -23,6 +23,7 @@ import { IDividend } from '../../src/utils/dividend';
 import { ICompany } from '../../src/utils/company';
 import { replaceSymbol } from './library/util';
 import { IExchangeRate } from '../../src/utils/exchange';
+import { IEarningsDate, getEarningsDates } from './library/earnings-calendar';
 
 const assessmentsPromise = firebase.getAssessments();
 const questradeSync = questradeCloud.sync();
@@ -106,6 +107,12 @@ const symbolIdsPromise = (async (): Promise<number[]> => {
 	allSymbols = _(allSymbols).map(symbolId => SYMBOL_ID_REPLACEMENTS.find(s => s.original === symbolId)?.replacement || symbolId).uniq().filter().value();
 
 	return allSymbols;
+})();
+
+const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
+	const positions = await positionsPromise;
+	const symbols = positions.map(p => p.symbol);
+	return getEarningsDates(symbols);
 })();
 
 const quotesPromise = (async (): Promise<questrade.IQuestradeQuote[]> => {
@@ -232,6 +239,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return createNodeId(hash(`rate${key}${date}`));
 	};
 
+	const getEarningsDateNodeId = (symbol: string): string => {
+		return createNodeId(hash(`earningsDate${symbol}`));
+	}
+
 	exchange.init(configOptions.currency.api, configOptions.currency.apiKey);
 	firebase.init(configOptions.firebase);
 	coinmarketcap.init(
@@ -286,6 +297,12 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			assessment.symbol
 		);
 	});
+
+	const earningsDates = await earningsDatesPromise;
+	const earningsDatesNodeIdsMap = {};
+	_.forEach(earningsDates, ({ symbol }) => {
+		earningsDatesNodeIdsMap[symbol] = getEarningsDateNodeId(symbol);
+	})
 
 	const dividends = cloud.readDividends();
 	const dividendNodeIdsMap = {};
@@ -576,6 +593,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		quote___NODE: string;
 		assessment___NODE: string;
 		positions___NODE: string[];
+		earnings___NODE: string;
 	}
 
 	const mapQuestradePositionToPosition = (
@@ -685,6 +703,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				quote___NODE: quoteNodeIdsMap[position.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null,
 				positions___NODE: _.filter(linkedPositions),
+				earnings___NODE: earningsDatesNodeIdsMap[position.symbol] || null
 			};
 
 			const content = JSON.stringify(positionNode);
@@ -1172,6 +1191,38 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
+	interface IEarningsDateNode extends INode, IEarningsDate {
+		position___NODE: string;
+		company___NODE: string;
+		quote___NODE: string;
+		assessment___NODE: string;
+	}
+
+	const getEarningsNodes = async (): Promise<IEarningsDateNode[]> => {
+		const earnings = await earningsDatesPromise;
+		return earnings.map(e => {
+			const earningsNode: IEarningsDateNode = {
+				...e,
+				position___NODE: positionNodeIdsMap[e.symbol] || null,
+				quote___NODE: quoteNodeIdsMap[e.symbol] || null,
+				company___NODE: companyNodeIdsMap[e.symbol] || null,
+				assessment___NODE: assessmentNodeIdsMap[e.symbol] || null
+			};
+			const content = JSON.stringify(earningsNode);
+			_.defaults(earningsNode, {
+				id: getEarningsDateNodeId(e.symbol),
+				parent: null,
+				children: [],
+				internal: {
+					type: 'EarningsDate',
+					content,
+					contentDigest: hash(content),
+				}
+			});
+			return earningsNode;
+		});
+	}
+
 	const outputCleared = (text: string): void => {
 		console.log(`cleared`.magenta + ' ' + text);
 	};
@@ -1189,6 +1240,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const exchangeRateNodesPromise = getExchangeRateNodes();
 		const orderNodesPromise = getOrderNodes();
 		const reviewNodesPromise = getReviewNodes();
+		const earningsNodesPromise = getEarningsNodes();
 
 		const assessments = await assessmentsPromise;
 		outputCleared('assessments');
@@ -1212,6 +1264,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		outputCleared('orders');
 		const reviewNodes = await reviewNodesPromise;
 		outputCleared('reviews');
+		const earningsNodes = await earningsNodesPromise;
+		outputCleared('earnings nodes');
 
 		await firebase.checkAndUpdateCryptoMetaData(cryptoQuotesPromise);
 
@@ -1229,7 +1283,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			exchangeRateNodes,
 			orderNodes,
 			// buildTimeNodes,
-			reviewNodes
+			reviewNodes,
+			earningsNodes
 		);
 	};
 

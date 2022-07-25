@@ -1,0 +1,36 @@
+
+.calendar {
+    width: 840px;
+
+    .calendar-nav {
+        cursor: pointer;
+        
+        &.disabled {
+            cursor: default;
+            color: #666;
+        }
+    }
+}
+.week {
+    .day {
+        height: 120px;
+        width: 120px;
+        position: relative;
+        border: 1px solid #ccc;
+        padding: 0;
+
+        &.today {
+            background-color: #444;
+        }
+
+        .day-content {
+            padding-top: 30px;
+        }
+
+        .date {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+        }
+    }
+}
