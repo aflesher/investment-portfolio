@@ -5,22 +5,22 @@ import { IQuote } from './quote';
 import { ITrade } from './trade';
 
 export interface IPosition {
-	currency: Currency,
-	totalCost: number,
-	totalCostCad: number,
-	totalCostUsd: number,
-	currentMarketValue: number,
-	currentMarketValueCad: number,
-	currentMarketValueUsd: number,
-	quantity: number,
-	averageEntryPrice: number,
-	symbol: string,
-	type: AssetType,
-	assessment?: IAssessment,
-	company?: ICompany,
-	quote?: IQuote,
-	openPnl: number,
-	openPnlUsd: number,
-	openPnlCad: number,
-	openingTrade?: ITrade
+	currency: Currency;
+	totalCost: number;
+	totalCostCad: number;
+	totalCostUsd: number;
+	currentMarketValue: number;
+	currentMarketValueCad: number;
+	currentMarketValueUsd: number;
+	quantity: number;
+	averageEntryPrice: number;
+	symbol: string;
+	type: AssetType;
+	assessment?: IAssessment;
+	company?: ICompany;
+	quote?: IQuote;
+	openPnl: number;
+	openPnlUsd: number;
+	openPnlCad: number;
+	openingTrade?: ITrade;
 }

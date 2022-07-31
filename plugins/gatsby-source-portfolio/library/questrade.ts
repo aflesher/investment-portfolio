@@ -22,7 +22,7 @@ let endTime: Date | null = null;
 const ACCOUNT_LOOKUP = {
 	26418215: 'Margin',
 	51443858: 'TFSA',
-	51637118: 'RRSP'
+	51637118: 'RRSP',
 };
 
 const initDeferredPromise = util.deferredPromise();
@@ -51,21 +51,31 @@ export const init = async (cryptSecret: string): Promise<void> => {
 	initDeferredPromise.resolve();
 };
 
-const updateLoginInfo = async (refreshToken: string, expiry: number): Promise<void> => {
+const updateLoginInfo = async (
+	refreshToken: string,
+	expiry: number
+): Promise<void> => {
 	const eRefreshToken = cryptr.encrypt(refreshToken);
 	const eAccessToken = cryptr.encrypt(accessToken);
-	const expiryTime = (new Date()).getTime() + (expiry * 1000);
+	const expiryTime = new Date().getTime() + expiry * 1000;
 
-	await firebase.setQuestradeAuth(eRefreshToken, eAccessToken, expiryTime, apiUrl);
+	await firebase.setQuestradeAuth(
+		eRefreshToken,
+		eAccessToken,
+		expiryTime,
+		apiUrl
+	);
 };
 
 const login = async (refreshToken: string): Promise<void> => {
-	const resp = await axios.get(loginUrl, {
-		params: {
-			'grant_type': 'refresh_token',
-			'refresh_token': refreshToken
-		}
-	}).catch(console.log);
+	const resp = await axios
+		.get(loginUrl, {
+			params: {
+				grant_type: 'refresh_token',
+				refresh_token: refreshToken,
+			},
+		})
+		.catch(console.log);
 
 	if (!resp) {
 		return;
@@ -77,13 +87,18 @@ const login = async (refreshToken: string): Promise<void> => {
 	await updateLoginInfo(resp.data.refresh_token, resp.data.expires_in);
 };
 
-const authRequest = async (route: string, params?: object): Promise<AxiosResponse | void> => {
-	return await axios.get(`${apiUrl}${route}`, {
-		headers: {
-			Authorization: `Bearer ${accessToken}`
-		},
-		params
-	}).catch(console.log);
+const authRequest = async (
+	route: string,
+	params?: object
+): Promise<AxiosResponse | void> => {
+	return await axios
+		.get(`${apiUrl}${route}`, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+			params,
+		})
+		.catch(console.log);
 };
 
 const getAccounts = async (): Promise<string[]> => {
@@ -96,31 +111,33 @@ const getAccounts = async (): Promise<string[]> => {
 };
 
 export interface IQuestradePosition {
-	symbol: string,
-	symbolId: number,
-	openQuantity: number,
-	closedQuantity: number,
-	currentMarketValue: number,
-	currentPrice: number,
-	averageEntryPrice: number,
-	closedPnl: number,
-	openPnl: number,
-	totalCost: number,
-	isRealTime: boolean,
-	isUnderReorg: boolean
+	symbol: string;
+	symbolId: number;
+	openQuantity: number;
+	closedQuantity: number;
+	currentMarketValue: number;
+	currentPrice: number;
+	averageEntryPrice: number;
+	closedPnl: number;
+	openPnl: number;
+	totalCost: number;
+	isRealTime: boolean;
+	isUnderReorg: boolean;
 }
 
 // this is flawed. Think of a scenario where a position is open in two different
 // accounts then closed in one. The average entry price would be represented by the open position and
 // not the combined trades of both accounts
-const mergePositions = (positions: IQuestradePosition[]): IQuestradePosition[] => {
+const mergePositions = (
+	positions: IQuestradePosition[]
+): IQuestradePosition[] => {
 	const positionsMap = _.groupBy(positions, 'symbol');
 	_.forEach(positionsMap, (symbolPositions, symbol) => {
 		const position = symbolPositions.shift();
 		if (!position) {
 			return;
 		}
-		symbolPositions.forEach(symbolPosition => {
+		symbolPositions.forEach((symbolPosition) => {
 			position.currentMarketValue += symbolPosition.currentMarketValue;
 			position.totalCost += symbolPosition.totalCost;
 			position.openQuantity += symbolPosition.openQuantity;
@@ -144,7 +161,7 @@ export const getPositions = async (): Promise<IQuestradePosition[]> => {
 	const accountIds = _.map(accounts, 'number');
 	const resps = await Promise.all(
 		accountIds.map(
-			async accountId =>
+			async (accountId) =>
 				await authRequest(`${accountsRoute}/${accountId}/positions`)
 		)
 	);
@@ -155,32 +172,35 @@ export const getPositions = async (): Promise<IQuestradePosition[]> => {
 		.flatten()
 		.filter('openQuantity')
 		.value();
-	
-	const mergedPositions = mergePositions(positions);
-	mergedPositions.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
 
-	return _.filter(mergedPositions, q => !filteredPositions.includes(q.symbol));
+	const mergedPositions = mergePositions(positions);
+	mergedPositions.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
+
+	return _.filter(mergedPositions, (q) => !filteredPositions.includes(q.symbol));
 };
 
 export interface IQuestradeActivity {
-	tradeDate: Date,
-	transactionDate: Date,
-	settlementDate: Date,
-	action: string,
-	symbol: string,
-	symbolId: number,
-	description: string,
-	currency: 'USD' | 'CAD',
-	quantity: number,
-	price: number,
-	grossAmount: number,
-	commission: number,
-	netAmount: number,
-	type: string,
-	accountId: number
+	tradeDate: Date;
+	transactionDate: Date;
+	settlementDate: Date;
+	action: string;
+	symbol: string;
+	symbolId: number;
+	description: string;
+	currency: 'USD' | 'CAD';
+	quantity: number;
+	price: number;
+	grossAmount: number;
+	commission: number;
+	netAmount: number;
+	type: string;
+	accountId: number;
 }
 
-export const getActivities = async (): Promise<{activities: IQuestradeActivity[], complete: boolean}> => {
+export const getActivities = async (): Promise<{
+	activities: IQuestradeActivity[];
+	complete: boolean;
+}> => {
 	await initDeferredPromise.promise;
 
 	// here's the problem
@@ -201,22 +221,22 @@ export const getActivities = async (): Promise<{activities: IQuestradeActivity[]
 	const accountIds = _.map(accounts, 'number');
 	const resps = await Promise.all(
 		accountIds.map(
-			async accountId =>
-				await authRequest(
-					`${accountsRoute}/${accountId}/activities`,
-					{
-						startTime,
-						endTime
-					}
-				)
+			async (accountId) =>
+				await authRequest(`${accountsRoute}/${accountId}/activities`, {
+					startTime,
+					endTime,
+				})
 		)
 	);
 
-	const activitiesByAcount: IQuestradeActivity[][] = _(resps).map('data').map('activities').value();
+	const activitiesByAcount: IQuestradeActivity[][] = _(resps)
+		.map('data')
+		.map('activities')
+		.value();
 	for (let i = 0; i < activitiesByAcount.length; i++) {
 		const activities = activitiesByAcount[i];
 		const accountId = accountIds[i];
-		activities.forEach(activity => {
+		activities.forEach((activity) => {
 			activity.accountId = accountId;
 		});
 	}
@@ -228,57 +248,61 @@ export const getActivities = async (): Promise<{activities: IQuestradeActivity[]
 };
 
 export interface IQuestradeQuote {
-	symbol: string,
-	symbolId: number,
-	tier: string,
-	bidPrice: number,
-	bidSize: number,
-	askPrice: number,
-	askSize: number,
-	astTradeTrHrs: number,
-	lastTradePrice: number,
-	lastTradeSize: number,
-	lastTradeTick: string,
-	volumne: number,
-	openPrice: number,
-	highPrice: number,
-	lowPrice: number,
-	delay: boolean,
-	isHalted: boolean,
-	lastTradePriceTrHrs: number,
+	symbol: string;
+	symbolId: number;
+	tier: string;
+	bidPrice: number;
+	bidSize: number;
+	askPrice: number;
+	askSize: number;
+	astTradeTrHrs: number;
+	lastTradePrice: number;
+	lastTradeSize: number;
+	lastTradeTick: string;
+	volumne: number;
+	openPrice: number;
+	highPrice: number;
+	lowPrice: number;
+	delay: boolean;
+	isHalted: boolean;
+	lastTradePriceTrHrs: number;
 }
 
-export const getQuotes = async (symbolIds: number[]): Promise<IQuestradeQuote[]> => {
+export const getQuotes = async (
+	symbolIds: number[]
+): Promise<IQuestradeQuote[]> => {
 	await initDeferredPromise.promise;
 
 	const resp = await authRequest(`v1/markets/quotes?ids=${symbolIds.join(',')}`);
 	if (!resp) {
 		return Promise.resolve([]);
 	}
-	
+
 	const quotes: IQuestradeQuote[] = resp.data.quotes;
-	quotes.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
+	quotes.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
 	return quotes;
 };
 
 export interface IQuestradeSymbol {
-	symbol: string,
-	symbolId: number,
-	currency: 'CAD' | 'USD',
-	pe: number,
-	yield: number,
-	dividend: number,
-	marketCap: number,
-	exchange: string,
-	prevDayClosePrice: number,
-	highPrice52: number,
-	lowPrice52: number,
-	description: string,
-	listingExchange
+	symbol: string;
+	symbolId: number;
+	currency: 'CAD' | 'USD';
+	pe: number;
+	yield: number;
+	dividend: number;
+	marketCap: number;
+	exchange: string;
+	prevDayClosePrice: number;
+	highPrice52: number;
+	lowPrice52: number;
+	description: string;
+	listingExchange;
 }
 
-export const getSymbols = async (symbolIds: number[]): Promise<IQuestradeSymbol[]> => {
+export const getSymbols = async (
+	symbolIds: number[]
+): Promise<IQuestradeSymbol[]> => {
 	await initDeferredPromise.promise;
 
 	const resp = await authRequest(`v1/symbols?ids=${symbolIds.join(',')}`);
@@ -287,38 +311,41 @@ export const getSymbols = async (symbolIds: number[]): Promise<IQuestradeSymbol[
 	}
 
 	const symbols: IQuestradeSymbol[] = resp.data.symbols;
-	symbols.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
+	symbols.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
 	return symbols;
 };
 
 interface IBalance {
-	currency: Currency,
-	cash: number,
-	combined: boolean
+	currency: Currency;
+	cash: number;
+	combined: boolean;
 }
 
 export const getBalances = async (): Promise<IBalance[]> => {
 	const accountIds = _.map(accounts, 'number');
 	const resps = await Promise.all(
 		accountIds.map(
-			async accountId =>
+			async (accountId) =>
 				await authRequest(`${accountsRoute}/${accountId}/balances`)
 		)
 	);
 
 	const datas = _.map(resps, 'data');
-	const balancesPerCurrency = _(datas).map('perCurrencyBalances').flatten().value();
+	const balancesPerCurrency = _(datas)
+		.map('perCurrencyBalances')
+		.flatten()
+		.value();
 
 	const cad = {
 		currency: Currency.cad,
-		cash: _(balancesPerCurrency).filter({currency: 'CAD'}).sumBy('cash'),
-		combined: false
+		cash: _(balancesPerCurrency).filter({ currency: 'CAD' }).sumBy('cash'),
+		combined: false,
 	};
 	const usd = {
 		currency: Currency.usd,
-		cash: _(balancesPerCurrency).filter({currency: 'USD'}).sumBy('cash'),
-		combined: false
+		cash: _(balancesPerCurrency).filter({ currency: 'USD' }).sumBy('cash'),
+		combined: false,
 	};
 
 	return [cad, usd];
@@ -331,7 +358,7 @@ export const findSymbolId = async (symbol: string): Promise<number> => {
 	}
 	const symbols: IQuestradeSymbol[] = resp.data.symbols;
 	const stock = _.first(symbols);
-	return stock && stock.symbolId || 0;
+	return (stock && stock.symbolId) || 0;
 };
 
 export enum QuestradeOrderType {
@@ -340,45 +367,45 @@ export enum QuestradeOrderType {
 	Stop = 'Stop',
 	StopLimit = 'StopLimit',
 	LimitOnOpen = 'LimitOnOpen',
-	LimitOnClose = 'LimitOnClose'
+	LimitOnClose = 'LimitOnClose',
 }
 
 export enum QuestradeOrderSide {
 	Buy = 'Buy',
 	Sell = 'Sell',
-	BTO = 'BTO'
+	BTO = 'BTO',
 }
 
 export interface IQuestradeOrder {
-	id: number,
-	symbol: string,
-	symbolId: number,
-	orderType: QuestradeOrderType,
-	accountId: number,
-	totalQuantity: number,
-	openQuantity: number,
-	filledQuantity: number,
-	limitPrice: number,
-	stopPrice: number,
-	avgExecPrice: number,
-	side: QuestradeOrderSide
+	id: number;
+	symbol: string;
+	symbolId: number;
+	orderType: QuestradeOrderType;
+	accountId: number;
+	totalQuantity: number;
+	openQuantity: number;
+	filledQuantity: number;
+	limitPrice: number;
+	stopPrice: number;
+	avgExecPrice: number;
+	side: QuestradeOrderSide;
 }
 
-const getActiveOrdersForMonth = async (startTime: Date, endTime: Date): Promise<IQuestradeOrder[]> => {
+const getActiveOrdersForMonth = async (
+	startTime: Date,
+	endTime: Date
+): Promise<IQuestradeOrder[]> => {
 	await initDeferredPromise.promise;
 
 	const accountIds = _.map(accounts, 'number');
 	const resps = await Promise.all(
 		accountIds.map(
-			async accountId =>
-				await authRequest(
-					`${accountsRoute}/${accountId}/orders`,
-					{
-						startTime,
-						endTime,
-						stateFilter: 'Open'
-					}
-				)
+			async (accountId) =>
+				await authRequest(`${accountsRoute}/${accountId}/orders`, {
+					startTime,
+					endTime,
+					stateFilter: 'Open',
+				})
 		)
 	);
 
@@ -386,22 +413,22 @@ const getActiveOrdersForMonth = async (startTime: Date, endTime: Date): Promise<
 	for (let i = 0; i < ordersByAccount.length; i++) {
 		const orders = ordersByAccount[i];
 		const accountId = accountIds[i];
-		orders.forEach(order => {
+		orders.forEach((order) => {
 			order.accountId = accountId;
 		});
 	}
 
 	const orders: IQuestradeOrder[] = _(ordersByAccount)
 		.flatten()
-		.filter({state: 'Accepted'})
+		.filter({ state: 'Accepted' })
 		.value();
-	
-	orders.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
+
+	orders.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
 	return orders;
 };
 
-export const getActiveOrders = async ():Promise<IQuestradeOrder[]> => {
+export const getActiveOrders = async (): Promise<IQuestradeOrder[]> => {
 	const orders1 = await getActiveOrdersForMonth(
 		moment().subtract(1, 'month').toDate(),
 		new Date()
@@ -420,7 +447,7 @@ export const getActiveOrders = async ():Promise<IQuestradeOrder[]> => {
 		.uniqBy('id')
 		.value();
 
-	orders.forEach(q => q.symbol = q.symbol.toLocaleLowerCase());
+	orders.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
 	return orders;
 };

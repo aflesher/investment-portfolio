@@ -39,7 +39,10 @@ const MARGIN_ACCOUNT_ID = 26418215;
 const FILTER_SYMBOLS = ['ausa.cn', 'dlr.to', 'dlr.u.to', 'glh.cn.11480862'];
 const SYMBOLS_TO_VIEW_IDS: string[] = [];
 
-const SYMBOL_ID_REPLACEMENTS = [{ original: 20682, replacement: 11419766}, { original: 28114781, replacement: 41822360}];
+const SYMBOL_ID_REPLACEMENTS = [
+	{ original: 20682, replacement: 11419766 },
+	{ original: 28114781, replacement: 41822360 },
+];
 
 const checkExchangeRate = async () => {
 	const rate = process.env.USD_CAD;
@@ -47,7 +50,11 @@ const checkExchangeRate = async () => {
 		return;
 	}
 
-	return firebase.setExchangeRate('USD_CAD', moment().format('YYYY-MM-DD'), Number(rate));
+	return firebase.setExchangeRate(
+		'USD_CAD',
+		moment().format('YYYY-MM-DD'),
+		Number(rate)
+	);
 };
 
 const cryptoPositionsPromise = (async () => {
@@ -104,14 +111,22 @@ const symbolIdsPromise = (async (): Promise<number[]> => {
 			.value()
 	);
 
-	allSymbols = _(allSymbols).map(symbolId => SYMBOL_ID_REPLACEMENTS.find(s => s.original === symbolId)?.replacement || symbolId).uniq().filter().value();
+	allSymbols = _(allSymbols)
+		.map(
+			(symbolId) =>
+				SYMBOL_ID_REPLACEMENTS.find((s) => s.original === symbolId)?.replacement ||
+				symbolId
+		)
+		.uniq()
+		.filter()
+		.value();
 
 	return allSymbols;
 })();
 
 const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	const positions = await positionsPromise;
-	const symbols = positions.map(p => p.symbol);
+	const symbols = positions.map((p) => p.symbol);
 	return getEarningsDates(symbols);
 })();
 
@@ -155,7 +170,7 @@ const cryptoSlugsPromise = (async (): Promise<string[]> => {
 			.value()
 	);
 
-	return _.uniq(allSlugs.filter(q => !!q));
+	return _.uniq(allSlugs.filter((q) => !!q));
 })();
 
 const cryptoQuotesPromise = (async (): Promise<
@@ -179,13 +194,13 @@ const getTodaysRate = async (): Promise<number> => {
 	}
 
 	const rates = await ratesPromise;
-	rate = _.find(rates, r => r.date === date)?.rate || null;
+	rate = _.find(rates, (r) => r.date === date)?.rate || null;
 	if (rate) {
 		return rate;
 	}
 
 	return 1;
-}
+};
 
 const isUsd = (symbol: string): boolean =>
 	symbol.indexOf('.') === -1 || symbol.indexOf('.u.') !== -1;
@@ -241,7 +256,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 	const getEarningsDateNodeId = (symbol: string): string => {
 		return createNodeId(hash(`earningsDate${symbol}`));
-	}
+	};
 
 	exchange.init(configOptions.currency.api, configOptions.currency.apiKey);
 	firebase.init(configOptions.firebase);
@@ -302,7 +317,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const earningsDatesNodeIdsMap = {};
 	_.forEach(earningsDates, ({ symbol }) => {
 		earningsDatesNodeIdsMap[symbol] = getEarningsDateNodeId(symbol);
-	})
+	});
 
 	const dividends = cloud.readDividends();
 	const dividendNodeIdsMap = {};
@@ -481,7 +496,12 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				avgExecPrice: order.avgExecPrice,
 				side: order.side,
 				accountId: Number(order.accountId),
-				action: [questrade.QuestradeOrderSide.Buy, questrade.QuestradeOrderSide.BTO].includes(order.side) ? 'buy' : 'sell',
+				action: [
+					questrade.QuestradeOrderSide.Buy,
+					questrade.QuestradeOrderSide.BTO,
+				].includes(order.side)
+					? 'buy'
+					: 'sell',
 				type: order.orderType,
 				accountName: questrade.getAccountName(order.accountId),
 				currency,
@@ -662,7 +682,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			type: AssetType.crypto,
 			openPnl: openPnlUsd,
 			openPnlCad: openPnlUsd * usdToCadRate,
-			openPnlUsd: openPnlUsd
+			openPnlUsd: openPnlUsd,
 		};
 	};
 
@@ -703,7 +723,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				quote___NODE: quoteNodeIdsMap[position.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null,
 				positions___NODE: _.filter(linkedPositions),
-				earnings___NODE: earningsDatesNodeIdsMap[position.symbol] || null
+				earnings___NODE: earningsDatesNodeIdsMap[position.symbol] || null,
 			};
 
 			const content = JSON.stringify(positionNode);
@@ -786,7 +806,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		type: AssetType.crypto,
 		isOpeningPositionTrade: false,
 		taxable: true,
-		accountName: 'binance'
+		accountName: 'binance',
 	});
 
 	const setOpeningTrade = (trades: ITrade[]): void => {
@@ -1092,15 +1112,13 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		const usdBalance = _.find(balances, (q) => q.currency === Currency.usd);
 		if (usdBalance) {
-			usdBalance.cash += (22214 + 9158 + 3261) // binance, blockfi, blockfi
+			usdBalance.cash += 22214 + 9158 + 3261; // binance, blockfi, blockfi
 		}
 
 		const cadCash =
 			_.find(balances, (q) => q.currency === Currency.cad)?.cash || 0;
 		const usdCash =
 			_.find(balances, (q) => q.currency === Currency.usd)?.cash || 0;
-		
-		
 
 		balances.push({
 			currency: Currency.cad,
@@ -1171,7 +1189,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			.value();
 
 		const rates: IExchangeRate[] = await ratesPromise;
-		const exchangeRateDates = rates.map(r => r.date);	
+		const exchangeRateDates = rates.map((r) => r.date);
 		// console.log('missing rates', _.without(dates,  ...exchangeRateDates));
 
 		return rates.map((rate) => {
@@ -1200,13 +1218,13 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 	const getEarningsNodes = async (): Promise<IEarningsDateNode[]> => {
 		const earnings = await earningsDatesPromise;
-		return earnings.map(e => {
+		return earnings.map((e) => {
 			const earningsNode: IEarningsDateNode = {
 				...e,
 				position___NODE: positionNodeIdsMap[e.symbol] || null,
 				quote___NODE: quoteNodeIdsMap[e.symbol] || null,
 				company___NODE: companyNodeIdsMap[e.symbol] || null,
-				assessment___NODE: assessmentNodeIdsMap[e.symbol] || null
+				assessment___NODE: assessmentNodeIdsMap[e.symbol] || null,
 			};
 			const content = JSON.stringify(earningsNode);
 			_.defaults(earningsNode, {
@@ -1217,11 +1235,11 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 					type: 'EarningsDate',
 					content,
 					contentDigest: hash(content),
-				}
+				},
 			});
 			return earningsNode;
 		});
-	}
+	};
 
 	const outputCleared = (text: string): void => {
 		console.log(`cleared`.magenta + ' ' + text);

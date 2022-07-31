@@ -1,10 +1,10 @@
 export enum Currency {
 	cad = 'cad',
-	usd = 'usd'
+	usd = 'usd',
 }
 
 export enum AssetType {
 	crypto = 'crypto',
 	stock = 'stock',
-	cash = 'cash'
+	cash = 'cash',
 }

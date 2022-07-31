@@ -49,7 +49,7 @@ const addActivities = async (): Promise<boolean> => {
 	// 	accountId: '51443858' as any
 	// });
 
-	_.forEach(activities, activity => {
+	_.forEach(activities, (activity) => {
 		if (activity.type == 'Trades') {
 			cloud.addTrade(activity);
 		} else if (activity.type == 'Dividends') {

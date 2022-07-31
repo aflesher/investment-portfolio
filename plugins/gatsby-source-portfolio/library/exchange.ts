@@ -12,11 +12,17 @@ export const init = (_api: string, _apiKey: string): void => {
 	apiKey = _apiKey;
 };
 
-export const getRate = async (from: string, to: string, date: string): Promise<number | null> => {
+export const getRate = async (
+	from: string,
+	to: string,
+	date: string
+): Promise<number | null> => {
 	const key = `${from.toUpperCase()}_${to.toUpperCase()}`;
 
 	// This is a restriction of the endpoint. I think you'll need to manually backfill
-	if (moment(date).toDate() <= moment().startOf('day').subtract(1, 'year').toDate()) {
+	if (
+		moment(date).toDate() <= moment().startOf('day').subtract(1, 'year').toDate()
+	) {
 		console.error(date, '    is missing for rates');
 		return 1;
 	}

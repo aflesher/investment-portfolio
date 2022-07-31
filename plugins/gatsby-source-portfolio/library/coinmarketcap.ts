@@ -12,25 +12,29 @@ export const init = (_api: string, _apiKey: string): void => {
 };
 
 export interface ICoinMarketCapQuote {
-	price: number,
-	symbol: string,
-	name: string,
-	marketCap: number,
-	currency: Currency,
-	prevDayClosePrice: number
+	price: number;
+	symbol: string;
+	name: string;
+	marketCap: number;
+	currency: Currency;
+	prevDayClosePrice: number;
 }
 
-export const quote = async (slugs: string[]): Promise<ICoinMarketCapQuote[]> => {
-	const resp = await axios.get(`${api}/v1/cryptocurrency/quotes/latest`, {
-		headers: {
-			'X-CMC_PRO_API_KEY': apiKey,
-			'Accept': 'application/json'
-		},
-		params: {
-			convert: 'USD',
-			slug: slugs.join(',')
-		}
-	}).catch(console.log);
+export const quote = async (
+	slugs: string[]
+): Promise<ICoinMarketCapQuote[]> => {
+	const resp = await axios
+		.get(`${api}/v1/cryptocurrency/quotes/latest`, {
+			headers: {
+				'X-CMC_PRO_API_KEY': apiKey,
+				Accept: 'application/json',
+			},
+			params: {
+				convert: 'USD',
+				slug: slugs.join(','),
+			},
+		})
+		.catch(console.log);
 
 	if (!resp) {
 		return [];
@@ -38,7 +42,7 @@ export const quote = async (slugs: string[]): Promise<ICoinMarketCapQuote[]> => 
 
 	const quotes = _.values(resp.data.data);
 
-	return quotes.map(coin => {
+	return quotes.map((coin) => {
 		const quote = coin.quote.USD;
 		return {
 			price: quote.price,
@@ -47,7 +51,7 @@ export const quote = async (slugs: string[]): Promise<ICoinMarketCapQuote[]> => 
 			marketCap: quote.market_cap,
 			currency: Currency.usd,
 			type: AssetType.crypto,
-			prevDayClosePrice: quote.price / (1 + (quote.percent_change_24h / 100.0)) 
+			prevDayClosePrice: quote.price / (1 + quote.percent_change_24h / 100.0),
 		};
 	});
 };
@@ -74,7 +78,7 @@ export const symbolToSlug = (symbol: string): string => {
 		enj: 'enjin-coin',
 		dot: 'polkadot-new',
 		efi: 'efinity',
-		sol: 'solana'
+		sol: 'solana',
 	};
 
 	return lookup[symbol];

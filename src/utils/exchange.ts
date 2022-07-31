@@ -1,5 +1,5 @@
 export interface IExchangeRate {
-	date: string,
-	key: string,
-	rate: number
+	date: string;
+	key: string;
+	rate: number;
 }

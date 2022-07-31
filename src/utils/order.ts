@@ -12,9 +12,9 @@ export interface IOrder {
 	side: string;
 	accountId: number;
 	action: string;
-	type: string,
+	type: string;
 	accountName: string;
-	currency: Currency,
-	limitPriceUsd: number,
-	limitPriceCad: number
+	currency: Currency;
+	limitPriceUsd: number;
+	limitPriceCad: number;
 }
