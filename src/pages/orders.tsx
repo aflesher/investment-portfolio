@@ -9,47 +9,52 @@ import { Currency } from '../utils/enum';
 import Layout from '../components/layout';
 
 interface IOrdersStateProps {
-	currency: Currency
+	currency: Currency;
 }
 
 interface IOrdersQueryProps {
- data: {
-	allOrder: {
-		nodes: {
-			symbol: string,
-			limitPrice: number,
-			limitPriceCad: number,
-			limitPriceUsd: number,
-			openQuantity: number,
-			action: string,
-			accountName: string,
-			quote: {
-				price: number,
-				afterHoursPrice: number,
-			}
-			company: {
-				name: string,
-				marketCap: number
-			}
-			position?: {
-				quantity: number,
-				totalCost: number
-			}
-		}[]
-	}
- }
+	data: {
+		allOrder: {
+			nodes: {
+				symbol: string;
+				limitPrice: number;
+				limitPriceCad: number;
+				limitPriceUsd: number;
+				openQuantity: number;
+				action: string;
+				accountName: string;
+				quote: {
+					price: number;
+					afterHoursPrice: number;
+				};
+				company: {
+					name: string;
+					marketCap: number;
+				};
+				position?: {
+					quantity: number;
+					totalCost: number;
+				};
+			}[];
+		};
+	};
 }
 
 const mapStateToProps = ({ currency }: IStoreState): IOrdersStateProps => ({
-	currency
+	currency,
 });
 
-const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({ currency, data }) => {
-	const orders = _.orderBy(data.allOrder.nodes, ({action, quote, limitPrice}) => (
-		action == 'buy' ?
-		(quote.price - limitPrice) / quote.price :
-		(limitPrice - quote.price) / limitPrice
-	));
+const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({
+	currency,
+	data,
+}) => {
+	const orders = _.orderBy(
+		data.allOrder.nodes,
+		({ action, quote, limitPrice }) =>
+			action == 'buy'
+				? (quote.price - limitPrice) / quote.price
+				: (limitPrice - quote.price) / limitPrice
+	);
 	return (
 		<Layout>
 			<div className='p-4'>
@@ -72,7 +77,7 @@ export default connect(mapStateToProps, null)(Orders);
 
 export const pageQuery = graphql`
 	query {
-		allOrder{
+		allOrder {
 			nodes {
 				symbol
 				limitPrice
@@ -96,4 +101,4 @@ export const pageQuery = graphql`
 			}
 		}
 	}
-	`;
+`;

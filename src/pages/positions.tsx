@@ -16,74 +16,77 @@ export enum PositionsOrderBy {
 	investment,
 	pe,
 	dividendYield,
-	cashProfits
+	cashProfits,
 }
 
 interface IPositionNode {
-	currency: Currency,
-	totalCostCad: number,
-	totalCostUsd: number,
-	currentMarketValueCad: number,
-	currentMarketValueUsd: number,
-	quantity: number,
-	averageEntryPrice: number,
-	symbol: string,
-	type: AssetType,
+	currency: Currency;
+	totalCostCad: number;
+	totalCostUsd: number;
+	currentMarketValueCad: number;
+	currentMarketValueUsd: number;
+	quantity: number;
+	averageEntryPrice: number;
+	symbol: string;
+	type: AssetType;
 	quote: {
-		price: number,
-		priceCad: number,
-		priceUsd: number,
-		currency: Currency
-	}
+		price: number;
+		priceCad: number;
+		priceUsd: number;
+		currency: Currency;
+	};
 	company: {
-		pe: number,
-		yield: number,
-		prevDayClosePrice: number,
-		marketCap: number,
-		name: string
-	}
+		pe: number;
+		yield: number;
+		prevDayClosePrice: number;
+		marketCap: number;
+		name: string;
+	};
 	assessment?: {
-		targetInvestmentProgress: number,
-		targetPriceProgress: number,
+		targetInvestmentProgress: number;
+		targetPriceProgress: number;
 		checklist: {
-			pristine: boolean | null
-		}
-	}
+			pristine: boolean | null;
+		};
+	};
 	positions: {
-		symbol: string,
-		totalCostCad: number,
-		totalCostUsd: number,
-		currentMarketValueCad: number,
-		currentMarketValueUsd: number
-	}[]
+		symbol: string;
+		totalCostCad: number;
+		totalCostUsd: number;
+		currentMarketValueCad: number;
+		currentMarketValueUsd: number;
+	}[];
 }
 
 interface IBalanceNode {
-	currency: Currency,
-	cash: number,
-	combined: boolean
+	currency: Currency;
+	cash: number;
+	combined: boolean;
 }
 
 interface IPositionsQuery {
 	data: {
 		allPosition: {
-			nodes: IPositionNode[]
-		}
+			nodes: IPositionNode[];
+		};
 		allBalance: {
-			nodes: IBalanceNode[]
-		}
-	}
+			nodes: IBalanceNode[];
+		};
+	};
 }
 
 interface IPositionStateProps {
-	currency: Currency
+	currency: Currency;
 }
 
 const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
-	currency
+	currency,
 });
 
-const addCurrencyToPositions = (usd: IBalanceNode, cad: IBalanceNode): IPositionNode => {
+const addCurrencyToPositions = (
+	usd: IBalanceNode,
+	cad: IBalanceNode
+): IPositionNode => {
 	const position: IPositionNode = {
 		currency: Currency.cad,
 		totalCostCad: cad.cash,
@@ -98,76 +101,95 @@ const addCurrencyToPositions = (usd: IBalanceNode, cad: IBalanceNode): IPosition
 			price: 1,
 			priceCad: 1,
 			priceUsd: 1,
-			currency: Currency.cad
+			currency: Currency.cad,
 		},
 		company: {
 			pe: 1,
 			yield: 0,
 			prevDayClosePrice: 1,
 			marketCap: 106930000000,
-			name: 'Bank of Canada'
+			name: 'Bank of Canada',
 		},
-		positions: []
+		positions: [],
 	};
 
 	return position;
-}
+};
 
-const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, data }) => {
-	const usdCash = data.allBalance.nodes.find(q => q.currency === Currency.usd);
-	const cadCash = data.allBalance.nodes.find(q => q.currency === Currency.cad);
+const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
+	currency,
+	data,
+}) => {
+	const usdCash = data.allBalance.nodes.find((q) => q.currency === Currency.usd);
+	const cadCash = data.allBalance.nodes.find((q) => q.currency === Currency.cad);
 	const positionNodes = data.allPosition.nodes.slice();
 	positionNodes.push(addCurrencyToPositions(usdCash!, cadCash!));
 
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.profits);
 	const [combined, setCombined] = React.useState(true);
 
-	const getTotalCostCad = (position: IPositionNode): number => (
-		position.totalCostCad + (_.sumBy(position.positions, p => p.totalCostCad) * (combined ? 1 :0))
-	);
-	
-	const getCurrentValueCad = (position: IPositionNode): number => (
-		position.currentMarketValueCad + (_.sumBy(position.positions, p => p.currentMarketValueCad) * (combined ? 1 :0))
-	);
-	
-	const getTotalCostUsd = (position: IPositionNode): number => (
-		position.totalCostUsd + (_.sumBy(position.positions, p => p.totalCostUsd) * (combined ? 1 :0))
-	);
-	
-	const getCurrentValueUsd = (position: IPositionNode): number => (
-		position.currentMarketValueUsd + (_.sumBy(position.positions, p => p.currentMarketValueUsd) * (combined ? 1 :0))
-	);
+	const getTotalCostCad = (position: IPositionNode): number =>
+		position.totalCostCad +
+		_.sumBy(position.positions, (p) => p.totalCostCad) * (combined ? 1 : 0);
 
-	const totalPositionValue = _.sumBy(positionNodes, p => p.currentMarketValueCad);
-	const totalPositionCost = _.sumBy(positionNodes, p => p.totalCostCad);
-	const totalPositionValueUsd = _.sumBy(positionNodes, p => p.currentMarketValueUsd);
-	const totalPositionCostUsd = _.sumBy(positionNodes, p => p.totalCostUsd);
+	const getCurrentValueCad = (position: IPositionNode): number =>
+		position.currentMarketValueCad +
+		_.sumBy(position.positions, (p) => p.currentMarketValueCad) *
+			(combined ? 1 : 0);
+
+	const getTotalCostUsd = (position: IPositionNode): number =>
+		position.totalCostUsd +
+		_.sumBy(position.positions, (p) => p.totalCostUsd) * (combined ? 1 : 0);
+
+	const getCurrentValueUsd = (position: IPositionNode): number =>
+		position.currentMarketValueUsd +
+		_.sumBy(position.positions, (p) => p.currentMarketValueUsd) *
+			(combined ? 1 : 0);
+
+	const totalPositionValue = _.sumBy(
+		positionNodes,
+		(p) => p.currentMarketValueCad
+	);
+	const totalPositionCost = _.sumBy(positionNodes, (p) => p.totalCostCad);
+	const totalPositionValueUsd = _.sumBy(
+		positionNodes,
+		(p) => p.currentMarketValueUsd
+	);
+	const totalPositionCostUsd = _.sumBy(positionNodes, (p) => p.totalCostUsd);
 	const filteredPositions = _(positionNodes)
-		.map(p => p.positions.map(q => q.symbol))
+		.map((p) => p.positions.map((q) => q.symbol))
 		.flatten()
 		.uniq()
 		.value();
 
 	const positions = _(positionNodes)
-		.filter(position => !combined || !_.includes(filteredPositions, position.symbol))
-		.orderBy(position => {
-			switch (orderBy) {
-			case PositionsOrderBy.symbol:
-				return position.symbol;
-			case PositionsOrderBy.profits:
-				return 	(position.quote.price - position.averageEntryPrice) / position.averageEntryPrice;
-			case PositionsOrderBy.position:
-				return getCurrentValueCad(position) / totalPositionValue;
-			case PositionsOrderBy.investment:
-				return getTotalCostCad(position) / totalPositionCost;
-			case PositionsOrderBy.pe:
-				return position.company.pe;
-			case PositionsOrderBy.dividendYield:
-				return position.company.yield;
-			case PositionsOrderBy.cashProfits:
-				return getCurrentValueCad(position) - getTotalCostCad(position);
-			}
-		}, orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc')
+		.filter(
+			(position) => !combined || !_.includes(filteredPositions, position.symbol)
+		)
+		.orderBy(
+			(position) => {
+				switch (orderBy) {
+					case PositionsOrderBy.symbol:
+						return position.symbol;
+					case PositionsOrderBy.profits:
+						return (
+							(position.quote.price - position.averageEntryPrice) /
+							position.averageEntryPrice
+						);
+					case PositionsOrderBy.position:
+						return getCurrentValueCad(position) / totalPositionValue;
+					case PositionsOrderBy.investment:
+						return getTotalCostCad(position) / totalPositionCost;
+					case PositionsOrderBy.pe:
+						return position.company.pe;
+					case PositionsOrderBy.dividendYield:
+						return position.company.yield;
+					case PositionsOrderBy.cashProfits:
+						return getCurrentValueCad(position) - getTotalCostCad(position);
+				}
+			},
+			orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
+		)
 		.value();
 
 	return (
@@ -176,28 +198,35 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 				<div className='row pb-1'>
 					<div
 						className='col-4 col-lg-3 offset-lg-1 link'
-						onClick={() => setOrderBy(PositionsOrderBy.symbol)}>
-							SYMBOL
+						onClick={() => setOrderBy(PositionsOrderBy.symbol)}
+					>
+						SYMBOL
 					</div>
 					<div
 						className='col-4 col-lg-1 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.profits)}>
-							P&L
+						onClick={() => setOrderBy(PositionsOrderBy.profits)}
+					>
+						P&L
 					</div>
 					<div
 						className='col-2 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.position)}>
-							%oP
+						onClick={() => setOrderBy(PositionsOrderBy.position)}
+					>
+						%oP
 					</div>
 					<div className='col-2 text-right'>
-						<span className='link' onClick={() => setOrderBy(PositionsOrderBy.investment)}>
+						<span
+							className='link'
+							onClick={() => setOrderBy(PositionsOrderBy.investment)}
+						>
 							%oI
 						</span>
 					</div>
 					<div
 						className='d-none d-lg-block col-3 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}>
-							$P&L
+						onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
+					>
+						$P&L
 					</div>
 				</div>
 				{positions.map((position, index) => (
@@ -239,7 +268,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({ currency, 
 				</div>
 				<div>
 					<div className='link' onClick={() => setCombined(!combined)}>
-						{combined && 'combined *' || 'not combined'}
+						{(combined && 'combined *') || 'not combined'}
 					</div>
 				</div>
 			</div>
@@ -290,12 +319,12 @@ export const pageQuery = graphql`
 				}
 			}
 		}
-		allBalance(filter: {combined: {eq: true}}) {
+		allBalance(filter: { combined: { eq: true } }) {
 			nodes {
-			  cash
-			  currency
-			  combined
+				cash
+				currency
+				combined
 			}
 		}
 	}
-	`;
+`;

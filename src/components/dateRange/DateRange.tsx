@@ -3,16 +3,18 @@ import _ from 'lodash';
 import moment from 'moment-timezone';
 
 interface IDateRangeStateProps {
-	startDate?: Date,
-	endDate?: Date
+	startDate?: Date;
+	endDate?: Date;
 }
 
 interface IDateRangeDispatchProps {
-	onChange: (startDate: Date, endDate: Date) => void
+	onChange: (startDate: Date, endDate: Date) => void;
 }
 
 const DateRange: React.FC<IDateRangeStateProps & IDateRangeDispatchProps> = ({
-	startDate, endDate, onChange
+	startDate,
+	endDate,
+	onChange,
 }) => {
 	const today = moment().startOf('day').toDate();
 	const tonight = moment().endOf('day').toDate();
@@ -21,18 +23,22 @@ const DateRange: React.FC<IDateRangeStateProps & IDateRangeDispatchProps> = ({
 	const newYears = moment().startOf('year').toDate();
 
 	const dateOptions = [
-		{name: 'Today', startDate: today, endDate: tonight},
-		{name: 'This Week', startDate: monday, endDate: tonight},
-		{name: 'This Month', startDate: startOfMonth, endDate: tonight},
-		{name: 'This Year', startDate: newYears, endDate: tonight}
+		{ name: 'Today', startDate: today, endDate: tonight },
+		{ name: 'This Week', startDate: monday, endDate: tonight },
+		{ name: 'This Month', startDate: startOfMonth, endDate: tonight },
+		{ name: 'This Year', startDate: newYears, endDate: tonight },
 	];
 
-	const options = dateOptions.map(option =>
-		<option key={option.name} value={option.name}>{option.name}</option>
-	);
+	const options = dateOptions.map((option) => (
+		<option key={option.name} value={option.name}>
+			{option.name}
+		</option>
+	));
 
-	const option = _.find(dateOptions, option => 
-		option.startDate.getTime() === startDate?.getTime() &&
+	const option = _.find(
+		dateOptions,
+		(option) =>
+			option.startDate.getTime() === startDate?.getTime() &&
 			option.endDate.getTime() === endDate?.getTime()
 	);
 
@@ -44,7 +50,7 @@ const DateRange: React.FC<IDateRangeStateProps & IDateRangeDispatchProps> = ({
 
 	const handleOptionChange = (event: any): void => {
 		const name = event.target.value;
-		const option = _.find(dateOptions, {name});
+		const option = _.find(dateOptions, { name });
 		if (!option) {
 			return;
 		}

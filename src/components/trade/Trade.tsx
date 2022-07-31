@@ -7,36 +7,60 @@ import { ITrade } from '../../utils/trade';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
 
-export interface ITradeStateProps extends
-	Omit<IStockQuoteStateProps, 'quantity' >,
-	Pick<ITrade, 'isSell' | 'quantity' | 'timestamp' | 'pnlCad' | 'pnlUsd' | 'currency' | 'accountName'>
-{
-	tradePrice: number
+export interface ITradeStateProps
+	extends Omit<IStockQuoteStateProps, 'quantity'>,
+		Pick<
+			ITrade,
+			| 'isSell'
+			| 'quantity'
+			| 'timestamp'
+			| 'pnlCad'
+			| 'pnlUsd'
+			| 'currency'
+			| 'accountName'
+		> {
+	tradePrice: number;
 }
 
 const Trade: React.FC<ITradeStateProps> = (props) => {
-	const { symbol, isSell, quantity, timestamp, pnlCad, pnlUsd, currency, tradePrice, type, accountName } = props;
+	const {
+		symbol,
+		isSell,
+		quantity,
+		timestamp,
+		pnlCad,
+		pnlUsd,
+		currency,
+		tradePrice,
+		type,
+		accountName,
+	} = props;
 	return (
 		<div className='trade border-top-normal'>
 			<div className='row'>
 				<div className='col-8'>
-					{symbol &&
+					{symbol && (
 						<div className='d-inline-block'>
 							<StockHover
-								{ ...props }
-								css={{'text-emphasis': true, 'font-weight-bold': true}}
+								{...props}
+								css={{ 'text-emphasis': true, 'font-weight-bold': true }}
 							/>
 						</div>
-					}&nbsp;
-					<span className={classNames({
-						'text-positive': !isSell,
-						'text-negative': isSell
-					})}>
+					)}
+					&nbsp;
+					<span
+						className={classNames({
+							'text-positive': !isSell,
+							'text-negative': isSell,
+						})}
+					>
 						{isSell ? 'sold' : 'bought'}
 					</span>
 					&nbsp;
 					<span>
-						{type === 'crypto' ? numeral(quantity).format('1,000.0000') : numeral(quantity).format('1,000')}
+						{type === 'crypto'
+							? numeral(quantity).format('1,000.0000')
+							: numeral(quantity).format('1,000')}
 						{type === 'crypto' ? ' coins @' : ' shares @'}
 						{numeral(tradePrice).format('$1,000.00')}
 					</span>
@@ -46,21 +70,21 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 					{formatDateShort(timestamp)}
 				</div>
 			</div>
-			{isSell &&
+			{isSell && (
 				<div className='ml-4'>
-					<span className='mr-2' style={{whiteSpace: 'nowrap'}}>P & L:</span>
-					<span className={classNames({
-						'text-positive': pnlCad >= 0,
-						'text-negative': pnlCad < 0
-					})}>
-						<XE
-							cad={pnlCad}
-							usd={pnlUsd}
-							currency={currency}
-						/>
+					<span className='mr-2' style={{ whiteSpace: 'nowrap' }}>
+						P & L:
+					</span>
+					<span
+						className={classNames({
+							'text-positive': pnlCad >= 0,
+							'text-negative': pnlCad < 0,
+						})}
+					>
+						<XE cad={pnlCad} usd={pnlUsd} currency={currency} />
 					</span>
 				</div>
-			}
+			)}
 		</div>
 	);
 };

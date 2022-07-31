@@ -1,4 +1,4 @@
-import * as React from 'react'; 
+import * as React from 'react';
 import Disclaimer from '../components/disclaimer/Disclaimer';
 import Layout from '../components/layout';
 

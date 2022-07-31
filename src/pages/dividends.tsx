@@ -2,7 +2,7 @@ import React from 'react';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 import Paginate from 'react-paginate';
-import {Typeahead} from 'react-bootstrap-typeahead';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import moment from 'moment';
 
 import { Currency, AssetType } from '../utils/enum';
@@ -16,60 +16,65 @@ import { dateInputFormat } from '../utils/util';
 import DateRange from '../components/dateRange/DateRange';
 
 interface IDividendsStateProps {
-	currency: Currency
+	currency: Currency;
 }
 
 interface IDividendsQueryProps {
 	data: {
 		allDividend: {
 			nodes: {
-				symbol: string,
-				timestamp: number,
-				amount: number,
-				currency: Currency,
-				accountId: number,
-				amountUsd: number,
-				amountCad: number,
+				symbol: string;
+				timestamp: number;
+				amount: number;
+				currency: Currency;
+				accountId: number;
+				amountUsd: number;
+				amountCad: number;
 				assessment?: {
-					targetInvestmentProgress: number,
-					targetPriceProgress: number
-				},
+					targetInvestmentProgress: number;
+					targetPriceProgress: number;
+				};
 				company?: {
-					name: string,
-					marketCap: number,
-					prevDayClosePrice: number,
-					type: AssetType
-				},
+					name: string;
+					marketCap: number;
+					prevDayClosePrice: number;
+					type: AssetType;
+				};
 				position?: {
-					quantity: number,
-					totalCost: number,
-					totalCostUsd: number,
-					totalCostCad: number,
-					currentMarketValueCad: number,
-					currentMarketValueUsd: number
-				},
+					quantity: number;
+					totalCost: number;
+					totalCostUsd: number;
+					totalCostCad: number;
+					currentMarketValueCad: number;
+					currentMarketValueUsd: number;
+				};
 				quote?: {
-					price: number,
-					currency: Currency
-				}
-			}[]
-		}
-	}
+					price: number;
+					currency: Currency;
+				};
+			}[];
+		};
+	};
 }
 
 const DIVIDENDS_PER_PAGE = 30;
 
 const mapStateToProps = ({ currency }: IStoreState): IDividendsStateProps => ({
-	currency
+	currency,
 });
 
-const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data, currency }) => {
-	const [startDate, setStartDate] = React.useState(moment().startOf('year').toDate());
+const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
+	data,
+	currency,
+}) => {
+	const [startDate, setStartDate] = React.useState(
+		moment().startOf('year').toDate()
+	);
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
 	const [page, setPage] = React.useState(0);
 
-	const dividends = _.filter(data.allDividend.nodes, dividend => {
+	const dividends = _.filter(data.allDividend.nodes, (dividend) => {
 		if (startDate && startDate > new Date(dividend.timestamp)) {
 			return false;
 		}
@@ -78,32 +83,36 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data
 			return false;
 		}
 
-		if (
-			symbol &&
-			!dividend.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))
-		) {
+		if (symbol && !dividend.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
 			return false;
 		}
-		
+
 		return true;
 	});
 
-	const totalCad = _.sumBy(dividends, q => q.amountCad);
-	const totalUsd = _.sumBy(dividends, q => q.amountUsd);
+	const totalCad = _.sumBy(dividends, (q) => q.amountCad);
+	const totalUsd = _.sumBy(dividends, (q) => q.amountUsd);
 
-	const symbols = _(data.allDividend.nodes).map(t => t.symbol).uniq().value();
+	const symbols = _(data.allDividend.nodes)
+		.map((t) => t.symbol)
+		.uniq()
+		.value();
 
 	const handleSymbolChange = (symbol: string): void => {
 		setSymbol(symbol);
 		setPage(0);
 	};
 
-	const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+	const handleStartDateChange = (
+		event: React.ChangeEvent<HTMLInputElement>
+	): void => {
 		setStartDate(new Date(event.target.value));
 		setPage(0);
 	};
 
-	const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+	const handleEndDateChange = (
+		event: React.ChangeEvent<HTMLInputElement>
+	): void => {
 		setEndDate(new Date(event.target.value));
 		setPage(0);
 	};
@@ -118,7 +127,6 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data
 		<Layout>
 			<div className='p-4'>
 				<div className='row'>
-					
 					<div className='col-3'>
 						<div className='form-group'>
 							<label htmlFor='symbol'>Symbol</label>
@@ -132,7 +140,6 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data
 						</div>
 					</div>
 
-					
 					<div className='col-3'>
 						<div className='form-group'>
 							<label>Start</label>
@@ -186,7 +193,10 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data
 					</div>
 				</div>
 				{dividends.map((dividend, index) => (
-					<div className='row py-1 border-b' key={`${dividend.symbol}${dividend.timestamp}${index}`}>
+					<div
+						className='row py-1 border-b'
+						key={`${dividend.symbol}${dividend.timestamp}${index}`}
+					>
 						<div className='col-3'>
 							<StockHover
 								symbol={dividend.symbol}
@@ -228,9 +238,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({ data
 					</div>
 				))}
 				<div className='row mt-2'>
-					<div className='col-3 text-right offset-6'>
-						Total
-					</div>
+					<div className='col-3 text-right offset-6'>Total</div>
 					<div className='col-3 text-right'>
 						<XE
 							cad={totalCad}
@@ -249,7 +257,7 @@ export default connect(mapStateToProps)(Dividends);
 
 export const pageQuery = graphql`
 	query {
-		allDividend(sort: {fields: timestamp, order: DESC}) {
+		allDividend(sort: { fields: timestamp, order: DESC }) {
 			nodes {
 				amount
 				amountCad

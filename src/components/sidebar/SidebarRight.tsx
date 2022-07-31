@@ -10,37 +10,35 @@ import Dividend, { IDividendStateProps } from '../dividend/Dividend';
 import { Currency } from '../../utils/enum';
 
 interface ISidebarRightStateProps {
-	positions: IPositionStateProps[],
-	trades: ITradeStateProps[],
-	dividends: IDividendStateProps[]
+	positions: IPositionStateProps[];
+	trades: ITradeStateProps[];
+	dividends: IDividendStateProps[];
 }
 
-interface ISidebarRightDispatchProps {
-
-}
+interface ISidebarRightDispatchProps {}
 
 enum PositionOrderBy {
 	symbol = 1,
 	profits = 2,
-	position = 3
+	position = 3,
 }
 
-const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProps> = ({
-	positions, trades, dividends
-}) => {
+const SidebarRight: React.FC<
+	ISidebarRightStateProps & ISidebarRightDispatchProps
+> = ({ positions, trades, dividends }) => {
 	const [orderBy, setOrderBy] = React.useState(PositionOrderBy.profits);
-	const portfolioTotalValue = _.sumBy(positions, p => p.valueCad);
-	const portfolioTotalCost = _.sumBy(positions, p => p.costCad);
+	const portfolioTotalValue = _.sumBy(positions, (p) => p.valueCad);
+	const portfolioTotalCost = _.sumBy(positions, (p) => p.costCad);
 	const inTheBlack = portfolioTotalValue > portfolioTotalCost;
 
 	let dividendsAndTrades: (ITradeStateProps | IDividendStateProps)[] = [];
 	dividendsAndTrades = _(dividendsAndTrades)
 		.concat(trades)
 		.concat(dividends)
-		.orderBy(q => q.timestamp, 'desc')
+		.orderBy((q) => q.timestamp, 'desc')
 		.slice(0, 5)
 		.value();
-	console.log()
+	console.log();
 
 	return (
 		<div>
@@ -67,34 +65,28 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 					</div>
 				</div>
 				{_(positions)
-					.orderBy(position => {
-						switch (orderBy) {
-						case PositionOrderBy.symbol:
-							return position.symbol;
-						case PositionOrderBy.profits:
-							return position.quoteCurrency === Currency.cad ?
-							(position.valueCad - position.costCad) / position.costCad :
-							(position.valueUsd - position.costUsd) / position.costUsd;
-						case PositionOrderBy.position:
-							return position.valueCad / portfolioTotalValue;
-						}
-					}, orderBy == PositionOrderBy.symbol ? 'asc' : 'desc')
-					.map((position) => (
-						<Position
-							key={position.symbol}
-							{ ...position }
-						/>
-					))
-					.value()
-				}
+					.orderBy(
+						(position) => {
+							switch (orderBy) {
+								case PositionOrderBy.symbol:
+									return position.symbol;
+								case PositionOrderBy.profits:
+									return position.quoteCurrency === Currency.cad
+										? (position.valueCad - position.costCad) / position.costCad
+										: (position.valueUsd - position.costUsd) / position.costUsd;
+								case PositionOrderBy.position:
+									return position.valueCad / portfolioTotalValue;
+							}
+						},
+						orderBy == PositionOrderBy.symbol ? 'asc' : 'desc'
+					)
+					.map((position) => <Position key={position.symbol} {...position} />)
+					.value()}
 			</div>
 
 			<div className='pt-2'>
-				<h3>
-					Recent Trades
-				</h3>
-				<div>
-				</div>
+				<h3>Recent Trades</h3>
+				<div></div>
 				<div>
 					<div className='d-flex py-1 justify-content-between'>
 						<div className='text-left'>
@@ -104,19 +96,20 @@ const SidebarRight: React.FC<ISidebarRightStateProps & ISidebarRightDispatchProp
 							<Link to='/trades'>View All Trades</Link>
 						</div>
 					</div>
-					<div style={{fontSize: '80%'}}>
-						{dividendsAndTrades.map((dividendOrTrade, index) => (
-							'tradePrice' in dividendOrTrade ?
+					<div style={{ fontSize: '80%' }}>
+						{dividendsAndTrades.map((dividendOrTrade, index) =>
+							'tradePrice' in dividendOrTrade ? (
 								<Trade
 									key={`${dividendOrTrade.symbol}${dividendOrTrade.timestamp}${index}`}
 									{...dividendOrTrade}
 								/>
-								:
+							) : (
 								<Dividend
 									key={`${dividendOrTrade.symbol}${dividendOrTrade.timestamp}${index}`}
 									{...dividendOrTrade}
 								/>
-						))}
+							)
+						)}
 					</div>
 				</div>
 			</div>

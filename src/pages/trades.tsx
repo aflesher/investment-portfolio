@@ -2,7 +2,7 @@ import React from 'react';
 import Paginate from 'react-paginate';
 import _ from 'lodash';
 import { graphql } from 'gatsby';
-import {Typeahead} from 'react-bootstrap-typeahead';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import { connect } from 'react-redux';
 
 import Trade from '../components/trade/Trade';
@@ -13,63 +13,63 @@ import { Currency, AssetType } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';
 
 interface ITradeProps {
-	currency: Currency
+	currency: Currency;
 }
 
 interface ITradeQuery {
 	data: {
 		allTrade: {
 			nodes: {
-				accountId: number,
-				accountName: string,
-				quantity: number,
-				price: number,
-				action: string,
-				symbol: string,
-				timestamp: number,
-				pnl: number,
-				pnlCad: number,
-				pnlUsd: number,
-				currency: Currency,
+				accountId: number;
+				accountName: string;
+				quantity: number;
+				price: number;
+				action: string;
+				symbol: string;
+				timestamp: number;
+				pnl: number;
+				pnlCad: number;
+				pnlUsd: number;
+				currency: Currency;
 				company: {
-					name: string,
-					marketCap: number,
-					prevDayClosePrice: number,
-					symbol: string,
-					yield?: number
-				}
+					name: string;
+					marketCap: number;
+					prevDayClosePrice: number;
+					symbol: string;
+					yield?: number;
+				};
 				quote: {
-					price: number,
-					priceUsd: number,
-					priceCad: number,
-					currency: Currency
-				},
+					price: number;
+					priceUsd: number;
+					priceCad: number;
+					currency: Currency;
+				};
 				assessment?: {
-					targetInvestmentProgress: number,
-					targetPriceProgress: number,
-					type: AssetType
-				},
+					targetInvestmentProgress: number;
+					targetPriceProgress: number;
+					type: AssetType;
+				};
 				position?: {
-					quantity: number,
-					totalCost: number,
-					totalCostUsd: number,
-					totalCostCad: number,
-					currentMarketValueCad: number,
-					currentMarketValueUsd: number,
-					averageEntryPrice: number,
-					openPnl: number,
-					openPnlCad: number,
-					openPnlUsd: number
-				}
-			}[]
-		}
-	}
+					quantity: number;
+					totalCost: number;
+					totalCostUsd: number;
+					totalCostCad: number;
+					currentMarketValueCad: number;
+					currentMarketValueUsd: number;
+					averageEntryPrice: number;
+					openPnl: number;
+					openPnlCad: number;
+					openPnlUsd: number;
+				};
+			}[];
+		};
+	};
 }
 
 const ACTIONS_PER_PAGE = 15;
 
 const mapStateToProps = ({ currency }: IStoreState): ITradeProps => ({
-	currency
+	currency,
 });
 
 const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
@@ -78,7 +78,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 	const [symbol, setSymbol] = React.useState('');
 	const [page, setPage] = React.useState(0);
 
-	const trades = _.filter(data.allTrade.nodes, trade => {
+	const trades = _.filter(data.allTrade.nodes, (trade) => {
 		if (startDate && startDate > new Date(trade.timestamp)) {
 			return false;
 		}
@@ -87,29 +87,33 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 			return false;
 		}
 
-		if (
-			symbol &&
-			!trade.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))
-		) {
+		if (symbol && !trade.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
 			return false;
 		}
-		
+
 		return true;
 	});
 
-	const symbols = _(data.allTrade.nodes).map(t => t.symbol).uniq().value();
+	const symbols = _(data.allTrade.nodes)
+		.map((t) => t.symbol)
+		.uniq()
+		.value();
 
 	const handleSymbolChange = (symbol: string): void => {
 		setSymbol(symbol);
 		setPage(0);
 	};
 
-	const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+	const handleStartDateChange = (
+		event: React.ChangeEvent<HTMLInputElement>
+	): void => {
 		setStartDate(new Date(event.target.value));
 		setPage(0);
 	};
 
-	const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+	const handleEndDateChange = (
+		event: React.ChangeEvent<HTMLInputElement>
+	): void => {
 		setEndDate(new Date(event.target.value));
 		setPage(0);
 	};
@@ -121,13 +125,12 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 	};
 
 	const pageStart = ACTIONS_PER_PAGE * page;
-	const pageEnd = (ACTIONS_PER_PAGE * page) + ACTIONS_PER_PAGE;
+	const pageEnd = ACTIONS_PER_PAGE * page + ACTIONS_PER_PAGE;
 
 	return (
 		<Layout>
 			<div className='activity p-4'>
 				<div className='row'>
-					
 					<div className='col-3'>
 						<div className='form-group'>
 							<label htmlFor='symbol'>Symbol</label>
@@ -141,7 +144,6 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 						</div>
 					</div>
 
-					
 					<div className='col-3'>
 						<div className='form-group'>
 							<label>Start</label>
@@ -224,9 +226,8 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 						/>
 					))}
 				</div>
-				<div className="text-center mt-2">
-					<a onClick={(): void => setPage(page - 1)}>PREVIOUS</a>&nbsp;
-					|&nbsp;
+				<div className='text-center mt-2'>
+					<a onClick={(): void => setPage(page - 1)}>PREVIOUS</a>&nbsp; |&nbsp;
 					<a onClick={(): void => setPage(page + 1)}>NEXT</a>
 				</div>
 			</div>
@@ -238,7 +239,7 @@ export default connect(mapStateToProps, null)(Trades);
 
 export const pageQuery = graphql`
 	query {
-		allTrade(sort: {fields: [timestamp], order: DESC}) {
+		allTrade(sort: { fields: [timestamp], order: DESC }) {
 			nodes {
 				accountId
 				accountName
@@ -284,4 +285,4 @@ export const pageQuery = graphql`
 			}
 		}
 	}
-	`;
+`;
