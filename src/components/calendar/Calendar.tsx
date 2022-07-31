@@ -29,6 +29,18 @@ const Calendar: React.FC<ICalendarStateProps> = ({
     const noPreviousMonth = currentMonth === 0;
     const noNextMonth = currentMonth === months.length - 1;
 
+    const replaceSymbol = (symbol: string): string => {
+        if (symbol === 'cgc') {
+            return 'weed.to';
+        }
+
+        if (symbol === 'bitf') {
+            return 'bitf.to';
+        }
+
+        return symbol;
+    }
+
     return <div className='ml-auto mr-auto pt-4 calendar'>
         <div className='text-center pb-4'>
             <span className={`mr-4 calendar-nav ${noPreviousMonth && 'disabled'}`} onClick={() => !noPreviousMonth && setCurrentMonth(currentMonth - 1)}>{'<<'}</span>
@@ -40,7 +52,7 @@ const Calendar: React.FC<ICalendarStateProps> = ({
                 {week.map(day => <div className={`day ${currentDay === day.timestamp && 'today'}`}>
                     {!!day.timestamp && <div className='date'>{ moment(day.timestamp).date() }</div>}
                     <div className='day-content'>
-                        {day.earningsDates.map(({ symbol }) => <CompanyBanner symbol={symbol} name={`$${symbol.toUpperCase()}`} isNotBanner={true} />)}
+                        {day.earningsDates.map(({ symbol }) => <CompanyBanner symbol={replaceSymbol(symbol)} name={`$${symbol.toUpperCase().replace('.TO', '')}`} isNotBanner={true} />)}
                     </div>
                 </div>)}
             </div>

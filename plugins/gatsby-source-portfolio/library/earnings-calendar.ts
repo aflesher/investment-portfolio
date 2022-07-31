@@ -27,6 +27,9 @@ const filterZacks = (symbols: string[]): string[] => {
     if (symbols.find(q => q === 'bitf.to')) {
         symbols.push('bitf');
     }
+    if (symbols.find(q => q === 'weed.to')) {
+        symbols.push('cgc');
+    }
     return symbols.filter(symbol => {
         if (symbol.indexOf('.') !== -1) {
             return false;
@@ -56,11 +59,38 @@ export const scrapeZacks = (symbols: string[]): Promise<IEarningsDate[]> => {
     return Promise.all(filterZacks(symbols).map(symbol => fetchZacks(symbol)));
 }
 
+const scapeSecondPageAAndW = async (url: string): Promise<IEarningsDate | null> => {
+    const response = await axios.get(url);
+    const html: string = response.data;
+    const date = html.match(/>(\w*,\s\w*\s\d{1,2},\s\d{4})</)?.[1];
+    if (!date) {
+        return null;
+    }
+    return { symbol: 'aw.un.to', timestamp: new Date(date).getTime() };
+}
+
+export const scrapeAAndW = async (): Promise<IEarningsDate | null> => {
+    const response = await axios.get('https://awincomefund.mediaroom.com/index.php');
+    const html: string = response.data;
+    const url =  html.match(/<a\shref="(.*)">A.+W\sANNOUNCES\sTIMING(\s|\w|\d)*<\/a>/)?.[1];
+    if (!url) {
+        return null;
+    }
+    return scapeSecondPageAAndW(url);
+}
+
 export const getEarningsDates = async (positionSymbols: string[]): Promise<IEarningsDate[]> => {
     const dates = await scrapeZacks(positionSymbols);
     if (positionSymbols.includes('otgly')) {
         const cdpr = await scrapeCdProjektRed();
         dates.push(cdpr);
+    }
+
+    if (positionSymbols.includes('aw.un.to')) {
+        const aw = await scrapeAAndW();
+        if (aw) {
+            dates.push(aw);
+        }
     }
 
     return dates.filter(d => !!d.timestamp);

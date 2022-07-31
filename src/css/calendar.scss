@@ -25,6 +25,19 @@
 
         .day-content {
             padding-top: 30px;
+
+            > div {
+                position: relative;
+                cursor: pointer;
+
+                > div {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    bottom: 0;
+                    width: 15px;
+                }
+            }
         }
 
         .date {
