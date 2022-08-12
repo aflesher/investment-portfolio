@@ -25,6 +25,8 @@ interface IStockTemplateStateProps {
 	currency: Currency;
 }
 
+const estimatedManaLandValue = 5000;
+
 interface IStockTemplateQuery {
 	data: {
 		allCompany: {
@@ -436,20 +438,8 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								<div className='col-6'>LAND</div>
 								<div className='col-6'>
 									<XE
-										cad={11000 * quote.priceCad}
-										usd={11000 * quote.priceUsd}
-										currency={currency}
-									/>
-								</div>
-							</div>
-						)}
-						{company.symbol === 'mana' && (
-							<div className='row font-weight-bold font-italic'>
-								<div className='col-6'>TOKENS</div>
-								<div className='col-6'>
-									<XE
-										cad={((position?.quantity || 0) - 11000) * quote.priceCad}
-										usd={((position?.quantity || 0) - 11000) * quote.priceUsd}
+										cad={estimatedManaLandValue * quote.priceCad}
+										usd={estimatedManaLandValue * quote.priceUsd}
 										currency={currency}
 									/>
 								</div>

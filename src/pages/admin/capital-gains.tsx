@@ -10,55 +10,55 @@ import { AssetType, Currency } from '../../utils/enum';
 enum CapitalGainsFilter {
 	none = 'none',
 	stocks = 'stocks',
-	crypto = 'crypto'
+	crypto = 'crypto',
 }
 
 const filterOptions = [
 	CapitalGainsFilter.none,
 	CapitalGainsFilter.stocks,
-	CapitalGainsFilter.crypto
+	CapitalGainsFilter.crypto,
 ];
 
 interface ICapitalGainsQuery {
 	data: {
 		allTrade: {
 			nodes: {
-				symbol: string,
-				quantity: number,
-				price: number,
-				pnl: number,
-				timestamp: number,
-				currency: Currency,
-				action: string,
-				type: AssetType,
+				symbol: string;
+				quantity: number;
+				price: number;
+				pnl: number;
+				timestamp: number;
+				currency: Currency;
+				action: string;
+				type: AssetType;
 				exchange?: {
-					rate: number
-				}
-			}[]
-		},
+					rate: number;
+				};
+			}[];
+		};
 		allExchangeRate: {
 			nodes: {
-				date: string,
-				rate: number
-			}[]
-		}
-	}
+				date: string;
+				rate: number;
+			}[];
+		};
+	};
 }
 
 interface ICapitalGains {
-	cost: number,
-	proceeds: number,
-	symbol: string,
-	shares: number
+	cost: number;
+	proceeds: number;
+	symbol: string;
+	shares: number;
 }
 
-const years = [2019, 2020, 2021];
+const years = [2019, 2020, 2021, 2022];
 
 const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	const [year, setYear] = React.useState(new Date().getFullYear());
 	const [filter, setFilter] = React.useState(CapitalGainsFilter.none);
-	const ratesMap: {[key: string]: number} = {};
-	data.allExchangeRate.nodes.forEach(rate => {
+	const ratesMap: { [key: string]: number } = {};
+	data.allExchangeRate.nodes.forEach((rate) => {
 		ratesMap[rate.date] = rate.rate;
 	});
 
@@ -66,7 +66,11 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	// custom rates
 	ratesMap['2021-01-07'] = 1.27;
 
-	const getConversion = (trade: {currency: Currency, price: number, timestamp: number}): number => {
+	const getConversion = (trade: {
+		currency: Currency;
+		price: number;
+		timestamp: number;
+	}): number => {
 		if (trade.currency === Currency.cad) {
 			return 1;
 		}
@@ -75,10 +79,12 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	};
 
 	const trades = data.allTrade.nodes
-		.map(trade => ({
+		.map((trade) => ({
 			...trade,
-			priceCad: trade.currency === Currency.cad ? trade.price : getConversion(trade)
-		})).filter(trade => {
+			priceCad:
+				trade.currency === Currency.cad ? trade.price : getConversion(trade),
+		}))
+		.filter((trade) => {
 			switch (filter) {
 				case CapitalGainsFilter.none:
 					return true;
@@ -89,23 +95,27 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 			}
 		});
 
-	const groupedTrades = _.groupBy(trades, t => t.symbol);
+	const groupedTrades = _.groupBy(trades, (t) => t.symbol);
 	const filteredGroupedTrades = _.filter(
 		groupedTrades,
-		trades => !!_.find(
-			trades,
-			t => t.action === 'sell' && moment(t.timestamp).year() === year && !t.symbol.match(/dlr/)
-		)
+		(trades) =>
+			!!_.find(
+				trades,
+				(t) =>
+					t.action === 'sell' &&
+					moment(t.timestamp).year() === year &&
+					!t.symbol.match(/dlr/)
+			)
 	);
 
 	const capitalGains: ICapitalGains[] = [];
 
-	_.forEach(filteredGroupedTrades, trades => {
-		const orderedTrades = _.orderBy(trades, t => t.timestamp);
+	_.forEach(filteredGroupedTrades, (trades) => {
+		const orderedTrades = _.orderBy(trades, (t) => t.timestamp);
 		let shares = 0;
 		let cost = 0;
 
-		orderedTrades.forEach(t => {
+		orderedTrades.forEach((t) => {
 			if (t.action === 'buy') {
 				cost += t.quantity * t.price * getConversion(t);
 				shares += t.quantity;
@@ -117,7 +127,7 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 						proceeds,
 						cost: tradeCost,
 						symbol: t.symbol,
-						shares: t.quantity
+						shares: t.quantity,
 					});
 				}
 				cost -= tradeCost;
@@ -136,14 +146,14 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 							<select
 								name='year'
 								value={year}
-								onChange={e => setYear(parseInt(e.target.value))}
+								onChange={(e) => setYear(parseInt(e.target.value))}
 								className='form-control'
 							>
-								{years.map(year =>
+								{years.map((year) => (
 									<option key={year} value={year}>
 										{year}
 									</option>
-								)}
+								))}
 							</select>
 						</div>
 					</div>
@@ -153,14 +163,14 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 							<select
 								name='filter'
 								value={filter}
-								onChange={e => setFilter(e.target.value as CapitalGainsFilter)}
+								onChange={(e) => setFilter(e.target.value as CapitalGainsFilter)}
 								className='form-control'
 							>
-								{filterOptions.map(item =>
+								{filterOptions.map((item) => (
 									<option key={item} value={item}>
 										{item}
 									</option>
-								)}
+								))}
 							</select>
 						</div>
 					</div>
@@ -178,20 +188,22 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 						<div className='col-2'>{numeral(c.shares).format('0,0')}</div>
 						<div className='col-2'>{numeral(c.cost).format('$0,0.00')}</div>
 						<div className='col-2'>{numeral(c.proceeds).format('$0,0.00')}</div>
-						<div className='col-2'>{numeral(c.proceeds - c.cost).format('$0,0.00')}</div>
+						<div className='col-2'>
+							{numeral(c.proceeds - c.cost).format('$0,0.00')}
+						</div>
 					</div>
 				))}
 				<div className='row font-weight-bold border-t pt-2 mt-2'>
 					<div className='col-2 offset-4'>
-						{numeral(_.sumBy(capitalGains, c => c.cost)).format('$0,0.00')}
+						{numeral(_.sumBy(capitalGains, (c) => c.cost)).format('$0,0.00')}
 					</div>
 					<div className='col-2'>
-						{numeral(_.sumBy(capitalGains, c => c.proceeds)).format('$0,0.00')}
+						{numeral(_.sumBy(capitalGains, (c) => c.proceeds)).format('$0,0.00')}
 					</div>
 					<div className='col-2'>
 						{numeral(
-							_.sumBy(capitalGains, c => c.proceeds) -
-							_.sumBy(capitalGains, c => c.cost)
+							_.sumBy(capitalGains, (c) => c.proceeds) -
+								_.sumBy(capitalGains, (c) => c.cost)
 						).format('$0,0.00')}
 					</div>
 				</div>
@@ -203,27 +215,27 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 export default CapitalGains;
 
 export const pageQuery = graphql`
-query {
-	allTrade(filter: {taxable: {eq: true}}) {
-		nodes {
-			symbol
-			quantity
-			price
-			pnl
-			timestamp
-			currency
-			action
-			type
-			exchange {
+	query {
+		allTrade(filter: { taxable: { eq: true } }) {
+			nodes {
+				symbol
+				quantity
+				price
+				pnl
+				timestamp
+				currency
+				action
+				type
+				exchange {
+					rate
+				}
+			}
+		}
+		allExchangeRate(filter: { key: { eq: "USD_CAD" } }) {
+			nodes {
+				date
 				rate
 			}
 		}
 	}
-	allExchangeRate(filter: {key: {eq: "USD_CAD"}}) {
-		nodes {
-			date
-			rate
-		}
-  }
-}
 `;
