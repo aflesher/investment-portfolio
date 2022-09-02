@@ -390,6 +390,18 @@ export const checkAndUpdateCryptoMetaData = async (
 		const data: ICryptoMetaDataDoc = documentSnapshot.data() as ICryptoMetaDataDoc;
 
 		const quote = _.find(quotes, (q) => q.symbol === data.symbol);
+
+		// This is isn't working. You would have to keep a record of day to accurately
+		// track the lowest day in the previous 52 days
+		// if (data.oneYearLowTimestamp._seconds < moment().subtract(1, 'year').unix()) {
+		// 	console.log(
+		// 		data.symbol,
+		// 		' has expired ',
+		// 		data.oneYearLowTimestamp._seconds,
+		// 		moment().subtract(1, 'year').unix()
+		// 	);
+		// }
+
 		if (
 			!quote ||
 			(quote.price < data.allTimeHighUsd && quote.price > data.oneYearLowUsd)

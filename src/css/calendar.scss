@@ -1,49 +1,52 @@
-
 .calendar {
-    width: 840px;
+	width: 840px;
 
-    .calendar-nav {
-        cursor: pointer;
-        
-        &.disabled {
-            cursor: default;
-            color: #666;
-        }
-    }
+	.calendar-nav {
+		cursor: pointer;
+
+		&.disabled {
+			cursor: default;
+			color: #666;
+		}
+	}
 }
 .week {
-    .day {
-        height: 120px;
-        width: 120px;
-        position: relative;
-        border: 1px solid #ccc;
-        padding: 0;
+	.day {
+		height: 120px;
+		width: 120px;
+		position: relative;
+		border: 1px solid #ccc;
+		padding: 0;
 
-        &.today {
-            background-color: #444;
-        }
+		&.today {
+			background-color: #444;
+		}
 
-        .day-content {
-            padding-top: 30px;
+		.day-content {
+			padding-top: 30px;
 
-            > div {
-                position: relative;
-                cursor: pointer;
+			> div {
+				position: relative;
+				cursor: pointer;
 
-                > div {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    bottom: 0;
-                    width: 15px;
-                }
-            }
-        }
+				> div {
+					position: absolute;
+					top: 0;
+					left: 0;
+					bottom: 0;
+					width: 15px;
+				}
 
-        .date {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-        }
-    }
+				i {
+					display: none;
+				}
+			}
+		}
+
+		.date {
+			position: absolute;
+			top: 5px;
+			left: 5px;
+		}
+	}
 }
