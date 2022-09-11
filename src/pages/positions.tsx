@@ -125,7 +125,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	const positionNodes = data.allPosition.nodes.slice();
 	positionNodes.push(addCurrencyToPositions(usdCash!, cadCash!));
 
-	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.profits);
+	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
 	const [combined, setCombined] = React.useState(true);
 
 	const getTotalCostCad = (position: IPositionNode): number =>
@@ -253,7 +253,6 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						activeCurrency={currency}
 						quoteCurrency={position.quote.currency}
 						symbolCharacter={combined && position.positions.length ? '*' : ''}
-						isPristine={!!position.assessment?.checklist.pristine}
 						positionsOrderBy={orderBy}
 					/>
 				))}

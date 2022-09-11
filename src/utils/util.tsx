@@ -136,3 +136,11 @@ export const interpolate = (
 ): number => {
 	return clamp((value - start) / (end - start), start, end);
 };
+
+export const compareNumber = (a: number, b: number) => {
+	if (a === b) {
+		return 0;
+	}
+
+	return a > b ? 1 : -1;
+};

@@ -19,7 +19,6 @@ export interface IPositionStateProps extends IStockQuoteStateProps {
 	percentageOfInvestment: number;
 	pe?: number;
 	dividendYield?: number;
-	isPristine: boolean;
 	positionsOrderBy?: PositionsOrderBy;
 }
 
@@ -35,7 +34,6 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		percentageOfInvestment,
 		percentageOfPortfolio,
 		classes,
-		isPristine,
 		quoteCurrency,
 	} = props;
 	const mainClasses = ['row', 'position'].concat(classes || []).join(' ');
@@ -66,11 +64,6 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 				<div className='d-inline-block'>
 					<StockHover {...props} />
 				</div>
-				{isPristine && (
-					<span>
-						<i className='fas fa-award ml-2'></i>
-					</span>
-				)}
 			</div>
 			<div
 				className={classNames({

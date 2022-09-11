@@ -6,6 +6,10 @@ import Layout from '../components/layout';
 import { connect } from 'react-redux';
 import { IStoreState } from '../store/store';
 import { Currency } from '../utils/enum';
+import CompanyBanner from '../components/company-banner/CompanyBanner';
+import { compareNumber } from '../utils/util';
+import moment from 'moment-timezone';
+import Order from '../components/order/Order';
 
 interface IIndexQueryProps extends PageProps {
 	data: {
@@ -27,6 +31,35 @@ interface IIndexQueryProps extends PageProps {
 				text: string;
 			}[];
 		};
+		allEarningsDate: {
+			nodes: {
+				symbol: string;
+				timestamp: number;
+			}[];
+		};
+		allOrder: {
+			nodes: {
+				symbol: string;
+				limitPrice: number;
+				limitPriceCad: number;
+				limitPriceUsd: number;
+				openQuantity: number;
+				action: string;
+				accountName: string;
+				quote: {
+					price: number;
+					afterHoursPrice: number;
+				};
+				company: {
+					name: string;
+					marketCap: number;
+				};
+				position?: {
+					quantity: number;
+					totalCost: number;
+				};
+			}[];
+		};
 	};
 }
 
@@ -45,6 +78,22 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 	const notes = _.sampleSize(data.allNote.nodes, data.allNote.nodes.length);
 	const review = _.first(data.allReview.nodes);
 	const random = _.random(1, 3);
+	const earningsDates = data.allEarningsDate.nodes
+		.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
+		.slice(0, 5);
+	const orders = _.orderBy(
+		data.allOrder.nodes,
+		({ action, quote, limitPrice }) =>
+			action == 'buy'
+				? (quote.price - limitPrice) / quote.price
+				: (limitPrice - quote.price) / limitPrice
+	).filter(({ action, quote, limitPrice }) => {
+		const gap =
+			action == 'buy'
+				? (quote.price - limitPrice) / quote.price
+				: (limitPrice - quote.price) / quote.price;
+		return gap < 0.05;
+	});
 	return (
 		<Layout>
 			<div className='row p-4'>
@@ -79,13 +128,47 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 				</div>
 			</div>
 			{_(notes)
-				.sampleSize(3)
+				.sampleSize(1)
 				.map(({ text }) => (
 					<div key={text} className='daily-note text-center b-1 py-2 px-4 mt-4'>
 						{text}
 					</div>
 				))
 				.value()}
+			<div className='mx-2 mt-4'>
+				<h3>Upcoming Earnings</h3>
+				{earningsDates.map(({ timestamp, symbol }) => (
+					<div
+						className='row my-2 home-page-earnings-wrapper'
+						key={`${symbol}${timestamp}`}
+					>
+						<div className='home-page-earnings col-3'>
+							<CompanyBanner
+								symbol={symbol}
+								name={`$${symbol.toUpperCase().replace('.TO', '')}`}
+								isNotBanner={true}
+							/>
+						</div>
+						<div className='pl-4 col-9' style={{ lineHeight: 2.3 }}>
+							{moment(timestamp).format('ddd, MMM DD YYYY')}&nbsp;
+							<i>({moment(timestamp).diff(moment(), 'days')} days away)</i>
+						</div>
+					</div>
+				))}
+			</div>
+			<div className='mx-2 pt-4'>
+				<h3>Close Orders</h3>
+				{orders.map((order, index) => (
+					<Order
+						key={`${order.symbol}${index}`}
+						{...order}
+						positionQuantity={order.position?.quantity || 0}
+						positionCost={order.position?.totalCost || 0}
+						quotePrice={order.quote.price}
+						currency={currency}
+					/>
+				))}
+			</div>
 		</Layout>
 	);
 };
@@ -110,6 +193,35 @@ export const pageQuery = graphql`
 		allNote {
 			nodes {
 				text
+			}
+		}
+		allEarningsDate {
+			nodes {
+				symbol
+				timestamp
+			}
+		}
+		allOrder {
+			nodes {
+				symbol
+				limitPrice
+				limitPriceCad
+				limitPriceUsd
+				openQuantity
+				action
+				accountName
+				quote {
+					price
+					afterHoursPrice
+				}
+				company {
+					name
+					marketCap
+				}
+				position {
+					quantity
+					totalCost
+				}
 			}
 		}
 	}
