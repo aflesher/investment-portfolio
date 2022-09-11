@@ -69,9 +69,6 @@ const SidebarLeft: React.FC<
 						<li>
 							<Link to='/admin/review'>Year in Review</Link>
 						</li>
-						<li>
-							<Link to='/admin/options'>Options</Link>
-						</li>
 					</ul>
 				</div>
 				<div className={classNames({ 'd-none': authenticated })}>
