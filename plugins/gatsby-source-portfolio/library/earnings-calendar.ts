@@ -107,3 +107,14 @@ export const getEarningsDates = async (
 
 	return dates.filter((d) => !!d.timestamp);
 };
+
+// export const getSpxsQuote = async (): Promise<number> => {
+// 	const response = await axios.get('https://finance.yahoo.com/quote/SPXS/');
+
+// 	const root = parse(response.data);
+// 	const quoteElement = root.querySelector('[data-test="qsp-price"]');
+
+// 	console.log(quoteElement?.innerHTML);
+
+// 	return Number(quoteElement?.innerHTML || 0);
+// };

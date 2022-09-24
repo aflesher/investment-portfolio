@@ -53,7 +53,7 @@ const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({
 		({ action, quote, limitPrice }) =>
 			action == 'buy'
 				? (quote.price - limitPrice) / quote.price
-				: (limitPrice - quote.price) / limitPrice
+				: (limitPrice - quote.price) / quote.price
 	);
 	return (
 		<Layout>

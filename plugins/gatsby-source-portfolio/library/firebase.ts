@@ -11,6 +11,7 @@ import { IReview } from '../../../src/utils/review';
 import { ITrade } from '../../../src/utils/trade';
 import { ICoinMarketCapQuote } from './coinmarketcap';
 import moment from 'moment';
+import { IEarningsDate } from './earnings-calendar';
 
 const serviceAccount = require('../json/firebase.json');
 let firestore: FirebaseFirestore.Firestore;
@@ -377,6 +378,40 @@ export interface ICryptoMetaData
 	extends Omit<ICryptoMetaDataDoc, 'oneYearLowTimestamp'> {
 	oneYearLowTimestamp: number;
 }
+
+export const checkAndUpdateEarningsDates = async (
+	earningsDates: IEarningsDate[]
+) => {
+	await initDeferredPromise.promise;
+
+	await Promise.all(
+		earningsDates.map(async ({ symbol, timestamp }) => {
+			await firestore
+				.collection('earningsDates')
+				.doc(symbol)
+				.set({ timestamp }, { merge: true });
+		})
+	);
+};
+
+interface IEarningsDateData extends Omit<IEarningsDate, 'symbol'> {}
+
+export const getEarningsDates = async (): Promise<IEarningsDate[]> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore.collection('earningsDates').get();
+
+	const dates = await Promise.all(
+		querySnapshot.docs.map(async (documentSnapshot) => {
+			const {
+				timestamp,
+			}: IEarningsDateData = documentSnapshot.data() as IEarningsDateData;
+			return { symbol: documentSnapshot.id, timestamp };
+		})
+	);
+
+	return dates;
+};
 
 export const checkAndUpdateCryptoMetaData = async (
 	quotesPromise: Promise<ICoinMarketCapQuote[]>

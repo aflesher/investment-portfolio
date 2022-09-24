@@ -44,6 +44,8 @@ const SYMBOL_ID_REPLACEMENTS = [
 	{ original: 28114781, replacement: 41822360 },
 ];
 
+const INVALID_QUOTE_IDS = [17488686];
+
 const checkExchangeRate = async () => {
 	const rate = process.env.USD_CAD;
 	if (!rate) {
@@ -131,7 +133,9 @@ const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 })();
 
 const quotesPromise = (async (): Promise<questrade.IQuestradeQuote[]> => {
-	const symbols = await symbolIdsPromise;
+	const symbols = (await symbolIdsPromise).filter(
+		(q) => !INVALID_QUOTE_IDS.includes(q)
+	);
 
 	const quotes = await questrade.getQuotes(symbols);
 	return quotes;
@@ -1112,7 +1116,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		const usdBalance = _.find(balances, (q) => q.currency === Currency.usd);
 		if (usdBalance) {
-			usdBalance.cash += 22214 + 9158 + 3261; // binance, blockfi, blockfi
+			usdBalance.cash += 22214 + 9158 + 3261 - 500; // binance, blockfi, blockfi
 		}
 
 		const cadCash =
@@ -1217,7 +1221,9 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	}
 
 	const getEarningsNodes = async (): Promise<IEarningsDateNode[]> => {
-		const earnings = await earningsDatesPromise;
+		const scrapedEarnings = await earningsDatesPromise;
+		await firebase.checkAndUpdateEarningsDates(scrapedEarnings);
+		const earnings = await firebase.getEarningsDates();
 		return earnings.map((e) => {
 			const earningsNode: IEarningsDateNode = {
 				...e,
