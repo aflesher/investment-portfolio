@@ -194,6 +194,15 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	const timeHeld =
 		new Date().getTime() - (openingTrade?.timestamp || new Date().getTime());
 
+	const tradeAccountsMap: { [accountName: string]: number } = {};
+	trades.forEach(({ accountName, action, quantity }) => {
+		const currentQuantity = tradeAccountsMap[accountName] || 0;
+		tradeAccountsMap[accountName] =
+			currentQuantity + (action === 'buy' ? 1 : -1) * quantity;
+	});
+
+	const positionFormat = company.type === 'crypto' ? '0,0.0000' : '0,0';
+
 	return (
 		<Layout>
 			<div className='p-4'>
@@ -280,9 +289,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								{company.type === 'crypto' ? 'Coins' : 'Shares'}
 							</div>
 							<div className='col-6'>
-								{numeral(position?.quantity).format(
-									company.type === 'crypto' ? '0,0.0000' : '0,0'
-								)}
+								{numeral(position?.quantity).format(positionFormat)}
 							</div>
 						</div>
 						{!!coins && (
@@ -468,6 +475,18 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								</div>
 							</div>
 						)}
+						<div className='row'>
+							<div className='col-6'>Accounts</div>
+							<div className='col-6'>
+								{Object.entries(tradeAccountsMap)
+									.filter(([key, quantity]) => quantity > 0)
+									.map(
+										([accountName, quantity]) =>
+											`${accountName}:${numeral(quantity).format(positionFormat)}`
+									)
+									.join(' / ')}
+							</div>
+						</div>
 					</div>
 				</div>
 
@@ -517,7 +536,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 					)}
 				</div>
 				<div className='row'>
-					<div className='col-6'>
+					<div className='col-7'>
 						<h3>Trades</h3>
 						<div>
 							{trades.length
@@ -557,7 +576,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								: '(no trades)'}
 						</div>
 					</div>
-					<div className='col-6'>
+					<div className='col-5'>
 						<h3>Dividends</h3>
 						<div>
 							{dividends.length

@@ -64,6 +64,10 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 						{type === 'crypto' ? ' coins @' : ' shares @'}
 						{numeral(tradePrice).format('$1,000.00')}
 					</span>
+					&nbsp;
+					<span className='text-subtle'>
+						({numeral(tradePrice * quantity).format('$1,000.00')})
+					</span>
 				</div>
 				<div className='col-4 text-sub text-right'>
 					<span className='text-subtle'>{accountName}&nbsp;</span>
