@@ -8,6 +8,7 @@ import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
 import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
+import { ICash } from '../utils/cash';
 
 export enum PositionsOrderBy {
 	symbol,
@@ -58,19 +59,13 @@ interface IPositionNode {
 	}[];
 }
 
-interface IBalanceNode {
-	currency: Currency;
-	cash: number;
-	combined: boolean;
-}
-
 interface IPositionsQuery {
 	data: {
 		allPosition: {
 			nodes: IPositionNode[];
 		};
-		allBalance: {
-			nodes: IBalanceNode[];
+		allCash: {
+			nodes: ICash[];
 		};
 	};
 }
@@ -84,16 +79,16 @@ const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
 });
 
 const addCurrencyToPositions = (
-	usd: IBalanceNode,
-	cad: IBalanceNode
+	usdCash: number,
+	cadCash: number
 ): IPositionNode => {
 	const position: IPositionNode = {
 		currency: Currency.cad,
-		totalCostCad: cad.cash,
-		totalCostUsd: usd.cash,
-		currentMarketValueCad: cad.cash,
-		currentMarketValueUsd: usd.cash,
-		quantity: cad.cash,
+		totalCostCad: cadCash,
+		totalCostUsd: usdCash,
+		currentMarketValueCad: cadCash,
+		currentMarketValueUsd: usdCash,
+		quantity: cadCash,
 		averageEntryPrice: 1,
 		symbol: 'CAD',
 		type: AssetType.cash,
@@ -120,10 +115,17 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	currency,
 	data,
 }) => {
-	const usdCash = data.allBalance.nodes.find((q) => q.currency === Currency.usd);
-	const cadCash = data.allBalance.nodes.find((q) => q.currency === Currency.cad);
+	const usdCash = data.allCash.nodes.reduce(
+		(sum, { amountUsd }) => sum + amountUsd,
+		0
+	);
+	const cadCash = data.allCash.nodes.reduce(
+		(sum, { amountCad }) => sum + amountCad,
+		0
+	);
+
 	const positionNodes = data.allPosition.nodes.slice();
-	positionNodes.push(addCurrencyToPositions(usdCash!, cadCash!));
+	positionNodes.push(addCurrencyToPositions(usdCash, cadCash));
 
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
 	const [combined, setCombined] = React.useState(true);
@@ -318,11 +320,15 @@ export const pageQuery = graphql`
 				}
 			}
 		}
-		allBalance(filter: { combined: { eq: true } }) {
+		allCash {
 			nodes {
-				cash
+				accountId
+				accountName
+				amount
+				amountCad
+				amountUsd
+				id
 				currency
-				combined
 			}
 		}
 	}

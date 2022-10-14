@@ -12,6 +12,7 @@ import { ITrade } from '../../../src/utils/trade';
 import { ICoinMarketCapQuote } from './coinmarketcap';
 import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
+import { ICash } from '../../../src/utils/cash';
 
 const serviceAccount = require('../json/firebase.json');
 let firestore: FirebaseFirestore.Firestore;
@@ -411,6 +412,29 @@ export const getEarningsDates = async (): Promise<IEarningsDate[]> => {
 	);
 
 	return dates;
+};
+
+interface IFirebaseCash extends Omit<ICash, 'amountCad' | 'amountUsd'> {}
+
+export const getCash = async (): Promise<IFirebaseCash[]> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore.collection('cash').get();
+
+	const data = await Promise.all(
+		querySnapshot.docs.map(async (documentSnapshot) => {
+			const {
+				currency,
+				amount,
+				accountId,
+				accountName,
+			}: IFirebaseCash = documentSnapshot.data() as IFirebaseCash;
+
+			return { currency, amount, accountId, accountName };
+		})
+	);
+
+	return data;
 };
 
 export const checkAndUpdateCryptoMetaData = async (

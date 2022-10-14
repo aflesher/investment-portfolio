@@ -8,6 +8,7 @@ import moment from 'moment';
 import * as util from './util';
 import * as firebase from './firebase';
 import { Currency } from '../../../src/utils/enum';
+import { ICash } from '../../../src/utils/cash';
 
 const loginUrl = 'https://login.questrade.com/oauth2/token';
 const accountsRoute = 'v1/accounts';
@@ -349,6 +350,47 @@ export const getBalances = async (): Promise<IBalance[]> => {
 	};
 
 	return [cad, usd];
+};
+
+export interface ICashQuestrade
+	extends Omit<ICash, 'amountCad' | 'amountUsd'> {}
+
+interface IQuestradeBalance {
+	buyingPower: number;
+	cash: number;
+	currency: 'CAD' | 'USD';
+	isRealTime: true;
+	maintenanceExcess: number;
+	marketValue: number;
+	totalEquity: number;
+}
+
+interface IQuestradeBalanceResponse {
+	combinedBalances: IQuestradeBalance[];
+	perCurrencyBalances: IQuestradeBalance[];
+	sodCombinedBalances: IQuestradeBalance[];
+	sodPerCurrencyBalances: IQuestradeBalance[];
+}
+
+const getCashForAccount = async (accountId): Promise<ICashQuestrade[]> => {
+	const response = ((await authRequest(
+		`${accountsRoute}/${accountId}/balances`
+	)) as unknown) as AxiosResponse<IQuestradeBalanceResponse>;
+	return response.data.perCurrencyBalances.map(({ currency, cash }) => ({
+		currency: currency === 'USD' ? Currency.usd : Currency.cad,
+		amount: cash,
+		accountId: Number(accountId),
+		accountName: ACCOUNT_LOOKUP[accountId],
+	}));
+};
+
+export const getCash = async (): Promise<ICashQuestrade[]> => {
+	const accountIds = _.map(accounts, 'number');
+	const cash = await Promise.all(
+		accountIds.map((accountId) => getCashForAccount(accountId))
+	);
+
+	return _.flatten(cash);
 };
 
 export const findSymbolId = async (symbol: string): Promise<number> => {

@@ -24,6 +24,8 @@ import { ICompany } from '../../src/utils/company';
 import { replaceSymbol } from './library/util';
 import { IExchangeRate } from '../../src/utils/exchange';
 import { IEarningsDate, getEarningsDates } from './library/earnings-calendar';
+import { ICash } from '../../src/utils/cash';
+import { useDebugValue } from 'react';
 
 const assessmentsPromise = firebase.getAssessments();
 const questradeSync = questradeCloud.sync();
@@ -260,6 +262,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 	const getEarningsDateNodeId = (symbol: string): string => {
 		return createNodeId(hash(`earningsDate${symbol}`));
+	};
+
+	const getCashNodeId = (accountName: string, currency: Currency): string => {
+		return createNodeId(hash(`cash${accountName}${currency}`));
 	};
 
 	exchange.init(configOptions.currency.api, configOptions.currency.apiKey);
@@ -1108,49 +1114,47 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
-	const getBalanceNodes = async () => {
-		const balances = await questrade.getBalances();
+	interface ICashNode extends INode, ICash {}
 
+	const getCashNodes = async (): Promise<ICashNode[]> => {
+		const questradeCash = await questrade.getCash();
+		const firebaseCash = await firebase.getCash();
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
 
-		const usdBalance = _.find(balances, (q) => q.currency === Currency.usd);
-		if (usdBalance) {
-			usdBalance.cash += 22214 + 9158 + 3261 - 500; // binance, blockfi, blockfi
-		}
+		const questradeCashWithExchange = questradeCash.map((cash) => ({
+			...cash,
+			amountCad:
+				cash.currency === Currency.cad ? cash.amount : cash.amount * usdToCadRate,
+			amountUsd:
+				cash.currency === Currency.usd ? cash.amount : cash.amount * cadToUsdRate,
+		}));
 
-		const cadCash =
-			_.find(balances, (q) => q.currency === Currency.cad)?.cash || 0;
-		const usdCash =
-			_.find(balances, (q) => q.currency === Currency.usd)?.cash || 0;
+		const firebaseCashWithExchange = firebaseCash.map((cash) => ({
+			...cash,
+			amountCad:
+				cash.currency === Currency.cad ? cash.amount : cash.amount * usdToCadRate,
+			amountUsd:
+				cash.currency === Currency.usd ? cash.amount : cash.amount * cadToUsdRate,
+		}));
 
-		balances.push({
-			currency: Currency.cad,
-			cash: cadCash + usdCash * usdToCadRate,
-			combined: true,
-		});
+		const cash = [...questradeCashWithExchange, ...firebaseCashWithExchange];
 
-		balances.push({
-			currency: Currency.usd,
-			cash: usdCash + cadCash * cadToUsdRate,
-			combined: true,
-		});
-
-		balances.forEach((balance) => {
-			const content = JSON.stringify(balance);
-			_.defaults(balance, {
-				id: createNodeId(hash(`balance${balance.currency}${balance.combined}`)),
+		return cash.map((cash) => {
+			const cashNode = cash;
+			const content = JSON.stringify(cashNode);
+			_.defaults(cashNode, {
+				id: getCashNodeId(cashNode.accountName, cashNode.currency),
 				parent: null,
 				children: [],
 				internal: {
-					type: 'Balance',
+					type: 'Cash',
 					content,
 					contentDigest: hash(content),
 				},
 			});
+			return cashNode;
 		});
-
-		return balances;
 	};
 
 	interface IRateNode extends IExchangeRate, INode {}
@@ -1259,12 +1263,12 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const dividendNodesPromise = getDividendNodes();
 		const quoteNodesPromise = getQuoteNodes();
 		const companyNodesPromise = getCompanyNodes();
-		const balanceNodesPromise = getBalanceNodes();
 		// const profitsAndLossesNodesPromise = getProfitsAndLossesNodes();
 		const exchangeRateNodesPromise = getExchangeRateNodes();
 		const orderNodesPromise = getOrderNodes();
 		const reviewNodesPromise = getReviewNodes();
 		const earningsNodesPromise = getEarningsNodes();
+		const cashNodesPromise = getCashNodes();
 
 		const assessments = await assessmentsPromise;
 		outputCleared('assessments');
@@ -1280,8 +1284,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		outputCleared('quotes');
 		const questradeCompanies = await companyNodesPromise;
 		outputCleared('companies');
-		const balanceNodes = await balanceNodesPromise;
-		outputCleared('balances');
 		const exchangeRateNodes = await exchangeRateNodesPromise;
 		outputCleared('exchange rates');
 		const orderNodes = await orderNodesPromise;
@@ -1290,6 +1292,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		outputCleared('reviews');
 		const earningsNodes = await earningsNodesPromise;
 		outputCleared('earnings nodes');
+		const cashNodes = await cashNodesPromise;
+		outputCleared('cash nodes');
 
 		await firebase.checkAndUpdateCryptoMetaData(cryptoQuotesPromise);
 
@@ -1302,13 +1306,11 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			questradeDividends,
 			questradeQuotes,
 			questradeCompanies,
-			balanceNodes,
-			// profitsAndLossesNodes,
 			exchangeRateNodes,
 			orderNodes,
-			// buildTimeNodes,
 			reviewNodes,
-			earningsNodes
+			earningsNodes,
+			cashNodes
 		);
 	};
 

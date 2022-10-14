@@ -50,6 +50,9 @@ const SidebarLeft: React.FC<
 			<div>
 				<Link to='/calendar'>Calendar</Link>
 			</div>
+			<div>
+				<Link to='/cash'>Cash</Link>
+			</div>
 			<div className='border-t mt-2 pt-2'>
 				<div className={classNames({ 'd-none': !authenticated })}>
 					<Link to='/admin/financials'>Admin</Link>

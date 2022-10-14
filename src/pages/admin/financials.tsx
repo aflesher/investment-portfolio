@@ -5,68 +5,66 @@ import numeral from 'numeral';
 
 import { Currency } from '../../utils/enum';
 import Layout from '../../components/layout';
+import { ICash } from '../../utils/cash';
 
 interface IFinancialsQuery {
 	data: {
 		allPosition: {
 			nodes: {
-				totalCostUsd: number,
-				totalCostCad: number,
-				openPnlCad: number,
-				openPnlUsd: number,
-				currentMarketValueUsd: number,
-				currentMarketValueCad: number,
-			}[]
-		}
+				totalCostUsd: number;
+				totalCostCad: number;
+				openPnlCad: number;
+				openPnlUsd: number;
+				currentMarketValueUsd: number;
+				currentMarketValueCad: number;
+			}[];
+		};
 		allTrade: {
 			nodes: {
-				pnlUsd: number,
-				pnlCad: number,
-			}[]
-		}
+				pnlUsd: number;
+				pnlCad: number;
+			}[];
+		};
 		allDividend: {
 			nodes: {
-				amountUsd: number,
-				amountCad: number,
-			}[]
-		}
-		allBalance: {
-			nodes: {
-				currency: Currency,
-				cash: number
-			}[]
-		}
+				amountUsd: number;
+				amountCad: number;
+			}[];
+		};
 		allQuote: {
 			nodes: {
-				priceCad: number,
-				priceUsd: number
-			}[]
-		}
-	}
+				priceCad: number;
+				priceUsd: number;
+			}[];
+		};
+		allCash: {
+			nodes: ICash[];
+		};
+	};
 }
 
 const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 	const positions = data.allPosition.nodes;
 	const trades = data.allTrade.nodes;
 	const dividends = data.allDividend.nodes;
-	const balances = data.allBalance.nodes;
+	const cash = data.allCash.nodes;
 	const btcQuote = data.allQuote.nodes[0];
 	const usdToBtc = btcQuote.priceUsd;
 
-	const equityUsd = _.sumBy(positions, q => q.currentMarketValueUsd);
-	const equityCad = _.sumBy(positions, q => q.currentMarketValueCad);
+	const equityUsd = _.sumBy(positions, (q) => q.currentMarketValueUsd);
+	const equityCad = _.sumBy(positions, (q) => q.currentMarketValueCad);
 
-	const openPnlUsd = _.sumBy(positions, q => q.openPnlUsd);
-	const openPnlCad = _.sumBy(positions, q => q.openPnlCad);
+	const openPnlUsd = _.sumBy(positions, (q) => q.openPnlUsd);
+	const openPnlCad = _.sumBy(positions, (q) => q.openPnlCad);
 
-	const dividendsUsd = _.sumBy(dividends, q => q.amountUsd);
-	const dividendsCad = _.sumBy(dividends, q => q.amountCad);
+	const dividendsUsd = _.sumBy(dividends, (q) => q.amountUsd);
+	const dividendsCad = _.sumBy(dividends, (q) => q.amountCad);
 
-	const closedPnlUsd = _.sumBy(trades, q => q.pnlUsd);
-	const closedPnlCad = _.sumBy(trades, q => q.pnlCad);
+	const closedPnlUsd = _.sumBy(trades, (q) => q.pnlUsd);
+	const closedPnlCad = _.sumBy(trades, (q) => q.pnlCad);
 
-	const cashUsd = _.find(balances, q => q.currency === Currency.usd)?.cash || 0;
-	const cashCad = _.find(balances, q => q.currency === Currency.cad)?.cash || 0;
+	const cashUsd = cash.reduce((sum, { amountUsd }) => sum + amountUsd, 0);
+	const cashCad = cash.reduce((sum, { amountCad }) => sum + amountCad, 0);
 
 	const totalUsd = equityUsd + cashUsd;
 	const totalCad = equityCad + cashCad;
@@ -85,35 +83,35 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 				</div>
 				<div className='row'>
 					<div className='col-3'>USD</div>
-					<div className='col-3'>
-						{numeral(equityUsd).format('$0,0')}
-					</div>
-					<div className='col-3'>
-						{numeral(cashUsd).format('$0,0')}
-					</div>
+					<div className='col-3'>{numeral(equityUsd).format('$0,0')}</div>
+					<div className='col-3'>{numeral(cashUsd).format('$0,0')}</div>
 					<div className='col-3'>{numeral(totalUsd).format('$0,0')}</div>
 				</div>
 				<div className='row'>
 					<div className='col-3'>CAD</div>
 					<div className='col-3'>
-						({numeral(equityUsd/totalUsd).format('0.0%')})&nbsp;
+						({numeral(equityUsd / totalUsd).format('0.0%')})&nbsp;
 						{numeral(equityCad).format('$0,0')}
 					</div>
 					<div className='col-3'>
-						({numeral(cashUsd/totalUsd).format('0.0%')})&nbsp;
+						({numeral(cashUsd / totalUsd).format('0.0%')})&nbsp;
 						{numeral(cashCad).format('$0,0')}
 					</div>
 					<div className='col-3'>{numeral(totalCad).format('$0,0')}</div>
 				</div>
 				<div className='row'>
 					<div className='col-3'>BTC</div>
-					<div className='col-3'>&#8383;
+					<div className='col-3'>
+						&#8383;
 						{numeral(equityUsd / usdToBtc).format('0,0.00')}
 					</div>
-					<div className='col-3'>&#8383;
+					<div className='col-3'>
+						&#8383;
 						{numeral(cashUsd / usdToBtc).format('0,0.00')}
 					</div>
-					<div className='col-3'>&#8383;{numeral(totalUsd / usdToBtc).format('0,0.00')}</div>
+					<div className='col-3'>
+						&#8383;{numeral(totalUsd / usdToBtc).format('0,0.00')}
+					</div>
 				</div>
 			</div>
 			<div className='p-4 text-right'>
@@ -137,9 +135,15 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 				</div>
 				<div className='row'>
 					<div className='col-3'>BTC</div>
-					<div className='col-3'>&#8383;{numeral(openPnlUsd / usdToBtc).format('0,0.00')}</div>
-					<div className='col-3'>&#8383;{numeral(closedPnlUsd / usdToBtc).format('0,0.00')}</div>
-					<div className='col-3'>&#8383;{numeral(dividendsUsd / usdToBtc).format('0,0.00')}</div>
+					<div className='col-3'>
+						&#8383;{numeral(openPnlUsd / usdToBtc).format('0,0.00')}
+					</div>
+					<div className='col-3'>
+						&#8383;{numeral(closedPnlUsd / usdToBtc).format('0,0.00')}
+					</div>
+					<div className='col-3'>
+						&#8383;{numeral(dividendsUsd / usdToBtc).format('0,0.00')}
+					</div>
 				</div>
 			</div>
 			<div className='p-4 text-right'>
@@ -157,7 +161,9 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 				</div>
 				<div className='row'>
 					<div className='col-3'>BTC</div>
-					<div className='offset-6 col-3'>&#8383;{numeral(pnlUsd / usdToBtc).format('0,0.00')}</div>
+					<div className='offset-6 col-3'>
+						&#8383;{numeral(pnlUsd / usdToBtc).format('0,0.00')}
+					</div>
 				</div>
 			</div>
 		</Layout>
@@ -178,7 +184,7 @@ export const pageQuery = graphql`
 				currentMarketValueCad
 			}
 		}
-		allTrade(filter: {action: {eq: "sell"}, pnlUsd: {ne: 0}}) {
+		allTrade(filter: { action: { eq: "sell" }, pnlUsd: { ne: 0 } }) {
 			nodes {
 				pnlUsd
 				pnlCad
@@ -190,16 +196,21 @@ export const pageQuery = graphql`
 				amountCad
 			}
 		}
-		allBalance(filter: {combined: {eq: true}}) {
-			nodes {
-				currency
-				cash
-			}
-		}
-		allQuote(filter: {symbol: {eq: "btc"}}) {
+		allQuote(filter: { symbol: { eq: "btc" } }) {
 			nodes {
 				priceCad
 				priceUsd
+			}
+		}
+		allCash {
+			nodes {
+				accountId
+				accountName
+				amount
+				amountCad
+				amountUsd
+				id
+				currency
 			}
 		}
 	}
