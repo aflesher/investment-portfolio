@@ -80,6 +80,7 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 	const random = _.random(1, 3);
 	const earningsDates = data.allEarningsDate.nodes
 		.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
+		.filter(({ timestamp }) => moment(timestamp).diff(moment(), 'days') >= 0)
 		.slice(0, 5);
 	const orders = _.orderBy(
 		data.allOrder.nodes,

@@ -43,7 +43,16 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 		}
 	);
 
-	console.log(balances);
+	const combinedBalances: IBalanceStateProps = {
+		amountCad: balances.reduce((sum, { amountCad }) => sum + amountCad, 0),
+		amountUsd: balances.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
+		combinedCad: balances.reduce((sum, { combinedCad }) => sum + combinedCad, 0),
+		combinedUsd: balances.reduce((sum, { combinedUsd }) => sum + combinedUsd, 0),
+		name: 'Combined',
+	};
+
+	balances.push(combinedBalances);
+
 	return (
 		<Layout>
 			<div className='p-4'>

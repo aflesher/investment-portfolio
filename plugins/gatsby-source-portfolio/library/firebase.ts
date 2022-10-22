@@ -477,7 +477,6 @@ export const checkAndUpdateCryptoMetaData = async (
 			data.oneYearLowTimestamp = new Date() as any;
 		}
 
-		console.log('updating crypto metadata', documentSnapshot.data(), data);
 		await documentSnapshot?.ref?.set(data, { merge: true });
 	});
 };

@@ -144,3 +144,14 @@ export const compareNumber = (a: number, b: number) => {
 
 	return a > b ? 1 : -1;
 };
+
+export const getTrackedYears = (): number[] => {
+	const startYear = 2019;
+	const endYear = moment().year();
+	const years: number[] = [];
+	for (let year = startYear; year <= endYear; year++) {
+		years.push(year);
+	}
+
+	return years;
+};
