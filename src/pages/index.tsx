@@ -152,7 +152,11 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 						</div>
 						<div className='pl-4 col-9' style={{ lineHeight: 2.3 }}>
 							{moment(timestamp).format('ddd, MMM DD YYYY')}&nbsp;
-							<i>({moment(timestamp).diff(moment(), 'days')} days away)</i>
+							<i>
+								(
+								{moment(timestamp).startOf('day').diff(moment().startOf('day'), 'days')}{' '}
+								days away)
+							</i>
 						</div>
 					</div>
 				))}

@@ -6,6 +6,7 @@ import moment from 'moment';
 
 import Layout from '../../components/layout';
 import { AssetType, Currency } from '../../utils/enum';
+import { getTrackedYears } from '../../utils/util';
 
 enum CapitalGainsFilter {
 	none = 'none',
@@ -52,7 +53,7 @@ interface ICapitalGains {
 	shares: number;
 }
 
-const years = [2019, 2020, 2021, 2022];
+const years = getTrackedYears();
 
 const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	const [year, setYear] = React.useState(new Date().getFullYear());
