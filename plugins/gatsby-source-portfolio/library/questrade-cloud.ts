@@ -66,15 +66,15 @@ const addActivities = async (): Promise<boolean> => {
 
 export const sync = async (): Promise<void> => {
 	// await clear();
-	await cloud.getTrades();
-	await cloud.getDividends();
+	await cloud.getTrades().catch(console.log);
+	await cloud.getDividends().catch(console.log);
 
 	let complete = false;
 	while (!complete) {
 		complete = await addActivities();
 	}
 
-	await cloud.updateTrades();
-	await cloud.updateDividends();
+	await cloud.updateTrades().catch(console.log);
+	await cloud.updateDividends().catch(console.log);
 	cloud.setProfitsAndLosses();
 };

@@ -1,6 +1,7 @@
 import admin from 'firebase-admin';
 import _ from 'lodash';
 import firebase from 'firebase';
+import NP from 'number-precision';
 
 import { deferredPromise } from './util';
 import { IAssessment } from '../../../src/utils/assessment';
@@ -281,6 +282,9 @@ export const calculateCryptoPositions = (
 
 		// sell
 		position.quantity = Math.max(position.quantity - t.quantity, 0);
+		if (position.quantity < 0.001) {
+			position.quantity = 0;
+		}
 		position.totalCostCad = Math.max(
 			position.quantity * position.averageEntryPriceCad,
 			0
@@ -349,7 +353,7 @@ export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
 
 				trade.pnl = proceeds - cost;
 				totals.cost -= cost;
-				totals.shares -= trade.quantity;
+				totals.shares = NP.strip(totals.shares - trade.quantity, 4);
 			}
 		}
 	});
