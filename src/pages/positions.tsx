@@ -50,13 +50,6 @@ interface IPositionNode {
 			pristine: boolean | null;
 		};
 	};
-	positions: {
-		symbol: string;
-		totalCostCad: number;
-		totalCostUsd: number;
-		currentMarketValueCad: number;
-		currentMarketValueUsd: number;
-	}[];
 }
 
 interface IPositionsQuery {
@@ -105,7 +98,6 @@ const addCurrencyToPositions = (
 			marketCap: 106930000000,
 			name: 'Bank of Canada',
 		},
-		positions: [],
 	};
 
 	return position;
@@ -131,22 +123,16 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	const [combined, setCombined] = React.useState(true);
 
 	const getTotalCostCad = (position: IPositionNode): number =>
-		position.totalCostCad +
-		_.sumBy(position.positions, (p) => p.totalCostCad) * (combined ? 1 : 0);
+		position.totalCostCad;
 
 	const getCurrentValueCad = (position: IPositionNode): number =>
-		position.currentMarketValueCad +
-		_.sumBy(position.positions, (p) => p.currentMarketValueCad) *
-			(combined ? 1 : 0);
+		position.currentMarketValueCad;
 
 	const getTotalCostUsd = (position: IPositionNode): number =>
-		position.totalCostUsd +
-		_.sumBy(position.positions, (p) => p.totalCostUsd) * (combined ? 1 : 0);
+		position.totalCostUsd;
 
 	const getCurrentValueUsd = (position: IPositionNode): number =>
-		position.currentMarketValueUsd +
-		_.sumBy(position.positions, (p) => p.currentMarketValueUsd) *
-			(combined ? 1 : 0);
+		position.currentMarketValueUsd;
 
 	const totalPositionValue = _.sumBy(
 		positionNodes,
@@ -158,16 +144,8 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 		(p) => p.currentMarketValueUsd
 	);
 	const totalPositionCostUsd = _.sumBy(positionNodes, (p) => p.totalCostUsd);
-	const filteredPositions = _(positionNodes)
-		.map((p) => p.positions.map((q) => q.symbol))
-		.flatten()
-		.uniq()
-		.value();
 
 	const positions = _(positionNodes)
-		.filter(
-			(position) => !combined || !_.includes(filteredPositions, position.symbol)
-		)
 		.orderBy(
 			(position) => {
 				switch (orderBy) {
@@ -254,7 +232,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						priceProgress={position.assessment?.targetPriceProgress}
 						activeCurrency={currency}
 						quoteCurrency={position.quote.currency}
-						symbolCharacter={combined && position.positions.length ? '*' : ''}
+						symbolCharacter={''}
 						positionsOrderBy={orderBy}
 					/>
 				))}
@@ -310,13 +288,6 @@ export const pageQuery = graphql`
 					checklist {
 						pristine
 					}
-				}
-				positions {
-					symbol
-					totalCostCad
-					totalCostUsd
-					currentMarketValueCad
-					currentMarketValueUsd
 				}
 			}
 		}

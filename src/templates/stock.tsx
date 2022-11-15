@@ -50,15 +50,6 @@ interface IStockTemplateQuery {
 					openPnlUsd: number;
 					currentMarketValueCad: number;
 					currentMarketValueUsd: number;
-					positions: {
-						symbol: string;
-						totalCost: number;
-						totalCostUsd: number;
-						totalCostCad: number;
-						currentMarketValueCad: number;
-						currentMarketValueUsd: number;
-						quantity: number;
-					}[];
 				};
 				quote: {
 					price: number;
@@ -306,22 +297,6 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								</div>
 							</React.Fragment>
 						)}
-						{!!position?.positions.length && (
-							<div className='row font-weight-bold'>
-								<div className='col-6'>Combined Coins</div>
-								<div
-									className={classNames({
-										'col-6': true,
-									})}
-								>
-									{position.quantity +
-										_.sumBy(
-											position.positions,
-											(p) => p.quantity * coinsPerShare(p.symbol)
-										)}
-								</div>
-							</div>
-						)}
 						<div className='row font-weight-bold'>
 							<div className='col-6'>Open P & L %</div>
 							<div
@@ -403,28 +378,6 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								/>
 							</div>
 						</div>
-						{!!position?.positions.length && (
-							<div className='row font-weight-bold'>
-								<div className='col-6'>Combined Value</div>
-								<div
-									className={classNames({
-										'col-6': true,
-									})}
-								>
-									<XE
-										cad={
-											position.currentMarketValueCad +
-											_.sumBy(position.positions, (p) => p.currentMarketValueCad)
-										}
-										usd={
-											position.currentMarketValueUsd +
-											_.sumBy(position.positions, (p) => p.currentMarketValueUsd)
-										}
-										currency={currency}
-									/>
-								</div>
-							</div>
-						)}
 						{!!accumulatedDividendsCad && (
 							<div className='row font-weight-bold font-italic'>
 								<div className='col-6'>*unspent dividends</div>
@@ -523,10 +476,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							minuses={assessment.minuses}
 							notes={assessment.notes}
 							questions={assessment.questions}
-							positionTotalCost={
-								(position?.totalCost || 0) +
-								_.sumBy(position?.positions, (p) => p.totalCostCad)
-							}
+							positionTotalCost={position?.totalCost || 0}
 							targetInvestment={assessment.targetInvestment}
 							valuations={assessment.valuations}
 							name={''}
@@ -629,16 +579,6 @@ export const pageQuery = graphql`
 					openPnlUsd
 					currentMarketValueCad
 					currentMarketValueUsd
-					positions {
-						symbol
-						totalCost
-						totalCostUsd
-						totalCostCad
-						currentMarketValue
-						currentMarketValueCad
-						quantity
-						currentMarketValueUsd
-					}
 				}
 				quote {
 					price

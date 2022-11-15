@@ -622,7 +622,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		company___NODE: string;
 		quote___NODE: string;
 		assessment___NODE: string;
-		positions___NODE: string[];
 		earnings___NODE: string;
 	}
 
@@ -714,17 +713,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		);
 
 		return positions.map((position) => {
-			const linkedPositions: string[] = [];
-
-			if (position.symbol === 'btc') {
-				linkedPositions.push(positionNodeIdsMap['qbtc.u.to']);
-				linkedPositions.push(positionNodeIdsMap['qbtc.to']);
-				linkedPositions.push(positionNodeIdsMap['gbtc']);
-			} else if (position.symbol === 'eth') {
-				linkedPositions.push(positionNodeIdsMap['qeth.u.to']);
-				linkedPositions.push(positionNodeIdsMap['qeth.to']);
-				linkedPositions.push(positionNodeIdsMap['qeth']);
-			}
 			const positionNode: IPositionNode = {
 				...position,
 				trades___NODE: tradeNodeIdsMap[position.symbol] || [],
@@ -732,7 +720,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				company___NODE: companyNodeIdsMap[position.symbol] || null,
 				quote___NODE: quoteNodeIdsMap[position.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[position.symbol] || null,
-				positions___NODE: _.filter(linkedPositions),
 				earnings___NODE: earningsDatesNodeIdsMap[position.symbol] || null,
 			};
 
