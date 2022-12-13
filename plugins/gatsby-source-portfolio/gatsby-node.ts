@@ -87,6 +87,7 @@ const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 			}
 		})
 	);
+	console.log('assessments Promise.all() finished');
 
 	return assessments;
 })();

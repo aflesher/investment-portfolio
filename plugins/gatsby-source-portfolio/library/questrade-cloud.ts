@@ -66,6 +66,7 @@ const addActivities = async (): Promise<boolean> => {
 
 export const sync = async (): Promise<void> => {
 	// await clear();
+	console.log('questrade.sync (start)'.gray);
 	await cloud.getTrades().catch(console.log);
 	await cloud.getDividends().catch(console.log);
 
@@ -77,4 +78,5 @@ export const sync = async (): Promise<void> => {
 	await cloud.updateTrades().catch(console.log);
 	await cloud.updateDividends().catch(console.log);
 	cloud.setProfitsAndLosses();
+	console.log('questrade.sync (end)'.gray);
 };

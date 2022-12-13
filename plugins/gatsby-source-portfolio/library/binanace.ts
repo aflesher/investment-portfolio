@@ -54,6 +54,7 @@ const getSignature = (params: {}): string => {
 };
 
 export const getOpenOrders = async (): Promise<IBinanceOrder[]> => {
+	console.log('binance.getOpenOrders (start)'.grey);
 	await initDeferredPromise.promise;
 	const timestamp = moment().unix() * 1000;
 	const params = {
@@ -78,5 +79,6 @@ export const getOpenOrders = async (): Promise<IBinanceOrder[]> => {
 		order.symbol = order.symbol.replace('BUSD', '');
 	});
 
+	console.log('binance.getOpenOrders (end)'.grey);
 	return resp.data;
 };

@@ -157,6 +157,7 @@ const mergePositions = (
 */
 
 export const getPositions = async (): Promise<IQuestradePosition[]> => {
+	console.log('questrade.getPositions (start)'.grey);
 	await initDeferredPromise.promise;
 
 	const accountIds = _.map(accounts, 'number');
@@ -177,7 +178,12 @@ export const getPositions = async (): Promise<IQuestradePosition[]> => {
 	const mergedPositions = mergePositions(positions);
 	mergedPositions.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
-	return _.filter(mergedPositions, (q) => !filteredPositions.includes(q.symbol));
+	const results = _.filter(
+		mergedPositions,
+		(q) => !filteredPositions.includes(q.symbol)
+	);
+	console.log('questrade.getPositions (end)'.grey);
+	return results;
 };
 
 export interface IQuestradeActivity {
@@ -471,6 +477,7 @@ const getActiveOrdersForMonth = async (
 };
 
 export const getActiveOrders = async (): Promise<IQuestradeOrder[]> => {
+	console.log('questrade.getActiveOrders (start)'.grey);
 	const orders1 = await getActiveOrdersForMonth(
 		moment().subtract(1, 'month').toDate(),
 		new Date()
@@ -491,6 +498,7 @@ export const getActiveOrders = async (): Promise<IQuestradeOrder[]> => {
 
 	orders.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
+	console.log('questrade.getActiveOrders (end)'.grey);
 	return orders;
 };
 

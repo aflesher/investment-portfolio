@@ -47,15 +47,17 @@ export const init = (config: object): void => {
 
 	firestore = firebase.firestore();
 
+	console.log('firebase.init (resolve)'.gray);
 	initDeferredPromise.resolve();
 };
 
 export const getAssessments = async (): Promise<IAssessment[]> => {
+	console.log('getAssessments (start)'.gray);
 	await initDeferredPromise.promise;
 
 	const querySnapshot = await firestore.collection('stocks').get();
 
-	return querySnapshot.docs.map((documentSnapshot) => {
+	const results = querySnapshot.docs.map((documentSnapshot) => {
 		const doc = documentSnapshot.data();
 		doc.lastUpdatedTimestamp = doc.lastUpdated
 			? doc.lastUpdated._seconds * 1000
@@ -69,6 +71,9 @@ export const getAssessments = async (): Promise<IAssessment[]> => {
 		doc.valuations = doc.valuations || [];
 		return _.omit(doc, 'lastUpdated') as IAssessment;
 	});
+
+	console.log('getAssessments (end)'.gray);
+	return results;
 };
 
 export const setAssessment = async (assessment: IAssessment): Promise<void> => {
@@ -340,7 +345,10 @@ export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
 				shares: 0,
 			};
 			tradeTotals[trade.symbol].cost += trade.price * trade.quantity;
-			tradeTotals[trade.symbol].shares += trade.quantity;
+			tradeTotals[trade.symbol].shares = NP.plus(
+				tradeTotals[trade.symbol].shares,
+				trade.quantity
+			);
 		} else {
 			if (
 				tradeTotals[trade.symbol] &&
@@ -353,7 +361,7 @@ export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
 
 				trade.pnl = proceeds - cost;
 				totals.cost -= cost;
-				totals.shares = NP.strip(totals.shares - trade.quantity, 4);
+				totals.shares = NP.minus(totals.shares, trade.quantity);
 			}
 		}
 	});
@@ -486,11 +494,12 @@ export const checkAndUpdateCryptoMetaData = async (
 };
 
 export const getCryptoMetaData = async (): Promise<ICryptoMetaData[]> => {
+	console.log('firebase.getCryptoMetaData (start)'.gray);
 	await initDeferredPromise.promise;
 
 	const querySnapshot = await firestore.collection('cryptoMetaData').get();
 
-	return querySnapshot.docs.map((documentSnapshot) => {
+	const results = querySnapshot.docs.map((documentSnapshot) => {
 		const {
 			symbol,
 			allTimeHighUsd,
@@ -507,6 +516,9 @@ export const getCryptoMetaData = async (): Promise<ICryptoMetaData[]> => {
 
 		return data;
 	});
+
+	console.log('firebase.getCryptoMetaData (end)'.gray);
+	return results;
 };
 
 export const updateCryptoTrades = async (

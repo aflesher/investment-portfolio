@@ -59,8 +59,14 @@ export const scrapeCdProjektRed = async (): Promise<IEarningsDate> => {
 	return { symbol: 'otgly', timestamp: new Date(date).getTime() };
 };
 
-export const scrapeZacks = (symbols: string[]): Promise<IEarningsDate[]> => {
-	return Promise.all(filterZacks(symbols).map((symbol) => fetchZacks(symbol)));
+export const scrapeZacks = async (
+	symbols: string[]
+): Promise<IEarningsDate[]> => {
+	const results = await Promise.all(
+		filterZacks(symbols).map((symbol) => fetchZacks(symbol))
+	).catch((e) => console.error('zacks failed'));
+
+	return results || [];
 };
 
 const scapeSecondPageAAndW = async (
