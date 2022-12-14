@@ -72,6 +72,8 @@ export const getTrades = async (): Promise<void> => {
 	_.forEach(trades, (trade) => {
 		tradesMap[trade.hash] = true;
 		trade.type = 'stock';
+		trade.symbol = changeSymbol(trade.symbol.toLowerCase());
+		trade.accountId = Number(trade.accountId);
 		// Example stock split
 		// if (trade.symbol.toLocaleLowerCase() === 'ntdoy') {
 		// 	trade.price = trade.price / 5;
@@ -151,10 +153,6 @@ const getCustomTrades = (): ICloudTrade[] => [
 export const filteredTrades = ['pm.vn'];
 
 export const readTrades = (): ICloudTrade[] => {
-	trades.forEach((q) => {
-		q.accountId = Number(q.accountId);
-		q.symbol = changeSymbol(q.symbol.toLowerCase());
-	});
 	return trades
 		.filter((q) => !filteredTrades.includes(q.symbol))
 		.concat(getCustomTrades());
@@ -294,7 +292,6 @@ export const setProfitsAndLosses = (): void => {
 				const proceeds = trade.price * trade.quantity;
 
 				trade.pnl = proceeds - cost;
-
 				totals.cost -= cost;
 				totals.shares -= trade.quantity;
 
