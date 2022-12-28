@@ -14,6 +14,7 @@ import { ICoinMarketCapQuote } from './coinmarketcap';
 import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
 import { ICash } from '../../../src/utils/cash';
+import { IStockSplit } from '../../../src/utils/stock-split';
 
 const serviceAccount = require('../json/firebase.json');
 let firestore: FirebaseFirestore.Firestore;
@@ -424,6 +425,50 @@ export const getEarningsDates = async (): Promise<IEarningsDate[]> => {
 	);
 
 	return dates;
+};
+
+export const getStockSplits = async (): Promise<IStockSplit[]> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore.collection('stockSplit').get();
+
+	const data = await Promise.all(
+		querySnapshot.docs.map(async (documentSnapshot) => {
+			const {
+				isApplied,
+				isReverse,
+				symbol,
+				ratio,
+				date,
+			}: IStockSplit = documentSnapshot.data() as IStockSplit;
+
+			return { isApplied, isReverse, symbol, ratio, date };
+		})
+	);
+
+	return data;
+};
+
+export const updateStockSplit = async (
+	stockSplit: IStockSplit
+): Promise<boolean> => {
+	await initDeferredPromise.promise;
+
+	const { symbol, date } = stockSplit;
+
+	const querySnapshot = await firestore
+		.collection('stockSplit')
+		.where('symbol', '==', symbol)
+		.where('date', '==', date)
+		.get();
+
+	if (!querySnapshot.docs.length) {
+		return false;
+	}
+
+	const documentSnapshot = querySnapshot.docs[0];
+	await documentSnapshot.ref.set(stockSplit, { merge: true });
+	return true;
 };
 
 interface IFirebaseCash extends Omit<ICash, 'amountCad' | 'amountUsd'> {}

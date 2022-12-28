@@ -1,5 +1,6 @@
 import axios from 'axios';
 import parse from 'node-html-parser';
+import moment from 'moment';
 
 export interface IEarningsDate {
 	timestamp: number;
@@ -56,7 +57,10 @@ export const scrapeCdProjektRed = async (): Promise<IEarningsDate> => {
 	const date = (
 		calendarLine?.querySelectorAll('span')?.[1].innerText || ''
 	).trim();
-	return { symbol: 'otgly', timestamp: new Date(date).getTime() };
+	return {
+		symbol: 'otgly',
+		timestamp: moment(new Date(date).getTime()).startOf('day').toDate().getTime(),
+	};
 };
 
 export const scrapeZacks = async (

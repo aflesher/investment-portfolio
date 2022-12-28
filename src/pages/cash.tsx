@@ -58,7 +58,7 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 			<div className='p-4'>
 				<div className='row'>
 					{balances.map((balance) => (
-						<div className='col-4'>
+						<div className='col-4' key={balance.name}>
 							<Balance {...balance} />
 						</div>
 					))}

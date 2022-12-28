@@ -20,6 +20,8 @@ import {
 	coinsPerShare,
 	cryptoPremium,
 } from '../utils/util';
+import { IStockSplit } from '../utils/stock-split';
+import StockSplits from '../components/stockSplits/StockSplits';
 
 interface IStockTemplateStateProps {
 	currency: Currency;
@@ -106,6 +108,9 @@ interface IStockTemplateQuery {
 				priceUsd: number;
 			}[];
 		};
+		allStockSplit: {
+			nodes: IStockSplit[];
+		};
 	};
 }
 
@@ -157,6 +162,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 		btcQuote?.priceCad || 0,
 		ethQuote?.priceCad || 0
 	);
+	const stockSplits = data.allStockSplit.nodes;
 
 	const lastBuy = _.maxBy(
 		_.filter(trades, (trade) => trade.action === 'buy'),
@@ -485,6 +491,12 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 						<span>(no assessment)</span>
 					)}
 				</div>
+				{!!stockSplits.length && (
+					<div className='mb-4'>
+						<h3>Stock Splits</h3>
+						<StockSplits stockSplits={stockSplits} hideSymbols={true} />
+					</div>
+				)}
 				<div className='row'>
 					<div className='col-7'>
 						<h3>Trades</h3>
@@ -638,6 +650,15 @@ export const pageQuery = graphql`
 				price
 				priceCad
 				priceUsd
+			}
+		}
+		allStockSplit(filter: { symbol: { eq: $symbol } }) {
+			nodes {
+				ratio
+				symbol
+				date
+				isReverse
+				isApplied
 			}
 		}
 	}

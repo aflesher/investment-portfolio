@@ -26,9 +26,11 @@ import { IExchangeRate } from '../../src/utils/exchange';
 import { IEarningsDate, getEarningsDates } from './library/earnings-calendar';
 import { ICash } from '../../src/utils/cash';
 import { useDebugValue } from 'react';
+import { IStockSplit } from '../../src/utils/stock-split';
 
 const assessmentsPromise = firebase.getAssessments();
-const questradeSync = questradeCloud.sync();
+const stockSplitsPromise = firebase.getStockSplits();
+const questradeSync = questradeCloud.sync(stockSplitsPromise);
 const positionsPromise = questrade.getPositions();
 const ordersPromise = questrade.getActiveOrders();
 const cryptoTradesPromise = firebase.getCryptoTrades();
@@ -67,6 +69,17 @@ const cryptoPositionsPromise = (async () => {
 	return firebase.calculateCryptoPositions(trades, rates);
 })();
 
+const applyStockSplits = async () => {
+	const stockSplits = await stockSplitsPromise;
+	const appliedStockSplits = stockSplits.filter(({ isApplied }) => !isApplied);
+	await Promise.all(
+		appliedStockSplits.map((split) => {
+			split.isApplied = true;
+			return firebase.updateStockSplit(split);
+		})
+	);
+};
+
 const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 	const assessments = await assessmentsPromise;
 	await questradeSync;
@@ -87,7 +100,7 @@ const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 			}
 		})
 	);
-	console.log('assessments Promise.all() finished');
+	console.log('assessments Promise.all() finished'.magenta);
 
 	return assessments;
 })();
@@ -267,6 +280,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 	const getCashNodeId = (accountName: string, currency: Currency): string => {
 		return createNodeId(hash(`cash${accountName}${currency}`));
+	};
+
+	const getStockSplitNodeId = (symbol: string, index: number): string => {
+		return createNodeId(hash(`split${symbol}${index}`));
 	};
 
 	exchange.init(configOptions.currency.api, configOptions.currency.apiKey);
@@ -643,7 +660,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 		if (position.symbol === 'urnm') {
 			position.totalCost = 11224.92;
-			position.averageEntryPrice = 61.67;
+			position.averageEntryPrice = 61.67 / 2;
 			position.openPnl = position.currentMarketValue - position.totalCost;
 		}
 
@@ -1239,6 +1256,38 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
+	interface IStockSplitNode extends INode, IStockSplit {
+		position___NODE: string;
+		company___NODE: string;
+		quote___NODE: string;
+		assessment___NODE: string;
+	}
+
+	const getStockSplitNodes = async (): Promise<IStockSplitNode[]> => {
+		const stockSplits = await stockSplitsPromise;
+		return stockSplits.map((stockSplit, index) => {
+			const stockSplitNode: IStockSplitNode = {
+				...stockSplit,
+				position___NODE: positionNodeIdsMap[stockSplit.symbol] || null,
+				quote___NODE: quoteNodeIdsMap[stockSplit.symbol] || null,
+				company___NODE: companyNodeIdsMap[stockSplit.symbol] || null,
+				assessment___NODE: assessmentNodeIdsMap[stockSplit.symbol] || null,
+			};
+			const content = JSON.stringify(stockSplitNode);
+			_.defaults(stockSplitNode, {
+				id: getStockSplitNodeId(stockSplitNode.symbol, index),
+				parent: null,
+				children: [],
+				internal: {
+					type: 'StockSplit',
+					content,
+					contentDigest: hash(content),
+				},
+			});
+			return stockSplitNode;
+		});
+	};
+
 	const outputCleared = (text: string): void => {
 		console.log(`cleared`.magenta + ' ' + text);
 	};
@@ -1257,6 +1306,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const reviewNodesPromise = getReviewNodes();
 		const earningsNodesPromise = getEarningsNodes();
 		const cashNodesPromise = getCashNodes();
+		const stockSplitNodesPromise = getStockSplitNodes();
 
 		const assessments = await assessmentsPromise;
 		outputCleared('assessments');
@@ -1282,8 +1332,11 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		outputCleared('earnings nodes');
 		const cashNodes = await cashNodesPromise;
 		outputCleared('cash nodes');
+		const stockSplitNodes = await stockSplitNodesPromise;
+		outputCleared('stock split nodes');
 
 		await firebase.checkAndUpdateCryptoMetaData(cryptoQuotesPromise);
+		await applyStockSplits();
 
 		outputCleared('ALL!');
 		return _.concat(
@@ -1298,7 +1351,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			orderNodes,
 			reviewNodes,
 			earningsNodes,
-			cashNodes
+			cashNodes,
+			stockSplitNodes
 		);
 	};
 

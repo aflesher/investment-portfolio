@@ -2,6 +2,7 @@ import _ from 'lodash';
 
 import * as questrade from './questrade';
 import * as cloud from './cloud';
+import { IStockSplit } from '../../../src/utils/stock-split';
 
 export const clear = async (): Promise<void> => {
 	console.log('clear');
@@ -64,11 +65,15 @@ const addActivities = async (): Promise<boolean> => {
 	return activitiesDetails.complete;
 };
 
-export const sync = async (): Promise<void> => {
+export const sync = async (
+	stockSplitsPromise: Promise<IStockSplit[]>
+): Promise<void> => {
 	// await clear();
 	console.log('questrade.sync (start)'.gray);
 	await cloud.getTrades().catch(console.log);
 	await cloud.getDividends().catch(console.log);
+	const stockSplits = await stockSplitsPromise;
+	cloud.applyStockSplits(stockSplits);
 
 	let complete = false;
 	while (!complete) {

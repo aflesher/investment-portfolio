@@ -2,6 +2,7 @@ import { Storage } from '@google-cloud/storage';
 import crypto from 'crypto';
 import _ from 'lodash';
 import { Currency } from '../../../src/utils/enum';
+import { IStockSplit } from '../../../src/utils/stock-split';
 import { IQuestradeActivity } from './questrade';
 
 interface IProfitAndLose {
@@ -75,11 +76,35 @@ export const getTrades = async (): Promise<void> => {
 		trade.symbol = changeSymbol(trade.symbol.toLowerCase());
 		trade.accountId = Number(trade.accountId);
 		// Example stock split
-		// if (trade.symbol.toLocaleLowerCase() === 'ntdoy') {
+		// if (
+		// 	trade.symbol.toLocaleLowerCase() === 'tsla' &&
+		// 	new Date(trade.date).getTime() > new Date('2020-08-31').getTime()
+		// ) {
 		// 	trade.price = trade.price / 5;
 		// 	trade.quantity = trade.quantity * 5;
 		// }
 	});
+};
+
+export const applyStockSplits = async (
+	stockSplits: IStockSplit[]
+): Promise<void> => {
+	stockSplits
+		.filter(({ isApplied }) => !isApplied)
+		.forEach((stockSplit) => {
+			const splitTrades = trades.filter(
+				({ symbol }) => symbol === stockSplit.symbol
+			);
+			splitTrades.forEach((trade) => {
+				if (stockSplit.isReverse) {
+					trade.price = trade.price * stockSplit.ratio;
+					trade.quantity = Math.floor(trade.quantity / stockSplit.ratio);
+				} else {
+					trade.price = trade.price / stockSplit.ratio;
+					trade.quantity = trade.quantity * stockSplit.ratio;
+				}
+			});
+		});
 };
 
 const getCustomTrades = (): ICloudTrade[] => [
