@@ -1,5 +1,4 @@
 import React from 'react';
-import Paginate from 'react-paginate';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 import { Typeahead } from 'react-bootstrap-typeahead';
@@ -8,8 +7,6 @@ import Assessment from '../components/assessment/Assessment';
 import Layout from '../components/layout';
 import { Currency } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';
-
-const ASSESSMENTS_PER_PAGE = 3;
 
 interface IAssessmentsQuery {
 	data: {
@@ -45,7 +42,6 @@ interface IAssessmentsQuery {
 
 const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 	const [symbol, setSymbol] = React.useState('');
-	const [page, setPage] = React.useState(0);
 	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));
 	const [endDate, setEndDate] = React.useState(new Date());
 
@@ -67,21 +63,18 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 
 	const changeSymbol = (symbol: string): void => {
 		setSymbol(symbol);
-		setPage(0);
 	};
 
 	const handleStartDateChange = (
 		event: React.ChangeEvent<HTMLInputElement>
 	): void => {
 		setStartDate(new Date(event.target.value));
-		setPage(0);
 	};
 
 	const handleEndDateChange = (
 		event: React.ChangeEvent<HTMLInputElement>
 	): void => {
 		setEndDate(new Date(event.target.value));
-		setPage(0);
 	};
 
 	return (
@@ -130,35 +123,15 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 						</div>
 					</div>
 				</div>
-				<div className='row'>
-					<div className='col-12'>
-						<div className='paginate d-flex justify-content-center'>
-							<Paginate
-								pageCount={Math.ceil(assessments.length / ASSESSMENTS_PER_PAGE)}
-								onPageChange={(resp): void => setPage(resp.selected)}
-								nextLabel='>'
-								previousLabel='<'
-								forcePage={page}
-								marginPagesDisplayed={3}
-								pageRangeDisplayed={6}
-							/>
-						</div>
-					</div>
-				</div>
-				{assessments
-					.slice(
-						page * ASSESSMENTS_PER_PAGE,
-						page * ASSESSMENTS_PER_PAGE + ASSESSMENTS_PER_PAGE
-					)
-					.map((assessment) => (
-						<Assessment
-							key={assessment.symbol}
-							{...assessment}
-							quotePrice={assessment.quote?.price || 0}
-							positionTotalCost={assessment.position?.totalCost || 0}
-							name={assessment.company?.name || '???'}
-						/>
-					))}
+				{assessments.map((assessment) => (
+					<Assessment
+						key={assessment.symbol}
+						{...assessment}
+						quotePrice={assessment.quote?.price || 0}
+						positionTotalCost={assessment.position?.totalCost || 0}
+						name={assessment.company?.name || '???'}
+					/>
+				))}
 			</div>
 		</Layout>
 	);
