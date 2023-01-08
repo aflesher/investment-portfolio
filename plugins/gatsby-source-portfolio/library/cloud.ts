@@ -173,6 +173,32 @@ const getCustomTrades = (): ICloudTrade[] => [
 		hash: '',
 		pnl: 0,
 	},
+	// {
+	// 	symbol: 'pins20jan23c55.00',
+	// 	date: new Date('2023-01-23'),
+	// 	accountId: 26418215,
+	// 	action: 'sell',
+	// 	symbolId: 32336551,
+	// 	currency: 'usd',
+	// 	price: 0,
+	// 	quantity: 12,
+	// 	type: 'stock',
+	// 	hash: '',
+	// 	pnl: -1044,
+	// },
+	// {
+	// 	symbol: 'pins20jan23c55.00',
+	// 	date: new Date('2023-01-23'),
+	// 	accountId: 51443858,
+	// 	action: 'sell',
+	// 	symbolId: 32336551,
+	// 	currency: 'usd',
+	// 	price: 0,
+	// 	quantity: 13,
+	// 	type: 'stock',
+	// 	hash: '',
+	// 	pnl: -780,
+	// },
 ];
 
 export const filteredTrades = ['pm.vn'];
