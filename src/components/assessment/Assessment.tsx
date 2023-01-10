@@ -21,9 +21,12 @@ interface IAssessmentStateProps
 			| 'lastUpdatedTimestamp'
 			| 'notes'
 			| 'targetInvestment'
+			| 'rating'
 		> {
 	quotePrice: number;
 	positionTotalCost: number;
+	maxShares?: number;
+	currentShares?: number;
 }
 
 const Assessment: React.FC<IAssessmentStateProps> = ({
@@ -39,6 +42,9 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 	questions,
 	notes,
 	targetInvestment,
+	rating,
+	maxShares,
+	currentShares,
 }) => {
 	return (
 		<div className='border-t py-3 assessment'>
@@ -46,14 +52,15 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 			<div className='clearfix mt-2'>
 				<div className='float-left text-uppercase'>
 					<Link to={`/stock/${symbol}`}>{symbol}</Link>
+					<span className='text-subtle ml-2 font-italic'>{rating}</span>
 				</div>
 				<div className='float-right'>{formatDateShort(lastUpdatedTimestamp)}</div>
 			</div>
 			<div className='d-large-none d-xl-none my-4'></div>
-			<div className='row'>
-				<div className='col-4 text-right'>TARGET INVESTMENT</div>
-				<div className='col-8'>
-					{targetInvestment ? (
+			{rating === 'buy' && (
+				<div className='row'>
+					<div className='col-4 text-right'>TARGET INVESTMENT</div>
+					<div className='col-8'>
 						<div style={{ width: '50%' }}>
 							<div className='bar-graph bar-background blue-glow'>
 								<div className='left-value'>$0.00</div>
@@ -77,15 +84,37 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 								</div>
 							</div>
 						</div>
-					) : (
-						<div>N/A</div>
-					)}
+					</div>
 				</div>
-			</div>
-			<div className='row mt-4'>
-				<div className='col-4 text-right'>TARGET PRICE</div>
-				<div className='col-8'>
-					{targetPrice ? (
+			)}
+			{rating === 'sell' && (
+				<div className='row'>
+					<div className='col-4 text-right'>REMAINING SHARES</div>
+					<div className='col-8'>
+						<div style={{ width: '50%' }}>
+							<div className='bar-graph bar-background blue-glow'>
+								<div className='left-value'>0</div>
+								<div className='right-value'>{maxShares}</div>
+								<div
+									className='bar'
+									style={{
+										width: `${((currentShares || 0) / (maxShares || 0)) * 100}%`,
+									}}
+								>
+									<div className='right-value'>{currentShares}</div>
+									<div className='end-value'>
+										{numeral((currentShares || 0) / (maxShares || 0)).format('0%')}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+			{!!targetPrice && (
+				<div className='row mt-4'>
+					<div className='col-4 text-right'>TARGET PRICE</div>
+					<div className='col-8'>
 						<div style={{ width: '50%' }}>
 							<div className='bar-graph bar-background blue-glow'>
 								<div className='left-value'>$0.00</div>
@@ -107,11 +136,9 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 								</div>
 							</div>
 						</div>
-					) : (
-						<div>N/A</div>
-					)}
+					</div>
 				</div>
-			</div>
+			)}
 			<div className='row my-3'>
 				<div className='col-lg-6'>
 					{pluses.map((plus, index) => (

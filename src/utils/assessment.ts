@@ -1,19 +1,13 @@
-import { AssetType } from './enum';
+import { AssetType, RatingType } from './enum';
 
 export interface IAssessment {
-	checklist: {
-		excessCash: boolean;
-		fomo: boolean;
-		othersBuying: boolean;
-		valuation: boolean;
-	};
+	checklist: { [key: string]: boolean };
 	lastUpdated: Date;
 	lastUpdatedTimestamp: number;
 	minuses: string[];
 	pluses: string[];
 	notes: string[];
 	questions: string[];
-	sector: string;
 	symbol: string;
 	symbolId: number;
 	targetInvestment: number;
@@ -22,4 +16,5 @@ export interface IAssessment {
 	targetPriceProgress: number;
 	type: AssetType;
 	valuations: string[];
+	rating: RatingType;
 }

@@ -3,20 +3,20 @@ import * as firebase from 'firebase/app';
 import 'firebase/firestore';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
-import { Typeahead } from 'react-bootstrap-typeahead';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { IStoreState } from '../../store/store';
 import { connect } from 'react-redux';
-import { AssetType } from '../../utils/enum';
+import { AssetType, RatingType } from '../../utils/enum';
 import Layout from '../../components/layout';
+import { IAssessment } from '../../utils/assessment';
 
 interface IAssessmentsStateProps {
 	user: firebase.User | null | undefined;
 	firebase: firebase.app.App | undefined;
 }
 
-interface IAsessmentsQuery {
+interface IAssessmentsQuery {
 	data: {
 		allCompany: {
 			nodes: {
@@ -26,21 +26,12 @@ interface IAsessmentsQuery {
 	};
 }
 
-interface IFirebaseAssessmentFields extends firebase.firestore.DocumentData {
-	symbol: string;
-	notes: string[];
-	targetInvestment: number;
-	targetPrice: number;
-	minuses: string[];
-	pluses: string[];
-	type: AssetType;
-	questions: string[];
-	valuations: string[];
-	lastUpdated: Date;
-	sector: string;
-	checklist: { [key: string]: boolean };
-}
+interface IFirebaseAssessmentFields
+	extends firebase.firestore.DocumentData,
+		IAssessment {}
 
+interface ISaveFirebaseAssessment
+	extends Omit<IFirebaseAssessmentFields, 'lastUpdatedTimestamp'> {}
 interface IFirebaseAssessment extends IFirebaseAssessmentFields {
 	docRef: firebase.firestore.DocumentReference;
 	id?: string;
@@ -85,11 +76,9 @@ const defaultChecklist = [
 	{ id: 'pristine', value: false, description: '* Is a pristine asset' },
 ];
 
-const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
-	firebase,
-	user,
-	data,
-}) => {
+const AssessmentsAdmin: React.FC<
+	IAssessmentsStateProps & IAssessmentsQuery
+> = ({ firebase, user, data }) => {
 	const [symbol, setSymbol] = React.useState('');
 	const [notes, setNotes] = React.useState<string[]>([]);
 	const [targetInvestment, setTargetInvestment] = React.useState<string>('');
@@ -99,7 +88,6 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 	const [type, setType] = React.useState(AssetType.stock);
 	const [questions, setQuestions] = React.useState<string[]>([]);
 	const [valuations, setValuations] = React.useState<string[]>([]);
-	const [sector, setSector] = React.useState('');
 	const [
 		firestore,
 		setFirestore,
@@ -107,11 +95,11 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 	const [assessments, setAssessments] = React.useState<IFirebaseAssessment[]>(
 		[]
 	);
-	const [sectors, setSectors] = React.useState<string[]>([]);
 	const [isEdit, setIsEdit] = React.useState(false);
 	const [checklist, setChecklist] = React.useState<IChecklistItem[]>(
 		defaultChecklist.slice()
 	);
+	const [rating, setRating] = React.useState<RatingType>('none');
 
 	const fetchAssessments = async (
 		db: firebase.firestore.Firestore
@@ -128,14 +116,12 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 				};
 			}
 		);
-		const sectors = _(stocks).map('sector').uniq().filter().value();
 
 		setAssessments(stocks);
-		setSectors(sectors);
 	};
 
 	const loadAssessment = (symbol: string): void => {
-		const assessment = _.find(assessments, (q) => q.symbol === symbol);
+		const assessment = assessments.find((q) => q.symbol === symbol);
 		setNotes(assessment?.notes || []);
 		setTargetInvestment(String(assessment?.targetInvestment || ''));
 		setTargetPrice(String(assessment?.targetPrice || ''));
@@ -144,7 +130,7 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 		setType(assessment?.type || AssetType.stock);
 		setValuations(assessment?.valuations || []);
 		setQuestions(assessment?.questions || []);
-		setSector(assessment?.sector || '');
+		setRating(assessment?.rating || 'none');
 
 		const newChecklist = defaultChecklist.slice();
 		if (assessment) {
@@ -168,7 +154,7 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 			? assessment.docRef
 			: firestore.collection('stocks').doc();
 
-		const newAssessment: IFirebaseAssessmentFields = {
+		const newAssessment: ISaveFirebaseAssessment = {
 			pluses: _.filter(pluses),
 			minuses: _.filter(minuses),
 			notes: _.filter(notes),
@@ -177,8 +163,8 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 			targetInvestment: Number(targetInvestment || 0),
 			questions: _.filter(questions),
 			symbol,
-			sector,
 			type,
+			rating,
 			lastUpdated: (isEdit && assessment?.lastUpdated) || new Date(),
 			checklist: _(checklist)
 				.keyBy((q) => q.id)
@@ -246,11 +232,8 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 					<div className='col-3'>
 						<div className='form-group'>
 							<label htmlFor='symbol'>Symbol</label>
-							<Typeahead
-								onChange={(symbols) => onSymbolChange(symbols[0])}
-								onInputChange={(symbol) => onSymbolChange(symbol)}
-								options={_.map(data.allCompany.nodes, (q) => q.symbol)}
-								allowNew
+							<input
+								onChange={(event) => onSymbolChange(event.target.value)}
 								id='symbol'
 							/>
 						</div>
@@ -453,14 +436,17 @@ const AssessmentsAdmin: React.FC<IAssessmentsStateProps & IAsessmentsQuery> = ({
 
 					<div className='col-3'>
 						<div className='form-group'>
-							<Typeahead
-								selected={[sector]}
-								onChange={(sectors) => sectors.length && setSector(sectors[0])}
-								onInputChange={(sector) => setSector(sector)}
-								options={sectors}
-								allowNew
-								id='sector'
-							/>
+							<select
+								value={rating}
+								onChange={(e) => setRating(e.target.value as RatingType)}
+								className='form-control'
+							>
+								{['none', 'buy', 'hold', 'sell'].map((val) => (
+									<option value={val} key={val}>
+										{val}
+									</option>
+								))}
+							</select>
 						</div>
 					</div>
 				</div>

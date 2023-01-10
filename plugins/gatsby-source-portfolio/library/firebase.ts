@@ -70,6 +70,7 @@ export const getAssessments = async (): Promise<IAssessment[]> => {
 		doc.targetInvestment = doc.targetInvestment || 0;
 		doc.targetPrice = doc.targetPrice || 0;
 		doc.valuations = doc.valuations || [];
+		doc.rating = doc.rating || 'none';
 		return _.omit(doc, 'lastUpdated') as IAssessment;
 	});
 

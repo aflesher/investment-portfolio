@@ -6,36 +6,32 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import Assessment from '../components/assessment/Assessment';
 import Layout from '../components/layout';
 import { Currency } from '../utils/enum';
-import { dateInputFormat } from '../utils/util';
+import { compareNumber, dateInputFormat } from '../utils/util';
+import { IAssessment } from '../utils/assessment';
+import { ITrade } from '../utils/trade';
+
+interface IAssessmentTrade
+	extends Pick<ITrade, 'quantity' | 'timestamp' | 'isSell'> {}
+interface IAssessmentNode extends IAssessment {
+	position?: {
+		quantity: number;
+		totalCost: number;
+	};
+	quote?: {
+		price: number;
+		currency: Currency;
+	};
+	company?: {
+		name: string;
+		marketCap: number;
+	};
+	trades: IAssessmentTrade[];
+}
 
 interface IAssessmentsQuery {
 	data: {
 		allAssessment: {
-			nodes: {
-				symbol: string;
-				market: string;
-				pluses: string[];
-				minuses: string[];
-				targetPrice: number;
-				targetShares: number;
-				targetInvestment: number;
-				notes: string[];
-				lastUpdatedTimestamp: number;
-				questions: string[];
-				valuations: string[];
-				position?: {
-					quantity: number;
-					totalCost: number;
-				};
-				quote?: {
-					price: number;
-					currency: Currency;
-				};
-				company?: {
-					name: string;
-					marketCap: number;
-				};
-			}[];
+			nodes: IAssessmentNode[];
 		};
 	};
 }
@@ -75,6 +71,26 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 		event: React.ChangeEvent<HTMLInputElement>
 	): void => {
 		setEndDate(new Date(event.target.value));
+	};
+
+	const maxShares = (trades: IAssessmentTrade[]) => {
+		let shares = 0;
+		let maxShares = 0;
+		trades
+			.sort((a, b) => compareNumber(b.timestamp, a.timestamp))
+			.forEach(({ isSell, quantity }) => {
+				if (isSell) {
+					shares += quantity;
+				} else {
+					shares -= quantity;
+				}
+
+				if (shares > maxShares) {
+					maxShares = shares;
+				}
+			});
+
+		return maxShares;
 	};
 
 	return (
@@ -130,6 +146,8 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 						quotePrice={assessment.quote?.price || 0}
 						positionTotalCost={assessment.position?.totalCost || 0}
 						name={assessment.company?.name || '???'}
+						maxShares={maxShares(assessment.trades)}
+						currentShares={assessment.position?.quantity || 0}
 					/>
 				))}
 			</div>
@@ -155,6 +173,7 @@ export const pageQuery = graphql`
 				lastUpdatedTimestamp
 				questions
 				valuations
+				rating
 				position {
 					quantity
 					totalCost
@@ -166,6 +185,11 @@ export const pageQuery = graphql`
 				company {
 					name
 					marketCap
+				}
+				trades {
+					isSell
+					quantity
+					timestamp
 				}
 			}
 		}

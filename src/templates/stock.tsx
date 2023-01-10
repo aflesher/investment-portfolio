@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import { connect } from 'react-redux';
 
 import { IStoreState } from '../store/store';
-import { Currency, AssetType } from '../utils/enum';
+import { Currency, AssetType, RatingType } from '../utils/enum';
 import Layout from '../components/layout';
 import CompanyBanner from '../components/company-banner/CompanyBanner';
 import XE from '../components/xe/XE';
@@ -19,6 +19,7 @@ import {
 	assetLink,
 	coinsPerShare,
 	cryptoPremium,
+	compareNumber,
 } from '../utils/util';
 import { IStockSplit } from '../utils/stock-split';
 import StockSplits from '../components/stockSplits/StockSplits';
@@ -83,6 +84,7 @@ interface IStockTemplateQuery {
 					lastUpdatedTimestamp: number;
 					questions: string[];
 					valuations: string[];
+					rating: RatingType;
 				};
 				dividends: {
 					amount: number;
@@ -199,6 +201,28 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	});
 
 	const positionFormat = company.type === 'crypto' ? '0,0.0000' : '0,0';
+
+	const getMaxShares = () => {
+		let shares = 0;
+		let maxShares = 0;
+		trades
+			.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
+			.forEach(({ action, quantity }) => {
+				if (action === 'buy') {
+					shares += quantity;
+				} else {
+					shares -= quantity;
+				}
+
+				if (shares > maxShares) {
+					maxShares = shares;
+				}
+			});
+
+		return maxShares;
+	};
+
+	const maxShares = getMaxShares();
 
 	return (
 		<Layout>
@@ -485,7 +509,10 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							positionTotalCost={position?.totalCost || 0}
 							targetInvestment={assessment.targetInvestment}
 							valuations={assessment.valuations}
+							rating={assessment.rating}
 							name={''}
+							maxShares={maxShares}
+							currentShares={position.quantity}
 						/>
 					) : (
 						<span>(no assessment)</span>
@@ -626,6 +653,7 @@ export const pageQuery = graphql`
 					assessment
 					questions
 					valuations
+					rating
 				}
 				dividends {
 					amount
