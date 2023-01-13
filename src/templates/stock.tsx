@@ -19,7 +19,7 @@ import {
 	assetLink,
 	coinsPerShare,
 	cryptoPremium,
-	compareNumber,
+	getMaxShares,
 } from '../utils/util';
 import { IStockSplit } from '../utils/stock-split';
 import StockSplits from '../components/stockSplits/StockSplits';
@@ -70,6 +70,7 @@ interface IStockTemplateQuery {
 					isOpeningPositionTrade: boolean;
 					priceCad: number;
 					priceUsd: number;
+					isSell: boolean;
 					exchange?: {
 						rate: number;
 					};
@@ -201,28 +202,6 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	});
 
 	const positionFormat = company.type === 'crypto' ? '0,0.0000' : '0,0';
-
-	const getMaxShares = () => {
-		let shares = 0;
-		let maxShares = 0;
-		trades
-			.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
-			.forEach(({ action, quantity }) => {
-				if (action === 'buy') {
-					shares += quantity;
-				} else {
-					shares -= quantity;
-				}
-
-				if (shares > maxShares) {
-					maxShares = shares;
-				}
-			});
-
-		return maxShares;
-	};
-
-	const maxShares = getMaxShares();
 
 	return (
 		<Layout>
@@ -511,7 +490,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							valuations={assessment.valuations}
 							rating={assessment.rating}
 							name={''}
-							maxShares={maxShares}
+							maxShares={getMaxShares(trades)}
 							currentShares={position.quantity}
 						/>
 					) : (
@@ -636,6 +615,7 @@ export const pageQuery = graphql`
 					isOpeningPositionTrade
 					priceUsd
 					priceCad
+					isSell
 					exchange {
 						rate
 					}

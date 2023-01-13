@@ -3,6 +3,7 @@ import moment from 'moment-timezone';
 import _ from 'lodash';
 import { AssetType } from './enum';
 import { clamp } from 'lodash';
+import { ITrade } from './trade';
 
 const MARGIN_ACCOUNT_ID = 26418215;
 const TFSA_ACCOUNT_ID = 51443858;
@@ -154,4 +155,43 @@ export const getTrackedYears = (): number[] => {
 	}
 
 	return years;
+};
+
+interface IMaxSharesTrade
+	extends Pick<ITrade, 'timestamp' | 'isSell' | 'quantity'> {}
+
+export const getMaxShares = (trades: IMaxSharesTrade[]) => {
+	let shares = 0;
+	let maxShares = 0;
+
+	trades
+		.slice()
+		.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
+		.forEach(({ isSell, quantity, timestamp }) => {
+			console.log(isSell, quantity, timestamp);
+			if (!isSell) {
+				shares += quantity;
+			} else {
+				shares -= quantity;
+			}
+
+			if (shares > maxShares) {
+				maxShares = shares;
+			}
+		});
+
+	console.log('max shares', maxShares);
+
+	return maxShares;
+};
+
+export const getPercentSharesRemaining = (
+	positionQuantity: number,
+	trades: IMaxSharesTrade[]
+) => {
+	const apexShares = getMaxShares(trades);
+
+	console.log(positionQuantity, apexShares);
+
+	return positionQuantity / apexShares;
 };

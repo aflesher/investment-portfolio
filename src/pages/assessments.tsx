@@ -77,6 +77,7 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 		let shares = 0;
 		let maxShares = 0;
 		trades
+			.slice()
 			.sort((a, b) => compareNumber(b.timestamp, a.timestamp))
 			.forEach(({ isSell, quantity }) => {
 				if (isSell) {

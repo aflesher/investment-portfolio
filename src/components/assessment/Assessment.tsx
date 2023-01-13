@@ -92,7 +92,7 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 					<div className='col-4 text-right'>REMAINING SHARES</div>
 					<div className='col-8'>
 						<div style={{ width: '50%' }}>
-							<div className='bar-graph bar-background blue-glow'>
+							<div className='bar-graph bar-background negative'>
 								<div className='left-value'>0</div>
 								<div className='right-value'>{maxShares}</div>
 								<div

@@ -5,10 +5,12 @@ import { connect, ResolveArrayThunks } from 'react-redux';
 
 import Position from '../components/position/Position';
 import Layout from '../components/layout';
-import { Currency, AssetType } from '../utils/enum';
+import { Currency, AssetType, RatingType } from '../utils/enum';
 import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
 import { ICash } from '../utils/cash';
+import { ITrade } from '../utils/trade';
+import { getMaxShares, getPercentSharesRemaining } from '../utils/util';
 
 export enum PositionsOrderBy {
 	symbol,
@@ -46,10 +48,12 @@ interface IPositionNode {
 	assessment?: {
 		targetInvestmentProgress: number;
 		targetPriceProgress: number;
+		rating: RatingType;
 		checklist: {
 			pristine: boolean | null;
 		};
 	};
+	trades: Pick<ITrade, 'timestamp' | 'isSell' | 'quantity'>[];
 }
 
 interface IPositionsQuery {
@@ -98,6 +102,7 @@ const addCurrencyToPositions = (
 			marketCap: 106930000000,
 			name: 'Bank of Canada',
 		},
+		trades: [],
 	};
 
 	return position;
@@ -172,12 +177,30 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 		)
 		.value();
 
+	const getRatingPercent = (positionNode: IPositionNode) => {
+		const rating = positionNode.assessment?.rating || 'none';
+
+		if (['none', 'hold'].includes(rating)) {
+			return 0;
+		}
+
+		if (rating === 'sell') {
+			return getPercentSharesRemaining(positionNode.quantity, positionNode.trades);
+		}
+
+		if (rating === 'buy') {
+			return positionNode.assessment?.targetInvestmentProgress;
+		}
+
+		return 0;
+	};
+
 	return (
 		<Layout>
 			<div className='grid p-4'>
 				<div className='row pb-1'>
 					<div
-						className='col-4 col-lg-3 offset-lg-1 link'
+						className='col-4 col-lg-2 link'
 						onClick={() => setOrderBy(PositionsOrderBy.symbol)}
 					>
 						SYMBOL
@@ -187,6 +210,12 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						onClick={() => setOrderBy(PositionsOrderBy.profits)}
 					>
 						P&L
+					</div>
+					<div
+						className='col-2 text-right link'
+						onClick={() => setOrderBy(PositionsOrderBy.profits)}
+					>
+						RATING
 					</div>
 					<div
 						className='col-2 text-right link'
@@ -234,6 +263,8 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						quoteCurrency={position.quote.currency}
 						symbolCharacter={''}
 						positionsOrderBy={orderBy}
+						rating={position.assessment?.rating}
+						ratingPercent={getRatingPercent(position)}
 					/>
 				))}
 				<div className='row'>
@@ -285,9 +316,15 @@ export const pageQuery = graphql`
 				assessment {
 					targetInvestmentProgress
 					targetPriceProgress
+					rating
 					checklist {
 						pristine
 					}
+				}
+				trades {
+					quantity
+					timestamp
+					isSell
 				}
 			}
 		}

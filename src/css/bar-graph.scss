@@ -1,106 +1,115 @@
 @import './variables.scss';
 
 .bar-graph {
-  &.bar-graph-sm {
-    .bar {
-      height: 18px;
-    }
+	position: relative;
+	&.bar-graph-sm {
+		.bar {
+			height: 18px;
+		}
 
-    font-size: 0.9em;
-  }
+		font-size: 0.9em;
+	}
 
-  &.bar-background {
-    background-color: #555;
-  }
+	&.bar-background {
+		background-color: #555;
+	}
 
-  .bar {
-    font-weight: bold;
-    position: relative;
-    height: 26px;
-  }
+	.bar {
+		font-weight: bold;
+		position: relative;
+		height: 26px;
+	}
 
-  .bar-value {
-    font-weight: bold;
-    position: absolute;
-    width: 200px;
-    right: -210px;
-    top: 0;
-  }
+	.bar-value {
+		font-weight: bold;
+		position: absolute;
+		width: 200px;
+		right: -210px;
+		top: 0;
+	}
 
-  &.positive {
-    
-    .bar {
-      background-color: lighten($positive-color, 20%);
-      box-shadow: inset 0 0 10px $positive-glow-color, 0 0 10px $positive-glow-color;
-    }
+	.title {
+		position: absolute;
+		font-weight: bold;
+		text-align: center;
+		top: 0px;
+		left: 0px;
+		right: 0px;
+	}
 
-    .bar-value {
-      @extend %text-positive;
-    }
-  }
+	&.positive {
+		.bar {
+			background-color: lighten($positive-color, 20%);
+			box-shadow: inset 0 0 10px $positive-glow-color,
+				0 0 10px $positive-glow-color;
+		}
 
-  &.negative {
-    
-    .bar {
-      background-color: lighten($negative-color, 20%);
-      box-shadow: inset 0 0 10px $negative-glow-color, 0 0 10px $negative-glow-color;
-    }
+		.bar-value {
+			@extend %text-positive;
+		}
+	}
 
-    .bar-value {
-      @extend %text-negative;
-    }
-  }
+	&.negative {
+		.bar {
+			background-color: lighten($negative-color, 20%);
+			box-shadow: inset 0 0 10px $negative-glow-color,
+				0 0 10px $negative-glow-color;
+		}
 
-  &.neutral {
-    
-    .bar {
-      background-color: lighten($neutral-glow-color, 40%);
-      box-shadow: inset 0 0 10px $neutral-glow-color, 0 0 10px $neutral-glow-color;
-    }
-  }
+		.bar-value {
+			@extend %text-negative;
+		}
+	}
 
-  &.blue-glow {
-    .bar {
-      background-color: rgba(lighten($link-glow-color, 40%), .8);
-      box-shadow: inset 0 0 10px $link-glow-color, 0 0 10px $link-glow-color;
-    }
-  }
+	&.neutral {
+		.bar {
+			background-color: lighten($neutral-glow-color, 40%);
+			box-shadow: inset 0 0 10px $neutral-glow-color, 0 0 10px $neutral-glow-color;
+		}
+	}
 
-  .left-value {
-    margin-left: -50px;
-    width: 100px;
-    text-align: center;
-    float: left;
-    margin-top: -25px;
-    font-weight: normal;
-  }
+	&.blue-glow {
+		.bar {
+			background-color: rgba(lighten($link-glow-color, 40%), 0.8);
+			box-shadow: inset 0 0 10px $link-glow-color, 0 0 10px $link-glow-color;
+		}
+	}
 
-  .right-value {
-    margin-right: -100px;
-    width: 200px;
-    text-align: center;
-    float: right;
-    margin-top: -25px;
-    font-weight: normal;
-  }
+	.left-value {
+		margin-left: -50px;
+		width: 100px;
+		text-align: center;
+		float: left;
+		margin-top: -25px;
+		font-weight: normal;
+	}
 
-  .bar {
-    position: relative;
-    .right-value {
-      margin-top: 25px;
-    }
+	.right-value {
+		margin-right: -100px;
+		width: 200px;
+		text-align: center;
+		float: right;
+		margin-top: -25px;
+		font-weight: normal;
+	}
 
-    .end-value {
-      position: absolute;
-      font-weight: normal;
-      right: -60px;
-      width: 50px;
-    }
-  }
+	.bar {
+		position: relative;
+		.right-value {
+			margin-top: 25px;
+		}
+
+		.end-value {
+			position: absolute;
+			font-weight: normal;
+			right: -60px;
+			width: 50px;
+		}
+	}
 }
 
 .chart-info-color {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #fff;
+	width: 20px;
+	height: 20px;
+	border: 2px solid #fff;
 }
