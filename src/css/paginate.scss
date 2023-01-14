@@ -1,68 +1,70 @@
 $paginate-selected-color: #ccc;
 
 .paginate {
-  
-  ul {
-    margin: 0;
-    padding: 10px;
-  }
+	ul {
+		margin: 0;
+		padding: 10px;
+	}
 
-  li {
-    display: inline-block;
-    text-align: center;
-    width: 30px;
-    height: 30px;
+	li {
+		display: inline-block;
+		text-align: center;
+		width: 30px;
+		height: 30px;
 
-    a {
-      cursor: pointer;
-      font-weight: bold;
-      border: none;
-    }
-  }
+		a {
+			cursor: pointer;
+			font-weight: bold;
+			border: none;
+		}
+	}
 
-  li.selected {
-    border: 2px solid $paginate-selected-color;
-    border-radius: 50%;
+	li.selected {
+		border: 2px solid $paginate-selected-color;
+		border-radius: 50%;
 
-    a {
-      cursor: default;
-      color: $paginate-selected-color;
-      text-shadow: none;
-    }
-  }
+		a {
+			cursor: default;
+			color: $paginate-selected-color;
+			text-shadow: none;
+		}
+	}
 
-  li.disabled {
-    a {
-      cursor: default;
-      color: $paginate-selected-color;
-      text-shadow: none;
-    }
-  }
+	li.disabled {
+		a {
+			cursor: default;
+			color: $paginate-selected-color;
+			text-shadow: none;
+		}
+	}
 
-  a:active, a:focus {
-    outline: 0;
-    border: none;
-    -moz-outline-style: none
-  }
+	a:active,
+	a:focus {
+		outline: 0;
+		border: none;
+		-moz-outline-style: none;
+	}
 
-  .break a {
-    cursor: default;
-  }
+	.break a {
+		cursor: default;
+	}
 
-  .next, .previous {
-    a {
-      text-decoration: none;
-    }
-  }
+	.next,
+	.previous {
+		a {
+			text-decoration: none;
+		}
+	}
 }
 
 .grid {
-  .colored-row {
-    background-color: #333;
-    border-bottom: 1px solid #444;
+	width: 100%;
+	.colored-row {
+		background-color: #333;
+		border-bottom: 1px solid #444;
 
-    &:hover {
-      background-color: lighten($color: #333, $amount: 5%);
-    }
-  }
+		&:hover {
+			background-color: lighten($color: #333, $amount: 5%);
+		}
+	}
 }

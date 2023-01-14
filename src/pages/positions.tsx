@@ -11,6 +11,7 @@ import XE from '../components/xe/XE';
 import { ICash } from '../utils/cash';
 import { ITrade } from '../utils/trade';
 import { getMaxShares, getPercentSharesRemaining } from '../utils/util';
+import { IOrder } from '../utils/order';
 
 export enum PositionsOrderBy {
 	symbol,
@@ -48,6 +49,7 @@ interface IPositionNode {
 	assessment?: {
 		targetInvestmentProgress: number;
 		targetPriceProgress: number;
+		targetInvestment: number;
 		rating: RatingType;
 		checklist: {
 			pristine: boolean | null;
@@ -63,6 +65,9 @@ interface IPositionsQuery {
 		};
 		allCash: {
 			nodes: ICash[];
+		};
+		allOrder: {
+			nodes: Pick<IOrder, 'symbol' | 'action' | 'openQuantity' | 'limitPrice'>[];
 		};
 	};
 }
@@ -150,6 +155,8 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	);
 	const totalPositionCostUsd = _.sumBy(positionNodes, (p) => p.totalCostUsd);
 
+	const orders = data.allOrder.nodes;
+
 	const positions = _(positionNodes)
 		.orderBy(
 			(position) => {
@@ -195,92 +202,133 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 		return 0;
 	};
 
+	const getBuyOrderPercent = (positionNode: IPositionNode) => {
+		const filteredOrders = orders.filter(
+			(q) => q.symbol === positionNode.symbol && q.action === 'buy'
+		);
+
+		if (!filteredOrders.length) {
+			return 0;
+		}
+
+		const targetInvestment = positionNode.assessment?.targetInvestment;
+		if (!targetInvestment) {
+			return 0;
+		}
+
+		let percent = 0;
+		filteredOrders.forEach((order) => {
+			percent += (order.limitPrice * order.openQuantity) / targetInvestment;
+		});
+
+		return percent;
+	};
+
+	const getSellOrderPercent = (positionNode: IPositionNode) => {
+		const filteredOrders = orders.filter(
+			(q) => q.symbol === positionNode.symbol && q.action === 'sell'
+		);
+
+		if (!filteredOrders.length) {
+			return 0;
+		}
+
+		let percent = 0;
+		filteredOrders.forEach((order) => {
+			percent += order.openQuantity / positionNode.quantity;
+		});
+
+		return percent;
+	};
+
 	return (
 		<Layout>
-			<div className='grid p-4'>
-				<div className='row pb-1'>
-					<div
-						className='col-4 col-lg-2 link'
-						onClick={() => setOrderBy(PositionsOrderBy.symbol)}
-					>
-						SYMBOL
-					</div>
-					<div
-						className='col-4 col-lg-1 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.profits)}
-					>
-						P&L
-					</div>
-					<div
-						className='col-2 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.profits)}
-					>
-						RATING
-					</div>
-					<div
-						className='col-2 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.position)}
-					>
-						%oP
-					</div>
-					<div className='col-2 text-right'>
-						<span
-							className='link'
-							onClick={() => setOrderBy(PositionsOrderBy.investment)}
+			<div className='p-4'>
+				<table className='grid'>
+					<tr className='pb-1'>
+						<th className='link' onClick={() => setOrderBy(PositionsOrderBy.symbol)}>
+							SYMBOL
+						</th>
+						<th className='link' onClick={() => setOrderBy(PositionsOrderBy.profits)}>
+							P&L
+						</th>
+						<th
+							className='text-center link'
+							onClick={() => setOrderBy(PositionsOrderBy.profits)}
 						>
-							%oI
-						</span>
-					</div>
-					<div
-						className='d-none d-lg-block col-3 text-right link'
-						onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
-					>
-						$P&L
-					</div>
-				</div>
-				{positions.map((position, index) => (
-					<Position
-						key={position.symbol}
-						{...position}
-						symbol={position.symbol}
-						isFullPosition={true}
-						index={index + 1}
-						valueCad={getCurrentValueCad(position)}
-						valueUsd={getCurrentValueUsd(position)}
-						costCad={getTotalCostCad(position)}
-						costUsd={getTotalCostUsd(position)}
-						previousClosePrice={position.company.prevDayClosePrice}
-						price={position.quote.price}
-						name={position.company.name}
-						assetCurrency={position.currency}
-						marketCap={position.company.marketCap}
-						percentageOfPortfolio={getCurrentValueCad(position) / totalPositionValue}
-						percentageOfInvestment={getTotalCostCad(position) / totalPositionCost}
-						classes={['colored-row']}
-						shareProgress={position.assessment?.targetInvestmentProgress || 0}
-						priceProgress={position.assessment?.targetPriceProgress}
-						activeCurrency={currency}
-						quoteCurrency={position.quote.currency}
-						symbolCharacter={''}
-						positionsOrderBy={orderBy}
-						rating={position.assessment?.rating}
-						ratingPercent={getRatingPercent(position)}
-					/>
-				))}
-				<div className='row'>
-					<div className='col-3 offset-9 text-right'>
-						<XE
-							cad={totalPositionValue - totalPositionCost}
-							usd={totalPositionValueUsd - totalPositionCostUsd}
-							currency={currency}
+							RATING
+						</th>
+						<th
+							className='text-center link'
+							onClick={() => setOrderBy(PositionsOrderBy.profits)}
+						>
+							ORDERS
+						</th>
+						<th
+							className='link'
+							onClick={() => setOrderBy(PositionsOrderBy.position)}
+						>
+							%oP
+						</th>
+						<th className=''>
+							<span
+								className='link'
+								onClick={() => setOrderBy(PositionsOrderBy.investment)}
+							>
+								%oI
+							</span>
+						</th>
+						<th
+							className='text-right link'
+							onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
+						>
+							$P&L
+						</th>
+					</tr>
+					{positions.map((position, index) => (
+						<Position
+							key={position.symbol}
+							{...position}
+							symbol={position.symbol}
+							index={index + 1}
+							valueCad={getCurrentValueCad(position)}
+							valueUsd={getCurrentValueUsd(position)}
+							costCad={getTotalCostCad(position)}
+							costUsd={getTotalCostUsd(position)}
+							previousClosePrice={position.company.prevDayClosePrice}
+							price={position.quote.price}
+							name={position.company.name}
+							assetCurrency={position.currency}
+							marketCap={position.company.marketCap}
+							percentageOfPortfolio={getCurrentValueCad(position) / totalPositionValue}
+							percentageOfInvestment={getTotalCostCad(position) / totalPositionCost}
+							shareProgress={position.assessment?.targetInvestmentProgress || 0}
+							priceProgress={position.assessment?.targetPriceProgress}
+							activeCurrency={currency}
+							quoteCurrency={position.quote.currency}
+							symbolCharacter={''}
+							positionsOrderBy={orderBy}
+							rating={position.assessment?.rating}
+							ratingPercent={getRatingPercent(position)}
+							buyOrderPercent={getBuyOrderPercent(position)}
+							sellOrderPercent={getSellOrderPercent(position)}
 						/>
-					</div>
-				</div>
-				<div>
-					<div className='link' onClick={() => setCombined(!combined)}>
-						{(combined && 'combined *') || 'not combined'}
-					</div>
-				</div>
+					))}
+					<tr>
+						<td colSpan={7} className='text-right'>
+							<XE
+								cad={totalPositionValue - totalPositionCost}
+								usd={totalPositionValueUsd - totalPositionCostUsd}
+								currency={currency}
+							/>
+						</td>
+					</tr>
+					<tr>
+						<td className='link' onClick={() => setCombined(!combined)}>
+							{(combined && 'combined *') || 'not combined'}
+						</td>
+					</tr>
+				</table>
 			</div>
 		</Layout>
 	);
@@ -316,6 +364,7 @@ export const pageQuery = graphql`
 				assessment {
 					targetInvestmentProgress
 					targetPriceProgress
+					targetInvestment
 					rating
 					checklist {
 						pristine
@@ -337,6 +386,14 @@ export const pageQuery = graphql`
 				amountUsd
 				id
 				currency
+			}
+		}
+		allOrder {
+			nodes {
+				symbol
+				limitPrice
+				action
+				openQuantity
 			}
 		}
 	}

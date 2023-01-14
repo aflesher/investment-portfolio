@@ -8,8 +8,6 @@ import XE from '../xe/XE';
 import { PositionsOrderBy } from '../../pages/positions';
 
 export interface IPositionStateProps extends IStockQuoteStateProps {
-	isFullPosition: boolean;
-	classes?: string[];
 	index: number;
 	valueCad: number;
 	costCad: number;
@@ -22,11 +20,12 @@ export interface IPositionStateProps extends IStockQuoteStateProps {
 	positionsOrderBy?: PositionsOrderBy;
 	rating?: RatingType;
 	ratingPercent?: number;
+	buyOrderPercent?: number;
+	sellOrderPercent?: number;
 }
 
 const Position: React.FC<IPositionStateProps> = (props) => {
 	const {
-		isFullPosition,
 		activeCurrency,
 		valueCad,
 		costCad,
@@ -35,48 +34,32 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		index,
 		percentageOfInvestment,
 		percentageOfPortfolio,
-		classes,
 		quoteCurrency,
 		rating,
 		ratingPercent,
+		buyOrderPercent,
+		sellOrderPercent,
 	} = props;
-	const mainClasses = ['row', 'position'].concat(classes || []).join(' ');
 	const pnl =
 		quoteCurrency === Currency.cad
 			? (valueCad - costCad) / costCad
 			: (valueUsd - costUsd) / costUsd;
 	return (
-		<div className={mainClasses}>
-			<div
-				className={classNames({
-					'col-4': true,
-					'col-lg-1': isFullPosition,
-					'pr-0': true,
-				})}
-			>
+		<tr className='position colored-row'>
+			<td className='pr-0'>
 				<div className='d-inline-block'>
 					<StockHover {...props} />
 				</div>
-			</div>
-			<div
+			</td>
+			<td
 				className={classNames({
-					'col-lg-2': isFullPosition,
-					'text-rtl': !isFullPosition && pnl >= 0,
-					'col-4': true,
-					'text-right': true,
 					'text-positive': pnl >= 0,
 					'text-negative': pnl < 0,
 				})}
 			>
 				{numeral(pnl).format('0,0.00%')}
-			</div>
-			<div
-				className={classNames({
-					'd-none': !isFullPosition,
-					'col-2': isFullPosition,
-					'text-right': true,
-				})}
-			>
+			</td>
+			<td className='text-center px-4'>
 				{rating === 'sell' && (
 					<div className='bar-graph bar-background negative'>
 						<div
@@ -98,30 +81,34 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 				{rating === 'hold' && (
 					<span className='text-subtle font-italic'>H O L D</span>
 				)}
-			</div>
-			<div
+			</td>
+			<td className='text-center px-4'>
+				{!!sellOrderPercent && (
+					<div className='bar-graph bar-background negative'>
+						<div
+							className='bar'
+							style={{ width: `${Math.min(sellOrderPercent * 100, 100)}%` }}
+						></div>
+						<div className='title'>-{numeral(sellOrderPercent).format('0%')}</div>
+					</div>
+				)}
+				{!!buyOrderPercent && (
+					<div className='bar-graph bar-background blue-glow'>
+						<div
+							className='bar'
+							style={{ width: `${Math.min(buyOrderPercent * 100, 100)}%` }}
+						></div>
+						<div className='title'>+{numeral(buyOrderPercent).format('0%')}</div>
+					</div>
+				)}
+				{!sellOrderPercent && !buyOrderPercent && (
+					<span className='text-subtle font-italic'>N O N E</span>
+				)}
+			</td>
+			<td>{numeral(percentageOfPortfolio).format('0.0%')}</td>
+			<td>{numeral(percentageOfInvestment).format('0.0%')}</td>
+			<td
 				className={classNames({
-					'col-4': !isFullPosition,
-					'col-2': isFullPosition,
-					'text-right': true,
-				})}
-			>
-				{numeral(percentageOfPortfolio).format('0.0%')}
-			</div>
-			<div
-				className={classNames({
-					'd-none': !isFullPosition,
-					'col-2': isFullPosition,
-					'text-right': true,
-				})}
-			>
-				{numeral(percentageOfInvestment).format('0.0%')}
-			</div>
-			<div
-				className={classNames({
-					'd-none': true,
-					'col-3': true,
-					'd-lg-block': isFullPosition,
 					'text-right': true,
 					'text-positive': pnl >= 0,
 					'text-negative': pnl < 0,
@@ -132,8 +119,8 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 					usd={valueUsd - costUsd}
 					currency={activeCurrency}
 				/>
-			</div>
-		</div>
+			</td>
+		</tr>
 	);
 };
 

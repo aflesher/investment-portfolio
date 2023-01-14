@@ -4,10 +4,11 @@ import _ from 'lodash';
 import { Link } from 'gatsby';
 import numeral from 'numeral';
 
-import Position, { IPositionStateProps } from '../position/Position';
+import { IPositionStateProps } from '../position/Position';
 import Trade, { ITradeStateProps } from '../trade/Trade';
 import Dividend, { IDividendStateProps } from '../dividend/Dividend';
 import { Currency } from '../../utils/enum';
+import StockHover from '../stock-hover/StockHover';
 
 interface ISidebarRightStateProps {
 	positions: IPositionStateProps[];
@@ -38,7 +39,18 @@ const SidebarRight: React.FC<
 		.orderBy((q) => q.timestamp, 'desc')
 		.slice(0, 5)
 		.value();
-	console.log();
+
+	const pnl = ({
+		quoteCurrency,
+		costCad,
+		costUsd,
+		valueCad,
+		valueUsd,
+	}: IPositionStateProps) => {
+		return quoteCurrency === Currency.cad
+			? (valueCad - costCad) / costCad
+			: (valueUsd - costUsd) / costUsd;
+	};
 
 	return (
 		<div>
@@ -80,7 +92,29 @@ const SidebarRight: React.FC<
 						},
 						orderBy == PositionOrderBy.symbol ? 'asc' : 'desc'
 					)
-					.map((position) => <Position key={position.symbol} {...position} />)
+					.map((position) => (
+						<div className='row position'>
+							<div className='col-4 pr-0'>
+								<div className='d-inline-block'>
+									<StockHover {...position} />
+								</div>
+							</div>
+							<div
+								className={classNames({
+									'text-rtl': pnl(position) >= 0,
+									'col-4': true,
+									'text-right': true,
+									'text-positive': pnl(position) >= 0,
+									'text-negative': pnl(position) < 0,
+								})}
+							>
+								{numeral(pnl(position)).format('0,0.00%')}
+							</div>
+							<div className='col-4 text-right'>
+								{numeral(position.percentageOfPortfolio).format('0.0%')}
+							</div>
+						</div>
+					))
 					.value()}
 			</div>
 
