@@ -59,7 +59,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 			>
 				{numeral(pnl).format('0,0.00%')}
 			</td>
-			<td className='text-center px-4'>
+			<td className='text-center px-4' style={{ minWidth: 120 }}>
 				{rating === 'sell' && (
 					<div className='bar-graph bar-background negative'>
 						<div
@@ -82,7 +82,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 					<span className='text-subtle font-italic'>H O L D</span>
 				)}
 			</td>
-			<td className='text-center px-4'>
+			<td className='text-center px-4' style={{ minWidth: 120 }}>
 				{!!sellOrderPercent && (
 					<div className='bar-graph bar-background negative'>
 						<div
@@ -101,9 +101,11 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 						<div className='title'>+{numeral(buyOrderPercent).format('0%')}</div>
 					</div>
 				)}
-				{!sellOrderPercent && !buyOrderPercent && (
-					<span className='text-subtle font-italic'>N O N E</span>
-				)}
+				{!sellOrderPercent &&
+					!buyOrderPercent &&
+					['buy', 'sell'].includes(rating || 'none') && (
+						<span className='text-subtle font-italic'>N O N E</span>
+					)}
 			</td>
 			<td>{numeral(percentageOfPortfolio).format('0.0%')}</td>
 			<td>{numeral(percentageOfInvestment).format('0.0%')}</td>

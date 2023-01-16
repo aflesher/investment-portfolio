@@ -6,57 +6,48 @@ import * as firebase from 'firebase/app';
 import Layout from '../../components/layout';
 import { connect } from 'react-redux';
 import { IStoreState } from '../../store/store';
+import { IReview } from '../../utils/review';
 
 interface IReviewStateProps {
-	user: firebase.User | null | undefined,
-	firebase: firebase.app.App | undefined
+	user: firebase.User | null | undefined;
+	firebase: firebase.app.App | undefined;
 }
 
-interface IFirebaseReviewFields extends firebase.firestore.DocumentData {
-	comments: string,
-	start: string[],
-	stop: string[],
-	continue: string[],
-	goals: string[],
-	highlights: string[],
-	lowlights: string[],
-	year: number,
-	grade: string
-}
+interface IFirebaseReviewFields
+	extends firebase.firestore.DocumentData,
+		IReview {}
 
 interface IFirebaseReview extends IFirebaseReviewFields {
-	docRef: firebase.firestore.DocumentReference,
-	id?: string,
+	docRef: firebase.firestore.DocumentReference;
+	id?: string;
 }
 
-const mapStateToProps = ({firebase, user}: IStoreState): IReviewStateProps => ({
+const mapStateToProps = ({
 	firebase,
-	user
+	user,
+}: IStoreState): IReviewStateProps => ({
+	firebase,
+	user,
 });
 
 let year = 2018;
 const years: number[] = [];
-while(year <= new Date().getFullYear()) {
+while (year <= new Date().getFullYear()) {
 	years.push(year);
 	year++;
 }
 
-const grades = [
-	'A+',
-	'A',
-	'B',
-	'C+',
-	'C',
-	'C-',
-	'D',
-	'F'
-];
+const grades = ['A+', 'A', 'B', 'C+', 'C', 'C-', 'D', 'F'];
 
 const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
-
 	const [reviews, setReviews] = React.useState<IFirebaseReview[]>([]);
-	const [firestore, setFirestore] = React.useState<firebase.firestore.Firestore | null>(null);
-	const [year, setYear] = React.useState<string>(String(new Date().getFullYear()));
+	const [
+		firestore,
+		setFirestore,
+	] = React.useState<firebase.firestore.Firestore | null>(null);
+	const [year, setYear] = React.useState<string>(
+		String(new Date().getFullYear())
+	);
 	const [start, setStart] = React.useState<string[]>([]);
 	const [grade, setGrade] = React.useState('');
 	const [stop, setStop] = React.useState<string[]>([]);
@@ -82,7 +73,10 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 			return setEmptyYear();
 		}
 
-		const review = _.find(loadedReviews || reviews, q => q.year === Number(year));
+		const review = _.find(
+			loadedReviews || reviews,
+			(q) => q.year === Number(year)
+		);
 		if (!review) {
 			return setEmptyYear();
 		}
@@ -97,7 +91,9 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		setGrade(review.grade);
 	};
 
-	const fetchReviews = async (db: firebase.firestore.Firestore): Promise<void> => {
+	const fetchReviews = async (
+		db: firebase.firestore.Firestore
+	): Promise<void> => {
 		const querySnapshot = await db.collection('reviews').get();
 
 		const reviews = querySnapshot.docs.map(
@@ -106,11 +102,11 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 				return {
 					id: queryDocumentSnapshot.id,
 					docRef: queryDocumentSnapshot.ref,
-					...data
+					...data,
 				};
 			}
 		);
-		
+
 		setReviews(reviews);
 		loadReview(year, reviews);
 	};
@@ -120,7 +116,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 			return;
 		}
 		await fetchReviews(firestore);
-		const review = _.find(reviews, q => q.year === Number(year));
+		const review = _.find(reviews, (q) => q.year === Number(year));
 		const docRef = review ? review.docRef : firestore.collection('reviews').doc();
 
 		const fields: IFirebaseReviewFields = {
@@ -132,7 +128,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 			lowlights,
 			comments,
 			grade,
-			year: Number(year)
+			year: Number(year),
 		};
 
 		await docRef.set(fields, { merge: true });
@@ -151,7 +147,6 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		values.push('');
 		setState(values);
 	};
-
 
 	React.useEffect(() => {
 		if (!firestore && firebase && user) {
@@ -172,7 +167,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 					name={`${name}${index}`}
 					value={value}
 					className='form-control'
-					onChange={e => {
+					onChange={(e) => {
 						const values = state.slice();
 						values[index] = e.target.value;
 						setState(values);
@@ -186,37 +181,31 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		<Layout>
 			<div className='p-4'>
 				<div className='row border-b mb-1'>
-
 					<div className='col-3'>
 						<div className='form-group'>
 							<label htmlFor='year'>Year</label>
 							<select
 								name='year'
 								value={year}
-								onChange={e => onSetYear(e.target.value)}
+								onChange={(e) => onSetYear(e.target.value)}
 								className='form-control'
 							>
-								{years.map(year =>
+								{years.map((year) => (
 									<option key={year} value={year}>
 										{year}
 									</option>
-								)}
+								))}
 							</select>
 						</div>
 					</div>
 
 					<div className='col-3 offset-6'>
-						<div className='form-group text-right' style={{paddingTop: 30}}>
-							<button
-								type='button'
-								className='btn btn-primary'
-								onClick={saveReview}
-							>
+						<div className='form-group text-right' style={{ paddingTop: 30 }}>
+							<button type='button' className='btn btn-primary' onClick={saveReview}>
 								SAVE
 							</button>
 						</div>
 					</div>
-
 				</div>
 				<div className='row mt-4'>
 					<div className='col-3'>
@@ -225,21 +214,22 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 							<select
 								name='grade'
 								value={grade}
-								onChange={e => setGrade(e.target.value)}
+								onChange={(e) => setGrade(e.target.value)}
 								className='form-control'
 							>
-								<option key='empty' value=''>-</option>
-								{grades.map(grade =>
+								<option key='empty' value=''>
+									-
+								</option>
+								{grades.map((grade) => (
 									<option key={grade} value={grade}>
 										{grade}
 									</option>
-								)}
+								))}
 							</select>
 						</div>
 					</div>
 				</div>
 				<div className='row mt-4'>
-
 					<div className='col-4'>
 						{createInputFields(start, 'start', setStart)}
 						<div className='my-3'>
@@ -248,7 +238,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 								className='btn btn-primary'
 								onClick={() => handleAddInputField(start, setStart)}
 							>
-								<i className="fas fa-play mr-2"></i> Start
+								<i className='fas fa-play mr-2'></i> Start
 							</button>
 						</div>
 					</div>
@@ -260,7 +250,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 								className='btn btn-danger'
 								onClick={() => handleAddInputField(stop, setStop)}
 							>
-								<i className="fas fa-stop mr-2"></i> Stop
+								<i className='fas fa-stop mr-2'></i> Stop
 							</button>
 						</div>
 					</div>
@@ -273,11 +263,10 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 								className='btn btn-success'
 								onClick={() => handleAddInputField(continues, setContinues)}
 							>
-								<i className="fas fa-sync-alt mr-2"></i> Continue
+								<i className='fas fa-sync-alt mr-2'></i> Continue
 							</button>
 						</div>
 					</div>
-
 				</div>
 
 				<div className='row mt-4'>
@@ -297,7 +286,6 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 				</div>
 
 				<div className='row mt-4'>
-
 					<div className='col-6'>
 						{createInputFields(highlights, 'highlights', setHighlights)}
 						<div className='my-3'>
@@ -306,7 +294,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 								className='btn btn-primary'
 								onClick={() => handleAddInputField(highlights, setHighlights)}
 							>
-								<i className="fas fa-award mr-2"></i> Highlights
+								<i className='fas fa-award mr-2'></i> Highlights
 							</button>
 						</div>
 					</div>
@@ -318,11 +306,10 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 								className='btn btn-danger'
 								onClick={() => handleAddInputField(lowlights, setLowlights)}
 							>
-								<i className="fas fa-meh mr-2"></i> Lowlights
+								<i className='fas fa-meh mr-2'></i> Lowlights
 							</button>
 						</div>
 					</div>
-
 				</div>
 
 				<div className='row mt-4'>
@@ -331,11 +318,10 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 							name='comments'
 							value={comments}
 							className='form-control'
-							onChange={e => setComments(e.target.value)}
+							onChange={(e) => setComments(e.target.value)}
 						/>
 					</div>
 				</div>
-
 			</div>
 		</Layout>
 	);

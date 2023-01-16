@@ -93,7 +93,7 @@ const SidebarRight: React.FC<
 						orderBy == PositionOrderBy.symbol ? 'asc' : 'desc'
 					)
 					.map((position) => (
-						<div className='row position'>
+						<div className='row position' key={position.symbol}>
 							<div className='col-4 pr-0'>
 								<div className='d-inline-block'>
 									<StockHover {...position} />

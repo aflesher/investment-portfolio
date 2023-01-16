@@ -3,7 +3,7 @@ export interface IReview {
 	continue: string[];
 	goals: string[];
 	grade: string;
-	hightlights: string[];
+	highlights: string[];
 	lowlights: string[];
 	start: string[];
 	stop: string[];
