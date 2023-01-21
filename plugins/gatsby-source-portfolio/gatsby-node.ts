@@ -40,7 +40,13 @@ const ratesPromise = firebase.getExchangeRates();
 
 const MARGIN_ACCOUNT_ID = 26418215;
 
-const FILTER_SYMBOLS = ['ausa.cn', 'dlr.to', 'dlr.u.to', 'glh.cn.11480862'];
+const FILTER_SYMBOLS = [
+	'ausa.cn',
+	'dlr.to',
+	'dlr.u.to',
+	'glh.cn.11480862',
+	'pins20jan23c55.00',
+];
 const SYMBOLS_TO_VIEW_IDS: string[] = [];
 
 const SYMBOL_ID_REPLACEMENTS = [

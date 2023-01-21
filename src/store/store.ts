@@ -6,10 +6,24 @@ export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
 export const SET_USER_ACTION = 'SET_USER_ACTION';
 export const SET_SHOW_SIDEBAR = 'SET_SHOW_SIDEBAR';
 export const SET_FIREBASE = 'SET_FIREBASE';
+export const SET_GOAL_STATUS = 'SET_GOAL_STATUS';
+export const SET_GOAL_STATUSES = 'SET_GOAL_STATUSES';
 
 export interface IStoreAction {
 	type: string;
-	payload: Currency | firebase.User | null | boolean;
+	payload:
+		| Currency
+		| firebase.User
+		| null
+		| boolean
+		| IGoalStatus
+		| IGoalStatus[]
+		| firebase.app.App;
+}
+
+export interface IGoalStatus {
+	text: string;
+	achieved: boolean;
 }
 
 export interface IStoreState {
@@ -17,6 +31,8 @@ export interface IStoreState {
 	user: firebase.User | null | undefined;
 	showSidebar: boolean;
 	firebase: firebase.app.App | undefined;
+	firestore: firebase.firestore.Firestore | undefined;
+	goalStatuses: IGoalStatus[];
 }
 
 const initialState: IStoreState = {
@@ -24,6 +40,8 @@ const initialState: IStoreState = {
 	user: undefined,
 	showSidebar: true,
 	firebase: undefined,
+	firestore: undefined,
+	goalStatuses: [],
 };
 
 const reducer = (
@@ -45,8 +63,19 @@ const reducer = (
 			const showSidebar = action.payload as boolean;
 			return { ...state, showSidebar };
 		case SET_FIREBASE:
-			const firebase = action.payload as any;
-			return { ...state, firebase };
+			const firebase = action.payload as firebase.app.App;
+			const firestore = firebase.firestore();
+			return { ...state, firebase, firestore };
+		case SET_GOAL_STATUS:
+			const status = action.payload as IGoalStatus;
+			const goalStatuses = [
+				...state.goalStatuses.filter((q) => q.text !== status.text),
+				status,
+			];
+			return { ...state, goalStatuses };
+		case SET_GOAL_STATUSES:
+			const statuses = action.payload as IGoalStatus[];
+			return { ...state, goalStatuses: statuses };
 	}
 	return state;
 };

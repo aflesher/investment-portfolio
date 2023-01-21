@@ -15,33 +15,45 @@ $disclaimer-height: 150px;
 $subtle-text-color: #999;
 $hoverable-color: #fdfdfd;
 $hoverable-glow-color: #03edf9;
-$hoverable-crypto-glow-color: #0372F9;
+$hoverable-crypto-glow-color: #0372f9;
+$neutral-color: #f5ae70;
 $neutral-glow-color: #f39f05;
 $highlight-panel-color: #333;
+$blue-color: #79a0f1;
+$blue-glow-color: #195ce6;
 
 %text-negative {
-  color: $negative-color;
-  text-shadow: 0 0 2px #001716, 0 0 3px $negative-glow-color, 0 0 5px $negative-glow-color, 0 0 10px $negative-glow-color;
+	color: $negative-color;
+	text-shadow: 0 0 2px #001716, 0 0 3px $negative-glow-color,
+		0 0 5px $negative-glow-color, 0 0 10px $negative-glow-color;
 }
 
 %text-positive {
-  color: $positive-color;
-  text-shadow: 0 0 2px #001716, 0 0 3px $positive-glow-color, 0 0 5px $positive-glow-color, 0 0 10px $positive-glow-color;
+	color: $positive-color;
+	text-shadow: 0 0 2px #001716, 0 0 3px $positive-glow-color,
+		0 0 5px $positive-glow-color, 0 0 10px $positive-glow-color;
 }
 
 %text-neutral {
-  color: #fff;
-  text-shadow: 0 0 2px #001716, 0 0 3px $neutral-glow-color, 0 0 5px $neutral-glow-color, 0 0 10px $neutral-glow-color;
+	color: #fff;
+	text-shadow: 0 0 2px #001716, 0 0 3px $neutral-glow-color,
+		0 0 5px $neutral-glow-color, 0 0 10px $neutral-glow-color;
+}
+
+%text-neutral-alternate {
+	color: $blue-color;
+	text-shadow: 0 0 2px #001716, 0 0 3px $blue-glow-color,
+		0 0 5px $blue-glow-color, 0 0 10px $blue-glow-color;
 }
 
 .green-color {
-  color: $positive-glow-color;
+	color: $positive-glow-color;
 }
 
 .red-color {
-  color: $negative-glow-color;
+	color: $negative-glow-color;
 }
 
 .blue-color {
-  color: $hoverable-crypto-glow-color;
+	color: $hoverable-crypto-glow-color;
 }

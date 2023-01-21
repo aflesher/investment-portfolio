@@ -135,6 +135,9 @@ img.cover {
 .text-negative {
 	@extend %text-negative;
 }
+.text-neutral {
+	@extend %text-neutral-alternate;
+}
 
 .text-small {
 	font-size: 0.8em;
@@ -453,4 +456,8 @@ h4 {
 
 .home-page-earnings-wrapper {
 	background-color: #444;
+}
+
+.display-linebreak {
+	white-space: pre-line;
 }

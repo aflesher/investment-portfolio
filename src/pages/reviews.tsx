@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { graphql } from 'gatsby';
 import crypto from 'crypto';
-import { Currency } from '../utils/enum';
+import { connect } from 'react-redux';
 import Layout from '../components/layout';
 import { IReview } from '../utils/review';
 import { compareNumber } from '../utils/util';
+import {
+	IGoalStatus,
+	IStoreAction,
+	IStoreState,
+	SET_GOAL_STATUS,
+} from '../store/store';
 
 interface IReviewQuery {
 	data: {
@@ -14,18 +20,57 @@ interface IReviewQuery {
 	};
 }
 
-const Reviews: React.FC<IReviewQuery> = ({ data }) => {
+interface IReviewStateProps
+	extends Pick<IStoreState, 'goalStatuses' | 'firestore'> {}
+
+interface IReviewDispatchProps {
+	setGoalStatus: (goalStatus: IGoalStatus) => void;
+}
+
+const mapStateToProps = ({
+	goalStatuses,
+	firestore,
+}: IStoreState): IReviewStateProps => ({
+	goalStatuses,
+	firestore,
+});
+
+const mapDispatchToProps = (
+	dispatch: (action: IStoreAction) => void
+): IReviewDispatchProps => {
+	return {
+		setGoalStatus: (goalStatus: IGoalStatus): void =>
+			dispatch({
+				type: SET_GOAL_STATUS,
+				payload: goalStatus,
+			}),
+	};
+};
+
+const Reviews: React.FC<
+	IReviewQuery & IReviewStateProps & IReviewDispatchProps
+> = ({ data, goalStatuses, setGoalStatus, firestore }) => {
 	const reviews = data.allReview.nodes
-		.slice()
+		.filter((q) => q.year < new Date().getFullYear())
 		.sort((a, b) => compareNumber(b.year, a.year));
 
 	const goalId = (goal: string): string => {
 		return crypto.createHash('md5').update(JSON.stringify(goal)).digest('hex');
 	};
 
-	const toggleGoal = (goalId: string, goalReached: boolean) => {
-		console.log(goalId, goalReached);
+	const toggleGoal = async (text: string, achieved: boolean) => {
+		if (!firestore) {
+			return;
+		}
+		setGoalStatus({ text, achieved });
+		const docs = await (await firestore.collection('goalStatus').get()).docs;
+		const docRef =
+			docs.find((doc) => (doc.data() as IGoalStatus).text === text)?.ref ||
+			firestore.collection('goalStatus').doc();
+		docRef.set({ text, achieved }, { merge: true });
 	};
+
+	console.log(goalStatuses);
 
 	return (
 		<Layout>
@@ -62,7 +107,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 								))}
 							</div>
 							<div className='col-4'>
-								<h4 className='blue-glow'>Continue</h4>
+								<h4 className='text-neutral'>Continue</h4>
 								{review.continue.map((c) => (
 									<div className='py-2 border-b' key={c}>
 										{c}
@@ -70,7 +115,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 								))}
 							</div>
 						</div>
-						<h4>Goals</h4>
+						<h4 className='text-neutral'>Goals</h4>
 						{review.goals.map((goal) => (
 							<div className='py-2 border-b' key={goalId(goal)}>
 								<div className='form-check'>
@@ -78,10 +123,22 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 										type='checkbox'
 										className='form-check-input'
 										id={goalId(goal)}
-										onChange={(e) => toggleGoal(goalId(goal), e.target.checked)}
+										checked={
+											goalStatuses.find(({ text }) => text === goal)?.achieved || false
+										}
+										onChange={(e) => toggleGoal(goal, e.target.checked)}
 									/>
 									<label className='form-check-label' htmlFor={goalId(goal)}>
-										{goal}
+										<span
+											style={{
+												textDecoration: goalStatuses.find(({ text }) => text === goal)
+													?.achieved
+													? 'line-through'
+													: 'none',
+											}}
+										>
+											{goal}
+										</span>
 									</label>
 								</div>
 							</div>
@@ -104,7 +161,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 								))}
 							</div>
 						</div>
-						<div>{review.comments}</div>
+						<div className='display-linebreak'>{review.comments}</div>
 					</div>
 				))}
 			</div>
@@ -112,7 +169,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 	);
 };
 
-export default Reviews;
+export default connect(mapStateToProps, mapDispatchToProps)(Reviews);
 
 export const pageQuery = graphql`
 	query {
