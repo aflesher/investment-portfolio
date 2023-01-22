@@ -17,6 +17,8 @@ export enum PositionsOrderBy {
 	symbol,
 	profits,
 	position,
+	orders,
+	rating,
 	investment,
 	pe,
 	dividendYield,
@@ -172,6 +174,21 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						return getCurrentValueCad(position) / totalPositionValue;
 					case PositionsOrderBy.investment:
 						return getTotalCostCad(position) / totalPositionCost;
+					case PositionsOrderBy.orders:
+						if (
+							orders.find((q) => q.symbol === position.symbol && q.action === 'buy')
+						) {
+							return 1;
+						}
+
+						if (
+							orders.find((q) => q.symbol === position.symbol && q.action === 'sell')
+						) {
+							return 2;
+						}
+						return 0;
+					case PositionsOrderBy.rating:
+						return position.assessment?.rating;
 					case PositionsOrderBy.pe:
 						return position.company.pe;
 					case PositionsOrderBy.dividendYield:
@@ -254,13 +271,13 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						</th>
 						<th
 							className='text-center link'
-							onClick={() => setOrderBy(PositionsOrderBy.profits)}
+							onClick={() => setOrderBy(PositionsOrderBy.rating)}
 						>
 							RATING
 						</th>
 						<th
 							className='text-center link'
-							onClick={() => setOrderBy(PositionsOrderBy.profits)}
+							onClick={() => setOrderBy(PositionsOrderBy.orders)}
 						>
 							ORDERS
 						</th>
