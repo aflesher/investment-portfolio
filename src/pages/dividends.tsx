@@ -156,7 +156,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 			<div className='p-4'>
 				<div className='row mb-4'>
 					{yearTotalsPercent.map(({ year, amount, percent }) => (
-						<div className='col-3'>
+						<div className='col-3' key={year}>
 							<div className='border p-2'>
 								<div>{year}</div>
 								<div>{numeral(amount).format('$0,0.00')}</div>

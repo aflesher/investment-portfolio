@@ -168,7 +168,6 @@ export const getMaxShares = (trades: IMaxSharesTrade[]) => {
 		.slice()
 		.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
 		.forEach(({ isSell, quantity, timestamp }) => {
-			console.log(isSell, quantity, timestamp);
 			if (!isSell) {
 				shares += quantity;
 			} else {
@@ -180,8 +179,6 @@ export const getMaxShares = (trades: IMaxSharesTrade[]) => {
 			}
 		});
 
-	console.log('max shares', maxShares);
-
 	return maxShares;
 };
 
@@ -190,8 +187,5 @@ export const getPercentSharesRemaining = (
 	trades: IMaxSharesTrade[]
 ) => {
 	const apexShares = getMaxShares(trades);
-
-	console.log(positionQuantity, apexShares);
-
 	return positionQuantity / apexShares;
 };

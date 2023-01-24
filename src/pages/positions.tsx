@@ -262,89 +262,98 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 		<Layout>
 			<div className='p-4'>
 				<table className='grid'>
-					<tr className='pb-1'>
-						<th className='link' onClick={() => setOrderBy(PositionsOrderBy.symbol)}>
-							SYMBOL
-						</th>
-						<th className='link' onClick={() => setOrderBy(PositionsOrderBy.profits)}>
-							P&L
-						</th>
-						<th
-							className='text-center link'
-							onClick={() => setOrderBy(PositionsOrderBy.rating)}
-						>
-							RATING
-						</th>
-						<th
-							className='text-center link'
-							onClick={() => setOrderBy(PositionsOrderBy.orders)}
-						>
-							ORDERS
-						</th>
-						<th
-							className='link'
-							onClick={() => setOrderBy(PositionsOrderBy.position)}
-						>
-							%oP
-						</th>
-						<th className=''>
-							<span
+					<thead>
+						<tr className='pb-1'>
+							<th className='link' onClick={() => setOrderBy(PositionsOrderBy.symbol)}>
+								SYMBOL
+							</th>
+							<th
 								className='link'
-								onClick={() => setOrderBy(PositionsOrderBy.investment)}
+								onClick={() => setOrderBy(PositionsOrderBy.profits)}
 							>
-								%oI
-							</span>
-						</th>
-						<th
-							className='text-right link'
-							onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
-						>
-							$P&L
-						</th>
-					</tr>
-					{positions.map((position, index) => (
-						<Position
-							key={position.symbol}
-							{...position}
-							symbol={position.symbol}
-							index={index + 1}
-							valueCad={getCurrentValueCad(position)}
-							valueUsd={getCurrentValueUsd(position)}
-							costCad={getTotalCostCad(position)}
-							costUsd={getTotalCostUsd(position)}
-							previousClosePrice={position.company.prevDayClosePrice}
-							price={position.quote.price}
-							name={position.company.name}
-							assetCurrency={position.currency}
-							marketCap={position.company.marketCap}
-							percentageOfPortfolio={getCurrentValueCad(position) / totalPositionValue}
-							percentageOfInvestment={getTotalCostCad(position) / totalPositionCost}
-							shareProgress={position.assessment?.targetInvestmentProgress || 0}
-							priceProgress={position.assessment?.targetPriceProgress}
-							activeCurrency={currency}
-							quoteCurrency={position.quote.currency}
-							symbolCharacter={''}
-							positionsOrderBy={orderBy}
-							rating={position.assessment?.rating}
-							ratingPercent={getRatingPercent(position)}
-							buyOrderPercent={getBuyOrderPercent(position)}
-							sellOrderPercent={getSellOrderPercent(position)}
-						/>
-					))}
-					<tr>
-						<td colSpan={7} className='text-right'>
-							<XE
-								cad={totalPositionValue - totalPositionCost}
-								usd={totalPositionValueUsd - totalPositionCostUsd}
-								currency={currency}
+								P&L
+							</th>
+							<th
+								className='text-center link'
+								onClick={() => setOrderBy(PositionsOrderBy.rating)}
+							>
+								RATING
+							</th>
+							<th
+								className='text-center link'
+								onClick={() => setOrderBy(PositionsOrderBy.orders)}
+							>
+								ORDERS
+							</th>
+							<th
+								className='link'
+								onClick={() => setOrderBy(PositionsOrderBy.position)}
+							>
+								%oP
+							</th>
+							<th className=''>
+								<span
+									className='link'
+									onClick={() => setOrderBy(PositionsOrderBy.investment)}
+								>
+									%oI
+								</span>
+							</th>
+							<th
+								className='text-right link'
+								onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
+							>
+								$P&L
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						{positions.map((position, index) => (
+							<Position
+								key={position.symbol}
+								{...position}
+								symbol={position.symbol}
+								index={index + 1}
+								valueCad={getCurrentValueCad(position)}
+								valueUsd={getCurrentValueUsd(position)}
+								costCad={getTotalCostCad(position)}
+								costUsd={getTotalCostUsd(position)}
+								previousClosePrice={position.company.prevDayClosePrice}
+								price={position.quote.price}
+								name={position.company.name}
+								assetCurrency={position.currency}
+								marketCap={position.company.marketCap}
+								percentageOfPortfolio={
+									getCurrentValueCad(position) / totalPositionValue
+								}
+								percentageOfInvestment={getTotalCostCad(position) / totalPositionCost}
+								shareProgress={position.assessment?.targetInvestmentProgress || 0}
+								priceProgress={position.assessment?.targetPriceProgress}
+								activeCurrency={currency}
+								quoteCurrency={position.quote.currency}
+								symbolCharacter={''}
+								positionsOrderBy={orderBy}
+								rating={position.assessment?.rating}
+								ratingPercent={getRatingPercent(position)}
+								buyOrderPercent={getBuyOrderPercent(position)}
+								sellOrderPercent={getSellOrderPercent(position)}
 							/>
-						</td>
-					</tr>
-					<tr>
-						<td className='link' onClick={() => setCombined(!combined)}>
-							{(combined && 'combined *') || 'not combined'}
-						</td>
-					</tr>
+						))}
+						<tr>
+							<td colSpan={7} className='text-right'>
+								<XE
+									cad={totalPositionValue - totalPositionCost}
+									usd={totalPositionValueUsd - totalPositionCostUsd}
+									currency={currency}
+								/>
+							</td>
+						</tr>
+						<tr>
+							<td className='link' onClick={() => setCombined(!combined)}>
+								{(combined && 'combined *') || 'not combined'}
+							</td>
+						</tr>
+					</tbody>
 				</table>
 			</div>
 		</Layout>
