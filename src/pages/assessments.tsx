@@ -5,26 +5,19 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 
 import Assessment from '../components/assessment/Assessment';
 import Layout from '../components/layout';
-import { Currency } from '../utils/enum';
-import { compareNumber, dateInputFormat } from '../utils/util';
+import { dateInputFormat, getMaxShares } from '../utils/util';
 import { IAssessment } from '../utils/assessment';
 import { ITrade } from '../utils/trade';
+import { IPosition } from '../utils/position';
+import { IQuote } from '../utils/quote';
+import { ICompany } from '../utils/company';
 
 interface IAssessmentTrade
 	extends Pick<ITrade, 'quantity' | 'timestamp' | 'isSell'> {}
 interface IAssessmentNode extends IAssessment {
-	position?: {
-		quantity: number;
-		totalCost: number;
-	};
-	quote?: {
-		price: number;
-		currency: Currency;
-	};
-	company?: {
-		name: string;
-		marketCap: number;
-	};
+	position?: Pick<IPosition, 'quantity' | 'totalCost'>;
+	quote?: Pick<IQuote, 'price' | 'currency'>;
+	company?: Pick<ICompany, 'name' | 'marketCap'>;
 	trades: IAssessmentTrade[];
 }
 
@@ -71,27 +64,6 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 		event: React.ChangeEvent<HTMLInputElement>
 	): void => {
 		setEndDate(new Date(event.target.value));
-	};
-
-	const maxShares = (trades: IAssessmentTrade[]) => {
-		let shares = 0;
-		let maxShares = 0;
-		trades
-			.slice()
-			.sort((a, b) => compareNumber(b.timestamp, a.timestamp))
-			.forEach(({ isSell, quantity }) => {
-				if (isSell) {
-					shares += quantity;
-				} else {
-					shares -= quantity;
-				}
-
-				if (shares > maxShares) {
-					maxShares = shares;
-				}
-			});
-
-		return maxShares;
 	};
 
 	return (
@@ -147,7 +119,7 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 						quotePrice={assessment.quote?.price || 0}
 						positionTotalCost={assessment.position?.totalCost || 0}
 						name={assessment.company?.name || '???'}
-						maxShares={maxShares(assessment.trades)}
+						maxShares={getMaxShares(assessment.trades)}
 						currentShares={assessment.position?.quantity || 0}
 					/>
 				))}

@@ -12,6 +12,10 @@ import { ICash } from '../utils/cash';
 import { ITrade } from '../utils/trade';
 import { getMaxShares, getPercentSharesRemaining } from '../utils/util';
 import { IOrder } from '../utils/order';
+import { IPosition } from '../utils/position';
+import { IQuote } from '../utils/quote';
+import { ICompany } from '../utils/company';
+import { IAssessment } from '../utils/assessment';
 
 export enum PositionsOrderBy {
 	symbol,
@@ -25,38 +29,32 @@ export enum PositionsOrderBy {
 	cashProfits,
 }
 
-interface IPositionNode {
-	currency: Currency;
-	totalCostCad: number;
-	totalCostUsd: number;
-	currentMarketValueCad: number;
-	currentMarketValueUsd: number;
-	quantity: number;
-	averageEntryPrice: number;
-	symbol: string;
-	type: AssetType;
-	quote: {
-		price: number;
-		priceCad: number;
-		priceUsd: number;
-		currency: Currency;
-	};
-	company: {
-		pe: number;
-		yield: number;
-		prevDayClosePrice: number;
-		marketCap: number;
-		name: string;
-	};
-	assessment?: {
-		targetInvestmentProgress: number;
-		targetPriceProgress: number;
-		targetInvestment: number;
-		rating: RatingType;
-		checklist: {
-			pristine: boolean | null;
-		};
-	};
+interface IPositionNode
+	extends Pick<
+		IPosition,
+		| 'currency'
+		| 'totalCostCad'
+		| 'totalCostUsd'
+		| 'currentMarketValueCad'
+		| 'currentMarketValueUsd'
+		| 'quantity'
+		| 'averageEntryPrice'
+		| 'symbol'
+		| 'type'
+	> {
+	quote: Pick<IQuote, 'price' | 'priceCad' | 'priceUsd' | 'currency'>;
+	company: Pick<
+		ICompany,
+		'pe' | 'yield' | 'prevDayClosePrice' | 'marketCap' | 'name'
+	>;
+	assessment?: Pick<
+		IAssessment,
+		| 'targetInvestmentProgress'
+		| 'targetPriceProgress'
+		| 'targetInvestment'
+		| 'rating'
+		| 'checklist'
+	>;
 	trades: Pick<ITrade, 'timestamp' | 'isSell' | 'quantity'>[];
 }
 
@@ -250,12 +248,12 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 			return 0;
 		}
 
-		let percent = 0;
+		let quantity = 0;
 		filteredOrders.forEach((order) => {
-			percent += order.openQuantity / positionNode.quantity;
+			quantity += order.openQuantity;
 		});
 
-		return percent;
+		return getPercentSharesRemaining(quantity, positionNode.trades);
 	};
 
 	return (
