@@ -11,57 +11,59 @@ import DateRange from '../components/dateRange/DateRange';
 import { IStoreState } from '../store/store';
 import { Currency, AssetType } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';
+import { ITrade } from '../utils/trade';
+import { ICompany } from '../utils/company';
+import { IQuote } from '../utils/quote';
+import { IAssessment } from '../utils/assessment';
+import { IPosition } from '../utils/position';
 
 interface ITradeProps {
 	currency: Currency;
 }
 
+interface ITradeNode
+	extends Pick<
+		ITrade,
+		| 'accountId'
+		| 'accountName'
+		| 'quantity'
+		| 'action'
+		| 'price'
+		| 'timestamp'
+		| 'pnl'
+		| 'pnlCad'
+		| 'pnlUsd'
+		| 'currency'
+		| 'symbol'
+	> {
+	company: Pick<
+		ICompany,
+		'name' | 'marketCap' | 'prevDayClosePrice' | 'symbol' | 'yield'
+	>;
+	quote: Pick<IQuote, 'price' | 'priceUsd' | 'priceCad' | 'currency'>;
+	assessment?: Pick<
+		IAssessment,
+		'targetInvestmentProgress' | 'targetPriceProgress' | 'type'
+	>;
+	position?: Pick<
+		IPosition,
+		| 'quantity'
+		| 'totalCost'
+		| 'totalCostUsd'
+		| 'totalCostCad'
+		| 'currentMarketValueCad'
+		| 'currentMarketValueUsd'
+		| 'averageEntryPrice'
+		| 'openPnl'
+		| 'openPnlCad'
+		| 'openPnlUsd'
+	>;
+}
+
 interface ITradeQuery {
 	data: {
 		allTrade: {
-			nodes: {
-				accountId: number;
-				accountName: string;
-				quantity: number;
-				price: number;
-				action: string;
-				symbol: string;
-				timestamp: number;
-				pnl: number;
-				pnlCad: number;
-				pnlUsd: number;
-				currency: Currency;
-				company: {
-					name: string;
-					marketCap: number;
-					prevDayClosePrice: number;
-					symbol: string;
-					yield?: number;
-				};
-				quote: {
-					price: number;
-					priceUsd: number;
-					priceCad: number;
-					currency: Currency;
-				};
-				assessment?: {
-					targetInvestmentProgress: number;
-					targetPriceProgress: number;
-					type: AssetType;
-				};
-				position?: {
-					quantity: number;
-					totalCost: number;
-					totalCostUsd: number;
-					totalCostCad: number;
-					currentMarketValueCad: number;
-					currentMarketValueUsd: number;
-					averageEntryPrice: number;
-					openPnl: number;
-					openPnlCad: number;
-					openPnlUsd: number;
-				};
-			}[];
+			nodes: ITradeNode[];
 		};
 	};
 }

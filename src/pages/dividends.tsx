@@ -16,45 +16,48 @@ import * as util from '../utils/util';
 import { dateInputFormat } from '../utils/util';
 import DateRange from '../components/dateRange/DateRange';
 import Percent from '../components/percent/percent';
+import { IDividend } from '../utils/dividend';
+import { IAssessment } from '../utils/assessment';
+import { ICompany } from '../utils/company';
+import { IPosition } from '../utils/position';
+import { IQuote } from '../utils/quote';
 
 interface IDividendsStateProps {
 	currency: Currency;
 }
 
+interface IDividendsQueryNode
+	extends Pick<
+		IDividend,
+		| 'symbol'
+		| 'timestamp'
+		| 'amount'
+		| 'currency'
+		| 'accountId'
+		| 'amountUsd'
+		| 'amountCad'
+	> {
+	assessment?: Pick<
+		IAssessment,
+		'targetInvestmentProgress' | 'targetPriceProgress'
+	>;
+	company?: Pick<ICompany, 'name' | 'marketCap' | 'prevDayClosePrice' | 'type'>;
+	position?: Pick<
+		IPosition,
+		| 'quantity'
+		| 'totalCost'
+		| 'totalCostUsd'
+		| 'totalCostCad'
+		| 'currentMarketValueCad'
+		| 'currentMarketValueUsd'
+	>;
+	quote?: Pick<IQuote, 'price' | 'currency'>;
+}
+
 interface IDividendsQueryProps {
 	data: {
 		allDividend: {
-			nodes: {
-				symbol: string;
-				timestamp: number;
-				amount: number;
-				currency: Currency;
-				accountId: number;
-				amountUsd: number;
-				amountCad: number;
-				assessment?: {
-					targetInvestmentProgress: number;
-					targetPriceProgress: number;
-				};
-				company?: {
-					name: string;
-					marketCap: number;
-					prevDayClosePrice: number;
-					type: AssetType;
-				};
-				position?: {
-					quantity: number;
-					totalCost: number;
-					totalCostUsd: number;
-					totalCostCad: number;
-					currentMarketValueCad: number;
-					currentMarketValueUsd: number;
-				};
-				quote?: {
-					price: number;
-					currency: Currency;
-				};
-			}[];
+			nodes: IDividendsQueryNode[];
 		};
 	};
 }

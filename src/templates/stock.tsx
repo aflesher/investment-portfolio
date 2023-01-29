@@ -23,12 +23,26 @@ import {
 } from '../utils/util';
 import { IStockSplit } from '../utils/stock-split';
 import StockSplits from '../components/stockSplits/StockSplits';
+import { ICompany } from '../utils/company';
 
 interface IStockTemplateStateProps {
 	currency: Currency;
 }
 
 const estimatedManaLandValue = 5000;
+
+interface IStockTemplateNode
+	extends Pick<
+		ICompany,
+		| 'name'
+		| 'marketCap'
+		| 'prevDayClosePrice'
+		| 'symbol'
+		| 'yield'
+		| 'highPrice52'
+		| 'lowPrice52'
+		| 'type'
+	> {}
 
 interface IStockTemplateQuery {
 	data: {

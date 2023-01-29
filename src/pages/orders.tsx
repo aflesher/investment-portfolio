@@ -7,35 +7,35 @@ import Order from '../components/order/Order';
 import { IStoreState } from '../store/store';
 import { Currency } from '../utils/enum';
 import Layout from '../components/layout';
+import { IOrder } from '../utils/order';
+import { IQuote } from '../utils/quote';
+import { ICompany } from '../utils/company';
+import { IPosition } from '../utils/position';
 
 interface IOrdersStateProps {
 	currency: Currency;
 }
 
+interface IOrderNode
+	extends Pick<
+		IOrder,
+		| 'symbol'
+		| 'limitPrice'
+		| 'limitPriceCad'
+		| 'limitPriceUsd'
+		| 'openQuantity'
+		| 'action'
+		| 'accountName'
+	> {
+	quote: Pick<IQuote, 'price' | 'afterHoursPrice'>;
+	company: Pick<ICompany, 'name' | 'marketCap'>;
+	position?: Pick<IPosition, 'quantity' | 'totalCost'>;
+}
+
 interface IOrdersQueryProps {
 	data: {
 		allOrder: {
-			nodes: {
-				symbol: string;
-				limitPrice: number;
-				limitPriceCad: number;
-				limitPriceUsd: number;
-				openQuantity: number;
-				action: string;
-				accountName: string;
-				quote: {
-					price: number;
-					afterHoursPrice: number;
-				};
-				company: {
-					name: string;
-					marketCap: number;
-				};
-				position?: {
-					quantity: number;
-					totalCost: number;
-				};
-			}[];
+			nodes: IOrderNode[];
 		};
 	};
 }
