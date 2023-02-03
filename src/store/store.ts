@@ -1,6 +1,7 @@
 import { createStore as reduxCreateStore, Store } from 'redux';
 import { Currency } from '../utils/enum';
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
+import { FirebaseStorage, getStorage } from 'firebase/storage';
 
 export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
 export const SET_USER_ACTION = 'SET_USER_ACTION';
@@ -32,6 +33,7 @@ export interface IStoreState {
 	showSidebar: boolean;
 	firebase: firebase.app.App | undefined;
 	firestore: firebase.firestore.Firestore | undefined;
+	storage: FirebaseStorage | undefined;
 	goalStatuses: IGoalStatus[];
 }
 
@@ -41,6 +43,7 @@ const initialState: IStoreState = {
 	showSidebar: true,
 	firebase: undefined,
 	firestore: undefined,
+	storage: undefined,
 	goalStatuses: [],
 };
 

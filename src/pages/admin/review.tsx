@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import TextareaAutosize from 'react-textarea-autosize';
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
 
 import Layout from '../../components/layout';
 import { connect } from 'react-redux';

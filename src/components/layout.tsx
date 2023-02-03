@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { StaticQuery, graphql } from 'gatsby';
 import classNames from 'classnames';
 import _ from 'lodash';
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
 
 import {
 	IStoreState,

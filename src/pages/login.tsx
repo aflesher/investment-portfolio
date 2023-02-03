@@ -1,5 +1,5 @@
 import React from 'react';
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
 import { connect } from 'react-redux';
 import * as firebaseui from 'firebaseui';
 import { IStoreState } from '../store/store';
@@ -32,8 +32,10 @@ const SignIn: React.FC<ISignInStateProps> = ({ user, firebase }) => {
 				},
 			};
 
-			const ui = new firebaseui.auth.AuthUI(firebase.auth());
-			ui.start('#firebaseui-auth-container', uiConfig);
+			if (!user) {
+				const ui = new firebaseui.auth.AuthUI(firebase.auth());
+				ui.start('#firebaseui-auth-container', uiConfig);
+			}
 		}
 	}, [firebase]);
 

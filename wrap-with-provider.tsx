@@ -15,24 +15,29 @@ export default ({ element }): JSX.Element => {
 	//  - it will be called only once in browser, when React mounts
 	const store = createStore();
 
-	import('firebase/app').then((firebase) => {
-		if (!firebase || !firebase.initializeApp) {
+	import('firebase/compat/app').then((firebase) => {
+		console.log('firebase loaded');
+		if (!firebase || !firebase.default.initializeApp) {
 			return;
 		}
 
-		firebase.initializeApp({
+		firebase.default.initializeApp({
 			apiKey: config.firebase.apiKey,
 			authDomain: config.firebase.authDomain,
 			projectId: config.firebase.projectId,
 		});
 
-		import('firebase/auth').then(async () => {
-			firebase.auth().onAuthStateChanged((user) => {
+		Promise.all([
+			import('firebase/compat/auth'),
+			import('firebase/compat/firestore'),
+			import('firebase/compat/storage'),
+		]).then(async () => {
+			firebase.default.auth().onAuthStateChanged((user) => {
 				store.dispatch({ type: SET_USER_ACTION, payload: user });
-				store.dispatch({ type: SET_FIREBASE, payload: firebase });
+				store.dispatch({ type: SET_FIREBASE, payload: firebase.default });
 			});
 
-			const db = firebase.firestore();
+			const db = firebase.default.firestore();
 			const docs = await (await db.collection('goalStatus').get()).docs;
 			const goalStatuses = docs.map((d) => ({ ...d.data() }));
 			store.dispatch({ type: SET_GOAL_STATUSES, payload: goalStatuses });

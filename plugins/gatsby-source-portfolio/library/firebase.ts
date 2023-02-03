@@ -1,6 +1,6 @@
 import admin from 'firebase-admin';
 import _ from 'lodash';
-import firebase from 'firebase';
+import firebase from 'firebase/compat/app';
 import NP from 'number-precision';
 
 import { deferredPromise } from './util';

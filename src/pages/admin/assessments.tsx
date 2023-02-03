@@ -1,5 +1,5 @@
 import React from 'react';
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/compat/app';
 import 'firebase/firestore';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
@@ -10,7 +10,6 @@ import { connect } from 'react-redux';
 import { AssetType, RatingType } from '../../utils/enum';
 import Layout from '../../components/layout';
 import { IAssessment } from '../../utils/assessment';
-
 interface IAssessmentsStateProps {
 	user: firebase.User | null | undefined;
 	firebase: firebase.app.App | undefined;
