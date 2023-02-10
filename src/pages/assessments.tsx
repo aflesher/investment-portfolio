@@ -11,6 +11,8 @@ import { ITrade } from '../utils/trade';
 import { IPosition } from '../utils/position';
 import { IQuote } from '../utils/quote';
 import { ICompany } from '../utils/company';
+import { connect } from 'react-redux';
+import { IStoreState } from '../store/store';
 
 interface IAssessmentTrade
 	extends Pick<ITrade, 'quantity' | 'timestamp' | 'isSell'> {}
@@ -29,7 +31,16 @@ interface IAssessmentsQuery {
 	};
 }
 
-const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
+interface IAssessmentStateProps extends Pick<IStoreState, 'storage'> {}
+
+const mapStateToProps = ({ storage }: IStoreState): IAssessmentStateProps => ({
+	storage,
+});
+
+const Assessments: React.FC<IAssessmentsQuery & IAssessmentStateProps> = ({
+	data,
+	storage,
+}) => {
 	const [symbol, setSymbol] = React.useState('');
 	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));
 	const [endDate, setEndDate] = React.useState(new Date());
@@ -65,6 +76,8 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 	): void => {
 		setEndDate(new Date(event.target.value));
 	};
+
+	console.log(storage, storage);
 
 	return (
 		<Layout>
@@ -121,6 +134,7 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 						name={assessment.company?.name || '???'}
 						maxShares={getMaxShares(assessment.trades)}
 						currentShares={assessment.position?.quantity || 0}
+						storage={storage}
 					/>
 				))}
 			</div>
@@ -128,7 +142,7 @@ const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
 	);
 };
 
-export default Assessments;
+export default connect(mapStateToProps, null)(Assessments);
 
 export const pageQuery = graphql`
 	query {

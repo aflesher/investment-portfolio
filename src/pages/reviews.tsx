@@ -70,8 +70,6 @@ const Reviews: React.FC<
 		docRef.set({ text, achieved }, { merge: true });
 	};
 
-	console.log(goalStatuses);
-
 	return (
 		<Layout>
 			<div className='p-4'>

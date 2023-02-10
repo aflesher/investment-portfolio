@@ -33,7 +33,7 @@ export interface IStoreState {
 	showSidebar: boolean;
 	firebase: firebase.app.App | undefined;
 	firestore: firebase.firestore.Firestore | undefined;
-	storage: FirebaseStorage | undefined;
+	storage: firebase.storage.Storage | undefined;
 	goalStatuses: IGoalStatus[];
 }
 
@@ -68,7 +68,9 @@ const reducer = (
 		case SET_FIREBASE:
 			const firebase = action.payload as firebase.app.App;
 			const firestore = firebase.firestore();
-			return { ...state, firebase, firestore };
+			const storage = firebase.storage();
+
+			return { ...state, firebase, firestore, storage };
 		case SET_GOAL_STATUS:
 			const status = action.payload as IGoalStatus;
 			const goalStatuses = [

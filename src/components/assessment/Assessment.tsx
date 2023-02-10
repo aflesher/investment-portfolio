@@ -8,6 +8,8 @@ import CompanyBanner, {
 	ICompanyBannerStateProps,
 } from '../company-banner/CompanyBanner';
 import { IAssessment } from '../../utils/assessment';
+import CustomText from '../customText/CustomText';
+import { IStoreState } from '../../store/store';
 
 interface IAssessmentStateProps
 	extends ICompanyBannerStateProps,
@@ -22,7 +24,8 @@ interface IAssessmentStateProps
 			| 'notes'
 			| 'targetInvestment'
 			| 'rating'
-		> {
+		>,
+		Pick<IStoreState, 'storage'> {
 	quotePrice: number;
 	positionTotalCost: number;
 	maxShares?: number;
@@ -45,6 +48,7 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 	rating,
 	maxShares,
 	currentShares,
+	storage,
 }) => {
 	return (
 		<div className='border-t py-3 assessment'>
@@ -173,8 +177,8 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 			</div>
 			<div className='mt-4'>
 				{notes.map((note, index) => (
-					<div className='my-2 p-3 notes' key={`note${index}`}>
-						{note}
+					<div className='my-2 p-3 notes display-linebreak' key={`note${index}`}>
+						<CustomText text={note} storage={storage} />
 					</div>
 				))}
 			</div>

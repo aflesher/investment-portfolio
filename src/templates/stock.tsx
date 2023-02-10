@@ -25,9 +25,8 @@ import { IStockSplit } from '../utils/stock-split';
 import StockSplits from '../components/stockSplits/StockSplits';
 import { ICompany } from '../utils/company';
 
-interface IStockTemplateStateProps {
-	currency: Currency;
-}
+interface IStockTemplateStateProps
+	extends Pick<IStoreState, 'currency' | 'storage'> {}
 
 const estimatedManaLandValue = 5000;
 
@@ -133,13 +132,16 @@ interface IStockTemplateQuery {
 
 const mapStateToProps = ({
 	currency,
+	storage,
 }: IStoreState): IStockTemplateStateProps => ({
 	currency,
+	storage,
 });
 
 const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	data,
 	currency,
+	storage,
 }) => {
 	const company = data.allCompany.nodes[0];
 	const cryptoQuotes = data.allQuote.nodes;
@@ -506,6 +508,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							name={''}
 							maxShares={getMaxShares(trades)}
 							currentShares={position.quantity}
+							storage={storage}
 						/>
 					) : (
 						<span>(no assessment)</span>

@@ -25,6 +25,7 @@ export default ({ element }): JSX.Element => {
 			apiKey: config.firebase.apiKey,
 			authDomain: config.firebase.authDomain,
 			projectId: config.firebase.projectId,
+			storageBucket: 'gs://dollar-jockey-5d690.appspot.com',
 		});
 
 		Promise.all([

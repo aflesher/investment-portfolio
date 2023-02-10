@@ -13,7 +13,7 @@ const StockSplits: React.FC<StockSplitProps> = ({
 	return (
 		<div>
 			{stockSplits.map(({ date, ratio, isReverse }) => (
-				<div className='row'>
+				<div className='row' key={date}>
 					<div className='col-6'>{date}</div>
 					<div className='col-6'>
 						{isReverse && <>1:{ratio}</>}
