@@ -4,11 +4,46 @@ import { ICash } from '../utils/cash';
 import Balance, { IBalanceStateProps } from '../components/balance/Balance';
 import { Currency } from '../utils/enum';
 import Layout from '../components/layout';
+import { IPosition } from '../utils/position';
+import { ITrade } from '../utils/trade';
+import { IQuote } from '../utils/quote';
+
+interface ICashQueryTrade
+	extends Pick<
+		ITrade,
+		'accountName' | 'quantity' | 'symbol' | 'isSell' | 'currency'
+	> {}
+interface IAccountPosition
+	extends Pick<
+		IPosition,
+		| 'symbol'
+		| 'currency'
+		| 'quantity'
+		| 'currentMarketValueCad'
+		| 'currentMarketValueUsd'
+	> {
+	accountName: string;
+}
+
+interface IAccountPositionQuote
+	extends Pick<
+		IQuote,
+		'symbol' | 'price' | 'priceCad' | 'priceUsd' | 'currency'
+	> {}
 
 interface ICashQuery {
 	data: {
 		allCash: {
 			nodes: ICash[];
+		};
+		allTrade: {
+			nodes: ICashQueryTrade[];
+		};
+		allQuote: {
+			nodes: Pick<
+				IQuote,
+				'symbol' | 'price' | 'priceCad' | 'priceUsd' | 'currency'
+			>[];
 		};
 	};
 }
@@ -16,16 +51,92 @@ interface ICashQuery {
 const Cash: React.FC<ICashQuery> = ({ data }) => {
 	const balances: IBalanceStateProps[] = [];
 
+	const getAccountPositions = (
+		trades: ICashQueryTrade[],
+		quotes: IAccountPositionQuote[]
+	): IAccountPosition[] => {
+		const positions: IAccountPosition[] = [];
+		trades.forEach((trade) => {
+			let position = positions.find(
+				(q) => q.symbol === trade.symbol && q.accountName === trade.accountName
+			);
+
+			if (!position) {
+				position = {
+					symbol: trade.symbol,
+					currency: trade.currency,
+					quantity: 0,
+					currentMarketValueCad: 0,
+					currentMarketValueUsd: 0,
+					accountName: trade.accountName,
+				};
+				positions.push(position);
+			}
+
+			const quote = quotes.find((q) => q.symbol === position.symbol);
+			if (!quote) {
+				return;
+			}
+
+			if (trade.isSell) {
+				position.quantity -= trade.quantity;
+			} else {
+				position.quantity += trade.quantity;
+			}
+
+			position.currentMarketValueCad = position.quantity * quote.priceCad;
+			position.currentMarketValueUsd = position.quantity * quote.priceUsd;
+		});
+
+		return positions;
+	};
+
+	const accountPositions = getAccountPositions(
+		data.allTrade.nodes,
+		data.allQuote.nodes
+	);
+	console.log(accountPositions);
+
 	data.allCash.nodes.forEach(
 		({ accountName, currency, amount, amountCad, amountUsd }) => {
 			let balance = balances.find((q) => q.name === accountName);
 			if (!balance) {
+				const cadHISA = accountPositions
+					.filter(
+						(q) => q.accountName === accountName && q.currency === Currency.cad
+					)
+					.reduce(
+						(sum, { currentMarketValueCad }) => sum + currentMarketValueCad,
+						0
+					);
+				const usdHISA = accountPositions
+					.filter(
+						(q) => q.accountName === accountName && q.currency === Currency.usd
+					)
+					.reduce(
+						(sum, { currentMarketValueUsd }) => sum + currentMarketValueUsd,
+						0
+					);
+				const combinedCadHISA = accountPositions
+					.filter((q) => q.accountName == accountName)
+					.reduce(
+						(sum, { currentMarketValueCad }) => sum + currentMarketValueCad,
+						0
+					);
+				const combinedUsdHISA = accountPositions
+					.filter((q) => q.accountName == accountName)
+					.reduce(
+						(sum, { currentMarketValueUsd }) => sum + currentMarketValueUsd,
+						0
+					);
 				balance = {
 					name: accountName,
 					amountCad: 0,
 					amountUsd: 0,
-					combinedCad: 0,
-					combinedUsd: 0,
+					cadHISA,
+					usdHISA,
+					combinedCad: combinedCadHISA,
+					combinedUsd: combinedUsdHISA,
 				};
 				balances.push(balance);
 			}
@@ -80,6 +191,33 @@ export const pageQuery = graphql`
 				amountCad
 				amountUsd
 				id
+				currency
+			}
+		}
+		allPosition(filter: { symbol: { eq: "cash.to" } }) {
+			nodes {
+				currentMarketValueCad
+				currentMarketValueUsd
+			}
+		}
+		allTrade(
+			filter: { symbol: { regex: "/(cash.to)|(hsuv.u.to)/" } }
+			sort: { fields: timestamp }
+		) {
+			nodes {
+				accountName
+				isSell
+				quantity
+				symbol
+				currency
+			}
+		}
+		allQuote(filter: { symbol: { regex: "/(cash.to)|(hsuv.u.to)/" } }) {
+			nodes {
+				price
+				priceCad
+				priceUsd
+				symbol
 				currency
 			}
 		}

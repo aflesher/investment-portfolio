@@ -1,9 +1,6 @@
 /* global process */
 const config = {};
 
-console.log('loading config file!!');
-console.log(process.env);
-
 config.currency = {
 	api:
 		process.env.CURRENCY_API_URL || 'https://free.currconv.com/api/v7/convert',
