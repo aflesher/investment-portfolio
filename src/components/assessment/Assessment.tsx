@@ -176,7 +176,7 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 				))}
 			</div>
 			<div className='mt-4'>
-				{notes.map((note, index) => (
+				{notes.reverse().map((note, index) => (
 					<div className='my-2 p-3 notes display-linebreak' key={`note${index}`}>
 						<CustomText text={note} storage={storage} />
 					</div>

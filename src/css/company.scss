@@ -1,98 +1,232 @@
-@import "./images.scss";
+@import './images.scss';
 
 .company-banner {
-  > div {
-    height: 4px;
-    margin-top: 5px;
-  }
-  text-transform: uppercase;
-  padding: 10px;
+	> div {
+		height: 4px;
+		margin-top: 5px;
+	}
+	text-transform: uppercase;
+	padding: 10px;
 }
 
 @mixin companyBase($color1, $color2, $color3) {
-  color: $color1;
-  background: $color2;
-  > div {
-    background: $color3;
-  }
+	color: $color1;
+	background: $color2;
+	> div {
+		background: $color3;
+	}
 }
 
-.amzn { @include companyBase(#fff, #2f292b, #fbb321); }
-.ntdoy { @include companyBase(#fff, #e60012, #fff); }
-.pins { @include companyBase(#fff, #ee1b22, #000); }
-.spot { @include companyBase(#fff, #000, #a4ce3e); }
-.meta { @include companyBase(#fff, #3a559f, #fff); }
-.tsla { @include companyBase(#e51837, #fff, #e51837); }
-.aw-un-to { @include companyBase(#543224, #fff, #f46634); }
-.dis { @include companyBase(#fff, #123ccf, #80c2ee); }
-.irbt { @include companyBase(#64a70b, #fff, #64a70b); }
-.arkg { @include companyBase(#fff, #111370, #fff); }
-.weed-to { @include companyBase(#fff, #817d58, #fff); }
-.btc, .gbtc, .qbtc-to, .qbtc-u-to { @include companyBase(#fff, #f7941d, #fff); }
-.eth, .ethe, .qeth.to, .qeth-u-to { @include companyBase(#8b91b1, #e6e6e6, #464b75) }
-.scr-to { @include companyBase(#fff, linear-gradient(180deg, rgba(0,87,174,1) 0%, rgba(0,33,78,1) 100%), #fda529); }
-.sq { @include companyBase(#000, #fff, #000); }
-.gld { @include companyBase(#000, #d4af37, #000); }
-.roku { @include companyBase(#fff, #662d91, #fff); }
-.twtr { @include companyBase(#fff, #1da1f2, #fff); }
-.wwe { @include companyBase(#fff, #000, #eb1826); }
-.mana { @include companyBase(#e12973, linear-gradient(225deg, rgb(255, 57, 86) 0%, rgb(255, 170, 90) 100%), #ffc85b); }  
-.tcehy { @include companyBase(rgb(60, 139, 197), #fff, rgb(60, 139, 197)) }
-.art-vn { @include companyBase(#fff, rgb(9, 14, 20), linear-gradient(225deg, rgb(0, 141, 199) 0%, rgb(9, 51, 160) 100%)); }  
-.msft { @include companyBase(#000, #fff, #000); }
-.twou { @include companyBase(#006bc4, #fff, #006bc4); }
-.otgly { @include companyBase(rgb(0, 0, 0), rgb(252, 239, 80), rgb(113, 189, 213)); }
-.glh-cn { @include companyBase(#fff, #12121b, #e28850); }
-.lulu { @include companyBase(#fff, #d31334, #fff); }
-.shop-to { @include companyBase(#fff, #90B944, #5B8A3C); }
-.gdnp-vn { @include companyBase(#fff, #62cbc9, #fff); }
-.bb-to { @include companyBase(#000, #fff, #000); }
-.ipof { @include companyBase(#fff, #2bbeeb, rgb(15, 12, 27)); }
-.tigr { @include companyBase(#ffe100, #000, #ffe100); }
-.avax { @include companyBase(#fff, #e84142, #000); }
-.ada { @include companyBase(rgb(0, 51, 173), #fff, rgb(0, 51, 173)); }
-.rblx { @include companyBase(#fff, url($roblox) center / cover no-repeat, #fff); }
-.urnm { @include companyBase(#000, rgb(250, 185, 45), #000); }
-.rune { @include companyBase(rgb(0, 0, 0), rgb(0, 200, 178), #000); }
-.bnb { @include companyBase(rgb(13, 16, 18), linear-gradient(180deg, rgb(251, 199, 61) 0%, rgb(242, 174, 43) 100%), rgb(13, 16, 18)) }
-.crypto-link { @include companyBase(rgb(34, 48, 106), rgb(224, 231, 249), #fff); }
-.bitf-to, .bitf { @include companyBase(rgb(30, 210, 150), rgb(16, 26, 46), #fff); }
-.amd { @include companyBase(rgb(255, 255, 255), rgb(0, 0, 0), rgb(53, 118, 78)); }
-.enj, .efi { @include companyBase(rgb(115, 105, 200), rgb(255, 255, 255), rgb(115, 105, 200)); }
-.rivn { @include companyBase(rgb(255,255,255), rgb(19, 53, 73), rgb(255, 255, 255)); }
-.sol { @include companyBase(rgb(0,0,0), linear-gradient(270deg, rgb(171, 102, 255) 0%, rgb(20, 241, 149) 101.39%), rgb(255, 255, 255)); }
-.crsp { @include companyBase(#fff, rgb(114, 152, 221), rgb(233, 234, 80)); }
-.asan { @include companyBase(#fff, #333, rgb(224, 114, 110)); }
-.comb { @include companyBase(rgb(93,198,180,), #fff, #000); }
-.hymtf { @include companyBase(#fff, rgb(14,44,92), #fff); }	
-.copx { @include companyBase(#fff, rgb(169, 114, 62), #fff); }
+.amzn {
+	@include companyBase(#fff, #2f292b, #fbb321);
+}
+.ntdoy {
+	@include companyBase(#fff, #e60012, #fff);
+}
+.pins {
+	@include companyBase(#fff, #ee1b22, #000);
+}
+.spot {
+	@include companyBase(#fff, #000, #a4ce3e);
+}
+.meta {
+	@include companyBase(#fff, #3a559f, #fff);
+}
+.tsla {
+	@include companyBase(#e51837, #fff, #e51837);
+}
+.aw-un-to {
+	@include companyBase(#543224, #fff, #f46634);
+}
+.dis {
+	@include companyBase(#fff, #123ccf, #80c2ee);
+}
+.irbt {
+	@include companyBase(#64a70b, #fff, #64a70b);
+}
+.arkg {
+	@include companyBase(#fff, #111370, #fff);
+}
+.weed-to {
+	@include companyBase(#fff, #817d58, #fff);
+}
+.btc,
+.gbtc,
+.qbtc-to,
+.qbtc-u-to {
+	@include companyBase(#fff, #f7941d, #fff);
+}
+.eth,
+.ethe,
+.qeth.to,
+.qeth-u-to {
+	@include companyBase(#8b91b1, #e6e6e6, #464b75);
+}
+.scr-to {
+	@include companyBase(
+		#fff,
+		linear-gradient(180deg, rgba(0, 87, 174, 1) 0%, rgba(0, 33, 78, 1) 100%),
+		#fda529
+	);
+}
+.sq {
+	@include companyBase(#000, #fff, #000);
+}
+.gld {
+	@include companyBase(#000, #d4af37, #000);
+}
+.roku {
+	@include companyBase(#fff, #662d91, #fff);
+}
+.twtr {
+	@include companyBase(#fff, #1da1f2, #fff);
+}
+.wwe {
+	@include companyBase(#fff, #000, #eb1826);
+}
+.mana {
+	@include companyBase(
+		#e12973,
+		linear-gradient(225deg, rgb(255, 57, 86) 0%, rgb(255, 170, 90) 100%),
+		#ffc85b
+	);
+}
+.tcehy {
+	@include companyBase(rgb(60, 139, 197), #fff, rgb(60, 139, 197));
+}
+.art-vn {
+	@include companyBase(
+		#fff,
+		rgb(9, 14, 20),
+		linear-gradient(225deg, rgb(0, 141, 199) 0%, rgb(9, 51, 160) 100%)
+	);
+}
+.msft {
+	@include companyBase(#000, #fff, #000);
+}
+.twou {
+	@include companyBase(#006bc4, #fff, #006bc4);
+}
+.otgly {
+	@include companyBase(rgb(0, 0, 0), rgb(252, 239, 80), rgb(113, 189, 213));
+}
+.glh-cn {
+	@include companyBase(#fff, #12121b, #e28850);
+}
+.lulu {
+	@include companyBase(#fff, #d31334, #fff);
+}
+.shop-to {
+	@include companyBase(#fff, #90b944, #5b8a3c);
+}
+.gdnp-vn {
+	@include companyBase(#fff, #62cbc9, #fff);
+}
+.bb-to {
+	@include companyBase(#000, #fff, #000);
+}
+.ipof {
+	@include companyBase(#fff, #2bbeeb, rgb(15, 12, 27));
+}
+.tigr {
+	@include companyBase(#ffe100, #000, #ffe100);
+}
+.avax {
+	@include companyBase(#fff, #e84142, #000);
+}
+.ada {
+	@include companyBase(rgb(0, 51, 173), #fff, rgb(0, 51, 173));
+}
+.rblx {
+	@include companyBase(#fff, url($roblox) center / cover no-repeat, #fff);
+}
+.urnm {
+	@include companyBase(#000, rgb(250, 185, 45), #000);
+}
+.rune {
+	@include companyBase(rgb(0, 0, 0), rgb(0, 200, 178), #000);
+}
+.bnb {
+	@include companyBase(
+		rgb(13, 16, 18),
+		linear-gradient(180deg, rgb(251, 199, 61) 0%, rgb(242, 174, 43) 100%),
+		rgb(13, 16, 18)
+	);
+}
+.crypto-link {
+	@include companyBase(rgb(34, 48, 106), rgb(224, 231, 249), #fff);
+}
+.bitf-to,
+.bitf {
+	@include companyBase(rgb(30, 210, 150), rgb(16, 26, 46), #fff);
+}
+.amd {
+	@include companyBase(rgb(255, 255, 255), rgb(0, 0, 0), rgb(53, 118, 78));
+}
+.enj,
+.efi {
+	@include companyBase(
+		rgb(115, 105, 200),
+		rgb(255, 255, 255),
+		rgb(115, 105, 200)
+	);
+}
+.rivn {
+	@include companyBase(rgb(255, 255, 255), rgb(19, 53, 73), rgb(255, 255, 255));
+}
+.sol {
+	@include companyBase(
+		rgb(0, 0, 0),
+		linear-gradient(270deg, rgb(171, 102, 255) 0%, rgb(20, 241, 149) 101.39%),
+		rgb(255, 255, 255)
+	);
+}
+.crsp {
+	@include companyBase(#fff, rgb(114, 152, 221), rgb(233, 234, 80));
+}
+.asan {
+	@include companyBase(#fff, #333, rgb(224, 114, 110));
+}
+.comb {
+	@include companyBase(rgb(93, 198, 180), #fff, #000);
+}
+.hymtf {
+	@include companyBase(#fff, rgb(14, 44, 92), #fff);
+}
+.copx {
+	@include companyBase(#fff, rgb(169, 114, 62), #fff);
+}
 .googl {
-  background-color: white;
-  span:nth-child(4n - 3) {
-    color: rgb(88,166,92);
-  }
-  span:nth-child(4n - 2) {
-    color: rgb(83, 133, 236);
-  }
-  span:nth-child(4n - 1) {
-    color: rgb(216,81,64);
-  }
-  span:nth-child(4n) {
-    color: rgb(241, 190, 66);
-  }
+	background-color: white;
+	span:nth-child(4n - 3) {
+		color: rgb(88, 166, 92);
+	}
+	span:nth-child(4n - 2) {
+		color: rgb(83, 133, 236);
+	}
+	span:nth-child(4n - 1) {
+		color: rgb(216, 81, 64);
+	}
+	span:nth-child(4n) {
+		color: rgb(241, 190, 66);
+	}
+}
+.cash-to,
+.hsuv-u-to {
+	@include companyBase(#fff, #85bb65, #fff);
 }
 
 .voo {
-  position: relative;
-  background: url($flagbg) center/contain repeat-x;
-  color: rgb(59,60,107);
-  text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
-  > div {
-    position: absolute;
-    left: 0;
-    top: -5px;
-    height: 100%;
-    width: 94px;
-    background: url($flag) center /contain no-repeat;
-  }
+	position: relative;
+	background: url($flagbg) center/contain repeat-x;
+	color: rgb(59, 60, 107);
+	text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+	> div {
+		position: absolute;
+		left: 0;
+		top: -5px;
+		height: 100%;
+		width: 94px;
+		background: url($flag) center / contain no-repeat;
+	}
 }
