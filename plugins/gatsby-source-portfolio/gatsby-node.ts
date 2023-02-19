@@ -46,6 +46,7 @@ const FILTER_SYMBOLS = [
 	'dlr.u.to',
 	'glh.cn.11480862',
 	'pins20jan23c55.00',
+	'chal.cn',
 ];
 const SYMBOLS_TO_VIEW_IDS: string[] = [];
 

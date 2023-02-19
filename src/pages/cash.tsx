@@ -73,7 +73,7 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 				positions.push(position);
 			}
 
-			const quote = quotes.find((q) => q.symbol === position.symbol);
+			const quote = quotes.find((q) => q.symbol === position!.symbol);
 			if (!quote) {
 				return;
 			}
@@ -95,7 +95,6 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 		data.allTrade.nodes,
 		data.allQuote.nodes
 	);
-	console.log(accountPositions);
 
 	data.allCash.nodes.forEach(
 		({ accountName, currency, amount, amountCad, amountUsd }) => {

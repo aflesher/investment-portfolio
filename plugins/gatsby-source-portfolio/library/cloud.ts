@@ -203,6 +203,19 @@ const getCustomTrades = (): ICloudTrade[] => [
 		hash: '',
 		pnl: -780,
 	},
+	{
+		symbol: 'chal.cn',
+		date: new Date('2023-02-16'),
+		accountId: 51443858,
+		action: 'sell',
+		symbolId: 36249972,
+		currency: 'cad',
+		price: 0,
+		quantity: 826,
+		type: 'stock',
+		hash: '',
+		pnl: -1197.7,
+	},
 ];
 
 export const filteredTrades = ['pm.vn'];

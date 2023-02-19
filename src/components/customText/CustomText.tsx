@@ -16,7 +16,6 @@ const CustomText: React.FC<ICustomTextProps & ICustomTextStateProps> = ({
 	const [textPieces, setTextPieces] = useState<string[]>([]);
 
 	useEffect(() => {
-		console.log(text, storage);
 		if (storage && text) {
 			const matches = text.match(/image=\S*/gi);
 			setTextPieces(text.replace(/image=\S*/gi, '@').split('@'));
@@ -26,7 +25,6 @@ const CustomText: React.FC<ICustomTextProps & ICustomTextStateProps> = ({
 					getDownloadURL(ref(storage, match.replace('image=', '')))
 				) || []
 			).then((urls) => {
-				console.log(urls);
 				setImageUrls(urls);
 			});
 		}

@@ -174,6 +174,10 @@ export const getMaxShares = (trades: IMaxSharesTrade[]) => {
 				shares -= quantity;
 			}
 
+			if (shares === 0) {
+				maxShares = 0;
+			}
+
 			if (shares > maxShares) {
 				maxShares = shares;
 			}
