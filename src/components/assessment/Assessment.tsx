@@ -50,6 +50,7 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 	currentShares,
 	storage,
 }) => {
+	console.log('assessment', notes);
 	return (
 		<div className='border-t py-3 assessment'>
 			{!!name && <CompanyBanner name={name} symbol={symbol} />}
@@ -176,11 +177,14 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 				))}
 			</div>
 			<div className='mt-4'>
-				{notes.reverse().map((note, index) => (
-					<div className='my-2 p-3 notes display-linebreak' key={`note${index}`}>
-						<CustomText text={note} storage={storage} />
-					</div>
-				))}
+				{notes
+					.slice()
+					.reverse()
+					.map((note, index) => (
+						<div className='my-2 p-3 notes display-linebreak' key={`note${index}`}>
+							<CustomText text={note} storage={storage} />
+						</div>
+					))}
 			</div>
 		</div>
 	);
