@@ -6,7 +6,7 @@
 		"start": "gatsby develop",
 		"develop": "gatsby develop",
 		"build": "gatsby build",
-		"build:nodes": "rm -rf .cache && cd plugins/gatsby-source-portfolio && ../../node_modules/typescript/bin/tsc --build tsconfig.json && cd ../..",
+		"build:nodes": "rm -rf .cache && cd plugins/gatsby-source-portfolio && npx tsc --build tsconfig.json && cd ../..",
 		"develop:clean": "npm run build:nodes && npm run develop",
 		"type-check": "tsc --noEmit",
 		"lint": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js",
