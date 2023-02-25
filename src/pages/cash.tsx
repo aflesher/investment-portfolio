@@ -200,7 +200,9 @@ export const pageQuery = graphql`
 			}
 		}
 		allTrade(
-			filter: { symbol: { regex: "/(cash.to)|(hsuv.u.to)/" } }
+			filter: {
+				symbol: { regex: "/(cash.to)|(hsuv.u.to)|(hisa.to)|(hisu.u.to)/" }
+			}
 			sort: { fields: timestamp }
 		) {
 			nodes {
@@ -211,7 +213,11 @@ export const pageQuery = graphql`
 				currency
 			}
 		}
-		allQuote(filter: { symbol: { regex: "/(cash.to)|(hsuv.u.to)/" } }) {
+		allQuote(
+			filter: {
+				symbol: { regex: "/(cash.to)|(hsuv.u.to)|(hisa.to)|(hisu.u.to)/" }
+			}
+		) {
 			nodes {
 				price
 				priceCad
