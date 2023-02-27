@@ -27,7 +27,7 @@
 		"cryptr": "^6.0.2",
 		"dotenv": "^16.0.3",
 		"firebase": "^9.16.0",
-		"firebase-admin": "^8.12.1",
+		"firebase-admin": "^11.5.0",
 		"firebaseui": "^6.0.2",
 		"gatsby": "^2.21.22",
 		"gatsby-plugin-sass": "^2.3.1",
