@@ -20,6 +20,8 @@ const filterOptions = [
 	CapitalGainsFilter.crypto,
 ];
 
+const OPTIONS_SYMBOLS = ['pins20jan23c55.00'];
+
 interface ICapitalGainsQuery {
 	data: {
 		allTrade: {
@@ -66,6 +68,7 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 	// FYI I'm sure this is why captial gains aren't always working. The date conversion.
 	// custom rates
 	ratesMap['2021-01-07'] = 1.27;
+	ratesMap['2023-01-22'] = 1.34;
 
 	const getConversion = (trade: {
 		currency: Currency;
@@ -117,12 +120,14 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 		let cost = 0;
 
 		orderedTrades.forEach((t) => {
+			const multiplier = OPTIONS_SYMBOLS.includes(t.symbol) ? 100 : 1;
 			if (t.action === 'buy') {
-				cost += t.quantity * t.price * getConversion(t);
+				cost += t.quantity * t.price * getConversion(t) * multiplier;
 				shares += t.quantity;
 			} else {
-				const proceeds = t.quantity * t.price * getConversion(t);
+				const proceeds = t.quantity * t.price * getConversion(t) * multiplier;
 				const tradeCost = (cost / shares) * t.quantity;
+				console.log(t.symbol, tradeCost);
 				if (moment(t.timestamp).year() === year) {
 					capitalGains.push({
 						proceeds,

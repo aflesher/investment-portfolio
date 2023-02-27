@@ -1,6 +1,9 @@
 import axios from 'axios';
 import parse from 'node-html-parser';
 import moment from 'moment';
+import Parser from 'rss-parser';
+
+const rssParser = new Parser();
 
 export interface IEarningsDate {
 	timestamp: number;
@@ -85,6 +88,24 @@ const scapeSecondPageAAndW = async (
 	return { symbol: 'aw.un.to', timestamp: new Date(date).getTime() };
 };
 
+const rssHyundai = async (): Promise<IEarningsDate | null> => {
+	const feed = await rssParser.parseURL(
+		'https://www.hyundai.com/wsvc/ww/rss/ir.calendar.do'
+	);
+
+	const date = feed.items
+		.find((item) => item.title?.match(/Business\sResults/gi))
+		?.contentSnippet?.split('\n')
+		?.find((q) => q.match(/(US|North\sAmerica)/))
+		?.match(/\d{4}\.\d{2}\.\d{2}/)?.[0];
+
+	if (!date) {
+		return null;
+	}
+
+	return { symbol: 'hymtf', timestamp: new Date(date).getTime() };
+};
+
 export const scrapeAAndW = async (): Promise<IEarningsDate | null> => {
 	const response = await axios.get(
 		'https://awincomefund.mediaroom.com/index.php'
@@ -115,16 +136,12 @@ export const getEarningsDates = async (
 		}
 	}
 
+	if (positionSymbols.includes('hymtf')) {
+		const hymtf = await rssHyundai();
+		if (hymtf) {
+			dates.push(hymtf);
+		}
+	}
+
 	return dates.filter((d) => !!d.timestamp);
 };
-
-// export const getSpxsQuote = async (): Promise<number> => {
-// 	const response = await axios.get('https://finance.yahoo.com/quote/SPXS/');
-
-// 	const root = parse(response.data);
-// 	const quoteElement = root.querySelector('[data-test="qsp-price"]');
-
-// 	console.log(quoteElement?.innerHTML);
-
-// 	return Number(quoteElement?.innerHTML || 0);
-// };
