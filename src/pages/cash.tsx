@@ -193,12 +193,6 @@ export const pageQuery = graphql`
 				currency
 			}
 		}
-		allPosition(filter: { symbol: { eq: "cash.to" } }) {
-			nodes {
-				currentMarketValueCad
-				currentMarketValueUsd
-			}
-		}
 		allTrade(
 			filter: {
 				symbol: { regex: "/(cash.to)|(hsuv.u.to)|(hisa.to)|(hisu.u.to)/" }
