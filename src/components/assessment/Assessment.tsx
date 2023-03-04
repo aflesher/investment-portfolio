@@ -50,7 +50,6 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 	currentShares,
 	storage,
 }) => {
-	console.log('assessment', notes);
 	return (
 		<div className='border-t py-3 assessment'>
 			{!!name && <CompanyBanner name={name} symbol={symbol} />}

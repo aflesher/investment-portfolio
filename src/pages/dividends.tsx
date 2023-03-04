@@ -1,5 +1,5 @@
 import React from 'react';
-import { graphql } from 'gatsby';
+import { Link, graphql } from 'gatsby';
 import _ from 'lodash';
 import Paginate from 'react-paginate';
 import { Typeahead } from 'react-bootstrap-typeahead';
@@ -59,6 +59,12 @@ interface IDividendsQueryProps {
 		allDividend: {
 			nodes: IDividendsQueryNode[];
 		};
+		allPosition: {
+			nodes: Pick<
+				IPosition,
+				'symbol' | 'openPnlCad' | 'openPnlUsd' | 'currency'
+			>[];
+		};
 	};
 }
 
@@ -67,6 +73,14 @@ const DIVIDENDS_PER_PAGE = 30;
 const mapStateToProps = ({ currency }: IStoreState): IDividendsStateProps => ({
 	currency,
 });
+
+const DIVIDEND_POSITIONS_YEAR_END: {
+	year: number;
+	symbol: string;
+	amountCad: number;
+	amountUsd: number;
+	currency: Currency;
+}[] = [];
 
 const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 	data,
@@ -78,6 +92,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
 	const [page, setPage] = React.useState(0);
+	const trackedYears = util.getTrackedYears();
 
 	const dividends = _.filter(data.allDividend.nodes, (dividend) => {
 		if (startDate && startDate > new Date(dividend.timestamp)) {
@@ -95,8 +110,61 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 		return true;
 	});
 
-	const totalCad = _.sumBy(dividends, (q) => q.amountCad);
-	const totalUsd = _.sumBy(dividends, (q) => q.amountUsd);
+	const dividendPositionsCurrent = data.allPosition.nodes.map(
+		({ symbol, openPnlCad, openPnlUsd, currency }) => {
+			const previousYearAmount = DIVIDEND_POSITIONS_YEAR_END.find(
+				(q) => q.symbol === symbol && q.year === moment().year() - 1
+			) || { amountCad: 0, amountUsd: 0 };
+			return {
+				symbol,
+				timestamp: new Date().getTime(),
+				amountCad: openPnlCad - previousYearAmount.amountCad,
+				amountUsd: openPnlUsd - previousYearAmount.amountUsd,
+				currency,
+			};
+		}
+	);
+
+	const dividendPositionsOld = DIVIDEND_POSITIONS_YEAR_END.map(
+		({ year, symbol, amountCad, amountUsd, currency }) => ({
+			symbol,
+			timestamp: moment(year).endOf('year').toDate().getTime(),
+			amountCad,
+			amountUsd,
+			currency,
+		})
+	);
+
+	const mergedDividendPositions = [
+		...dividendPositionsCurrent,
+		...dividendPositionsOld,
+	];
+
+	const dividendPositions = mergedDividendPositions.filter((dividend) => {
+		if (startDate && startDate > new Date(dividend.timestamp)) {
+			return false;
+		}
+
+		if (
+			endDate &&
+			endDate <= moment(dividend.timestamp).startOf('day').toDate()
+		) {
+			return false;
+		}
+
+		if (symbol && !dividend.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const totalCad =
+		_.sumBy(dividends, (q) => q.amountCad) +
+		_.sumBy(dividendPositions, (q) => q.amountCad);
+	const totalUsd =
+		_.sumBy(dividends, (q) => q.amountUsd) +
+		_.sumBy(dividendPositions, (q) => q.amountUsd);
 
 	const symbols = _(data.allDividend.nodes)
 		.map((t) => t.symbol)
@@ -138,10 +206,9 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 		setEndDate(endDate);
 	};
 
-	const trackedYears = util.getTrackedYears();
 	const yearTotals = trackedYears.map((year) => ({
 		year,
-		amount: data.allDividend.nodes
+		amount: [...data.allDividend.nodes, ...mergedDividendPositions]
 			.filter(({ timestamp }) => moment(timestamp).year() === year)
 			.reduce((sum, { amountCad }) => sum + amountCad, 0),
 	}));
@@ -288,6 +355,36 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 						</div>
 					</div>
 				))}
+				{dividendPositions.map((dividend, index) => (
+					<div
+						className='row py-1 border-b'
+						key={`${dividend.symbol}${dividend.timestamp}${index}`}
+					>
+						<div className='col-3'>
+							<Link to={`/stock/${dividend.symbol}`} className='link text-uppercase'>
+								{dividend.symbol}
+							</Link>
+						</div>
+						<div className='col-3 text-right'>
+							{util.formatDate(dividend.timestamp)}
+						</div>
+						<div className='col-3 text-right'>
+							<XE
+								cad={dividend.amountCad}
+								usd={dividend.amountUsd}
+								currency={dividend.currency}
+							/>
+						</div>
+						<div className='col-3 text-right'>
+							<XE
+								cad={dividend.amountCad}
+								usd={dividend.amountUsd}
+								currency={currency}
+								hideCurrency={true}
+							/>
+						</div>
+					</div>
+				))}
 				<div className='row mt-2'>
 					<div className='col-3 text-right offset-6'>Total</div>
 					<div className='col-3 text-right'>
@@ -339,6 +436,14 @@ export const pageQuery = graphql`
 					currentMarketValueCad
 					currentMarketValueUsd
 				}
+			}
+		}
+		allPosition(filter: { symbol: { eq: "hsuv.u.to" } }) {
+			nodes {
+				openPnlCad
+				openPnlUsd
+				symbol
+				currency
 			}
 		}
 	}
