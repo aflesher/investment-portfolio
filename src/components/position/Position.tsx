@@ -40,10 +40,15 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		buyOrderPercent,
 		sellOrderPercent,
 	} = props;
-	const pnl =
+
+	let pnl =
 		quoteCurrency === Currency.cad
 			? (valueCad - costCad) / costCad
 			: (valueUsd - costUsd) / costUsd;
+
+	if (Math.abs(pnl) < 0.0001) {
+		pnl = 0;
+	}
 	return (
 		<tr className='position colored-row'>
 			<td className='pr-0'>

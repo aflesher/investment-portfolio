@@ -47,9 +47,16 @@ const SidebarRight: React.FC<
 		valueCad,
 		valueUsd,
 	}: IPositionStateProps) => {
-		return quoteCurrency === Currency.cad
-			? (valueCad - costCad) / costCad
-			: (valueUsd - costUsd) / costUsd;
+		const amount =
+			quoteCurrency === Currency.cad
+				? (valueCad - costCad) / costCad
+				: (valueUsd - costUsd) / costUsd;
+
+		if (Math.abs(amount) < 0.0001) {
+			return 0;
+		}
+
+		return amount;
 	};
 
 	return (

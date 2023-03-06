@@ -128,7 +128,9 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 	const dividendPositionsOld = DIVIDEND_POSITIONS_YEAR_END.map(
 		({ year, symbol, amountCad, amountUsd, currency }) => ({
 			symbol,
-			timestamp: moment(year).endOf('year').toDate().getTime(),
+			timestamp: moment('12/31/' + year)
+				.toDate()
+				.getTime(),
 			amountCad,
 			amountUsd,
 			currency,
@@ -144,7 +146,6 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 		if (startDate && startDate > new Date(dividend.timestamp)) {
 			return false;
 		}
-
 		if (
 			endDate &&
 			endDate <= moment(dividend.timestamp).startOf('day').toDate()

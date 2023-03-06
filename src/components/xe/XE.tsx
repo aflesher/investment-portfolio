@@ -9,7 +9,10 @@ export interface IXEStateProps {
 }
 
 const XE: React.FC<IXEStateProps> = ({ cad, usd, currency, hideCurrency }) => {
-	const amount = currency === 'cad' ? cad : usd;
+	let amount = currency === 'cad' ? cad : usd;
+	if (Math.abs(amount) < 0.01) {
+		amount = 0;
+	}
 
 	return (
 		<span>
