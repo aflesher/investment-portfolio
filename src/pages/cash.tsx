@@ -134,6 +134,8 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 					amountUsd: 0,
 					cadHISA,
 					usdHISA,
+					combinedCadHISA,
+					combinedUsdHISA,
 					combinedCad: combinedCadHISA,
 					combinedUsd: combinedUsdHISA,
 				};
@@ -156,6 +158,16 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 	const combinedBalances: IBalanceStateProps = {
 		amountCad: balances.reduce((sum, { amountCad }) => sum + amountCad, 0),
 		amountUsd: balances.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
+		cadHISA: balances.reduce((sum, { cadHISA }) => sum + (cadHISA || 0), 0),
+		usdHISA: balances.reduce((sum, { usdHISA }) => sum + (usdHISA || 0), 0),
+		combinedCadHISA: balances.reduce(
+			(sum, { combinedCadHISA }) => sum + (combinedCadHISA || 0),
+			0
+		),
+		combinedUsdHISA: balances.reduce(
+			(sum, { combinedUsdHISA }) => sum + (combinedUsdHISA || 0),
+			0
+		),
 		combinedCad: balances.reduce((sum, { combinedCad }) => sum + combinedCad, 0),
 		combinedUsd: balances.reduce((sum, { combinedUsd }) => sum + combinedUsd, 0),
 		name: 'Combined',

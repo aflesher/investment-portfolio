@@ -7,6 +7,8 @@ export interface IBalanceStateProps {
 	amountUsd: number;
 	cadHISA?: number;
 	usdHISA?: number;
+	combinedCadHISA?: number;
+	combinedUsdHISA?: number;
 	combinedCad: number;
 	combinedUsd: number;
 }
@@ -17,6 +19,8 @@ const Balance: React.FC<IBalanceStateProps> = ({
 	amountUsd,
 	cadHISA,
 	usdHISA,
+	combinedCadHISA,
+	combinedUsdHISA,
 	combinedCad,
 	combinedUsd,
 }) => {
@@ -45,6 +49,18 @@ const Balance: React.FC<IBalanceStateProps> = ({
 				<div className='row'>
 					<div className='col-6'>$USD (HISA)</div>
 					<div className='col-6'>{numeral(usdHISA).format(format)}</div>
+				</div>
+			)}
+			{!!combinedCadHISA && (
+				<div className='row'>
+					<div className='col-6'>$CAD (C.H.)</div>
+					<div className='col-6'>{numeral(combinedCadHISA).format(format)}</div>
+				</div>
+			)}
+			{!!combinedUsdHISA && (
+				<div className='row'>
+					<div className='col-6'>$USD (C.H.)</div>
+					<div className='col-6'>{numeral(combinedUsdHISA).format(format)}</div>
 				</div>
 			)}
 			<div className='row text-subtle'>

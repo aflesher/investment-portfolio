@@ -48,6 +48,8 @@ const FILTER_SYMBOLS = [
 	'pins20jan23c55.00',
 	'chal.cn',
 ];
+
+const OVERRIDE_POSITIONS = ['urnm'];
 const SYMBOLS_TO_VIEW_IDS: string[] = [];
 
 const SYMBOL_ID_REPLACEMENTS = [
@@ -650,10 +652,39 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		earnings___NODE: string;
 	}
 
+	const overridePosition = (
+		position: questrade.IQuestradePosition,
+		trades: cloud.ICloudTrade[]
+	) => {
+		let totalCost = 0;
+		let averageEntryPrice = 0;
+		let quantity = 0;
+		console.log(`[override ${position.symbol.toLowerCase()} position]`.yellow);
+		trades
+			.filter((q) => q.symbol === position.symbol)
+			.forEach((trade) => {
+				if (trade.action === 'buy') {
+					totalCost += trade.price * trade.quantity;
+					quantity += trade.quantity;
+					averageEntryPrice = totalCost / quantity;
+					//console.log('buy', totalCost, quantity, averageEntryPrice);
+				} else {
+					totalCost -= trade.quantity * averageEntryPrice;
+					quantity -= trade.quantity;
+					//console.log('sell', totalCost, quantity, averageEntryPrice);
+				}
+			});
+
+		position.totalCost = totalCost;
+		position.averageEntryPrice = averageEntryPrice;
+		position.openPnl = position.currentMarketValue - position.totalCost;
+	};
+
 	const mapQuestradePositionToPosition = (
 		position: questrade.IQuestradePosition,
 		usdToCadRate: number,
-		cadToUsdRate: number
+		cadToUsdRate: number,
+		trades: cloud.ICloudTrade[]
 	): IPosition => {
 		const currency: Currency = isUsd(position.symbol)
 			? Currency.usd
@@ -665,10 +696,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			console.log(`${position.symbol} : ${position.symbolId}`);
 		}
 
-		if (position.symbol === 'urnm') {
-			position.totalCost = 11224.92;
-			position.averageEntryPrice = 61.67 / 2;
-			position.openPnl = position.currentMarketValue - position.totalCost;
+		if (OVERRIDE_POSITIONS.includes(position.symbol)) {
+			overridePosition(position, trades);
 		}
 
 		return {
@@ -725,12 +754,15 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const cryptoPositions = await cryptoPositionsPromise;
 		const cryptoQuotes = await cryptoQuotesPromise;
 		const usdToCadRate = await getExchange;
+		const stockTrades = cloud.readTrades();
 		const cadToUsdRate = 1 / usdToCadRate;
 
 		const positions: IPosition[] = _.concat(
 			_(stockPositions)
 				.filter((q) => !FILTER_SYMBOLS.includes(q.symbol))
-				.map((p) => mapQuestradePositionToPosition(p, usdToCadRate, cadToUsdRate))
+				.map((p) =>
+					mapQuestradePositionToPosition(p, usdToCadRate, cadToUsdRate, stockTrades)
+				)
 				.value(),
 			_.map(cryptoPositions, (p) =>
 				mapCryptoPositionToPosition(p, usdToCadRate, cadToUsdRate, cryptoQuotes)

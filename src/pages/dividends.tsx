@@ -15,7 +15,7 @@ import { connect } from 'react-redux';
 import * as util from '../utils/util';
 import { dateInputFormat } from '../utils/util';
 import DateRange from '../components/dateRange/DateRange';
-import Percent from '../components/percent/percent';
+import Percent from '../components/percent/Percent';
 import { IDividend } from '../utils/dividend';
 import { IAssessment } from '../utils/assessment';
 import { ICompany } from '../utils/company';
