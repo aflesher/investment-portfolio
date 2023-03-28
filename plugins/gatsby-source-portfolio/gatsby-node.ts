@@ -47,6 +47,7 @@ const FILTER_SYMBOLS = [
 	'glh.cn.11480862',
 	'pins20jan23c55.00',
 	'chal.cn',
+	'gme',
 ];
 
 const OVERRIDE_POSITIONS = ['urnm'];

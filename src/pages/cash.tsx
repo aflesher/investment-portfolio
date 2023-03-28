@@ -156,8 +156,12 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 	);
 
 	const combinedBalances: IBalanceStateProps = {
-		amountCad: balances.reduce((sum, { amountCad }) => sum + amountCad, 0),
-		amountUsd: balances.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
+		amountCad: balances
+			.filter((q) => q.name != 'EQ Bank')
+			.reduce((sum, { amountCad }) => sum + amountCad, 0),
+		amountUsd: balances
+			.filter((q) => q.name != 'EQ Bank')
+			.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
 		cadHISA: balances.reduce((sum, { cadHISA }) => sum + (cadHISA || 0), 0),
 		usdHISA: balances.reduce((sum, { usdHISA }) => sum + (usdHISA || 0), 0),
 		combinedCadHISA: balances.reduce(
