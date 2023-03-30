@@ -24,6 +24,12 @@ import {
 import { IStockSplit } from '../utils/stock-split';
 import StockSplits from '../components/stockSplits/StockSplits';
 import { ICompany } from '../utils/company';
+import { IPosition } from '../utils/position';
+import { IQuote } from '../utils/quote';
+import { ITrade } from '../utils/trade';
+import { IAssessment } from '../utils/assessment';
+import { IDividend } from '../utils/dividend';
+import { IOrder } from '../utils/order';
 
 interface IStockTemplateStateProps
 	extends Pick<IStoreState, 'currency' | 'storage'> {}
@@ -41,88 +47,69 @@ interface IStockTemplateNode
 		| 'highPrice52'
 		| 'lowPrice52'
 		| 'type'
-	> {}
+	> {
+	position?: Pick<
+		IPosition,
+		| 'quantity'
+		| 'totalCost'
+		| 'totalCostCad'
+		| 'totalCostUsd'
+		| 'averageEntryPrice'
+		| 'openPnl'
+		| 'openPnlCad'
+		| 'openPnlUsd'
+		| 'currentMarketValueCad'
+		| 'currentMarketValueUsd'
+	>;
+	quote: Pick<IQuote, 'price' | 'priceUsd' | 'priceCad' | 'currency'>;
+	trades: Pick<
+		ITrade,
+		| 'quantity'
+		| 'price'
+		| 'action'
+		| 'timestamp'
+		| 'pnlCad'
+		| 'pnlUsd'
+		| 'isOpeningPositionTrade'
+		| 'priceCad'
+		| 'priceUsd'
+		| 'isSell'
+		| 'accountName'
+	>[];
+	assessment?: Pick<
+		IAssessment,
+		| 'minuses'
+		| 'pluses'
+		| 'targetPrice'
+		| 'targetInvestment'
+		| 'notes'
+		| 'lastUpdatedTimestamp'
+		| 'questions'
+		| 'valuations'
+		| 'rating'
+	>;
+	dividends: Pick<
+		IDividend,
+		'amount' | 'timestamp' | 'amountCad' | 'amountUsd'
+	>[];
+	orders: Pick<
+		IOrder,
+		| 'limitPrice'
+		| 'limitPriceCad'
+		| 'limitPriceUsd'
+		| 'openQuantity'
+		| 'action'
+		| 'accountName'
+	>[];
+}
 
 interface IStockTemplateQuery {
 	data: {
 		allCompany: {
-			nodes: {
-				name: string;
-				marketCap: number;
-				prevDayClosePrice: number;
-				symbol: string;
-				yield?: number;
-				highPrice52: number;
-				lowPrice52: number;
-				type: AssetType;
-				position?: {
-					quantity: number;
-					totalCost: number;
-					totalCostUsd: number;
-					totalCostCad: number;
-					averageEntryPrice: number;
-					openPnl: number;
-					openPnlCad: number;
-					openPnlUsd: number;
-					currentMarketValueCad: number;
-					currentMarketValueUsd: number;
-				};
-				quote: {
-					price: number;
-					priceUsd: number;
-					priceCad: number;
-					currency: Currency;
-				};
-				trades: {
-					quantity: number;
-					price: number;
-					action: string;
-					timestamp: number;
-					pnlCad: number;
-					pnlUsd: number;
-					isOpeningPositionTrade: boolean;
-					priceCad: number;
-					priceUsd: number;
-					isSell: boolean;
-					exchange?: {
-						rate: number;
-					};
-					accountName: string;
-				}[];
-				assessment?: {
-					minuses: string[];
-					pluses: string[];
-					targetPrice: number;
-					targetInvestment: number;
-					notes: string[];
-					lastUpdatedTimestamp: number;
-					questions: string[];
-					valuations: string[];
-					rating: RatingType;
-				};
-				dividends: {
-					amount: number;
-					timestamp: number;
-					amountUsd: number;
-					amountCad: number;
-				}[];
-				orders: {
-					limitPrice: number;
-					limitPriceCad: number;
-					limitPriceUsd: number;
-					openQuantity: number;
-					action: string;
-					accountName: string;
-				}[];
-			}[];
+			nodes: IStockTemplateNode[];
 		};
 		allQuote: {
-			nodes: {
-				symbol: string;
-				price: number;
-				priceCad: number;
-				priceUsd: number;
-			}[];
+			nodes: Pick<IQuote, 'symbol' | 'price' | 'priceCad' | 'priceUsd'>[];
 		};
 		allStockSplit: {
 			nodes: IStockSplit[];
@@ -633,9 +620,6 @@ export const pageQuery = graphql`
 					priceUsd
 					priceCad
 					isSell
-					exchange {
-						rate
-					}
 					accountName
 				}
 				assessment {
