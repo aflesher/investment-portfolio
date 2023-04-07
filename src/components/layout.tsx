@@ -202,7 +202,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						rate
 					}
 				}
-				allPosition {
+				allPosition(filter: { company: { hisa: { eq: false } } }) {
 					nodes {
 						symbol
 						currency

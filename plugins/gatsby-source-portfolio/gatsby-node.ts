@@ -37,6 +37,7 @@ const cryptoTradesPromise = firebase.getCryptoTrades();
 const binanceOrdersPromise = binance.getOpenOrders();
 const cryptoMetaDataPromise = firebase.getCryptoMetaData();
 const ratesPromise = firebase.getExchangeRates();
+const hisaStocksPromise = firebase.getHisaStocks();
 
 const MARGIN_ACCOUNT_ID = 26418215;
 
@@ -1086,7 +1087,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	}
 
 	const mapQuestradeSymbolToCompany = (
-		s: questrade.IQuestradeSymbol
+		s: questrade.IQuestradeSymbol,
+		hisaSymbols: string[]
 	): ICompany => {
 		return {
 			symbol: s.symbol,
@@ -1099,6 +1101,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			exchange: s.exchange,
 			highPrice52: s.highPrice52,
 			lowPrice52: s.lowPrice52,
+			hisa: hisaSymbols.includes(s.symbol),
 		};
 	};
 
@@ -1118,6 +1121,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			type: AssetType.crypto,
 			highPrice52: metaData?.allTimeHighUsd || q.price,
 			lowPrice52: metaData?.oneYearLowUsd || q.price,
+			hisa: false,
 		};
 	};
 
@@ -1125,9 +1129,15 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const stockCompanies = await companiesPromise;
 		const cryptoQuotes = await cryptoQuotesPromise;
 		const cryptoMetaData = await cryptoMetaDataPromise;
+		const hisaStocks = await hisaStocksPromise;
 
 		const companies = _.concat(
-			stockCompanies.map(mapQuestradeSymbolToCompany),
+			stockCompanies.map((q) =>
+				mapQuestradeSymbolToCompany(
+					q,
+					hisaStocks.map((q) => q.symbol)
+				)
+			),
 			cryptoQuotes.map((q) => mapCryptoQuoteToCompany(q, cryptoMetaData))
 		);
 

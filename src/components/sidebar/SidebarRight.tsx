@@ -69,7 +69,7 @@ const SidebarRight: React.FC<
 	return (
 		<div>
 			<div className='positions'>
-				<h3>Portfolio</h3>
+				<h4>Portfolio</h4>
 				<div className='row'>
 					<div
 						className='col-4 link'
@@ -131,7 +131,7 @@ const SidebarRight: React.FC<
 			</div>
 
 			<div className='pt-2'>
-				<h3>Recent Activity</h3>
+				<h4>Recent Activity</h4>
 				<div></div>
 				<div>
 					<div className='d-flex py-1 justify-content-between'>
