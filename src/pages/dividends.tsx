@@ -221,11 +221,25 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 			  yearTotals[index - 1].amount
 			: 0,
 	}));
+	const dayOfYear = moment().dayOfYear();
+	const endOfYear = moment().endOf('year').dayOfYear();
+	const yearProgress = dayOfYear / endOfYear;
+	const currentYearTotal = yearTotals.find((q) => q.year === moment().year())
+		?.amount;
+	const previousYearTotal = yearTotals.find(
+		(q) => q.year === moment().year() - 1
+	)?.amount;
+	let projection = 0;
+	let projectionPercentage = 0;
+	if (currentYearTotal && previousYearTotal) {
+		projection = currentYearTotal / yearProgress;
+		projectionPercentage = (projection - previousYearTotal) / previousYearTotal;
+	}
 
 	return (
 		<Layout>
 			<div className='p-4'>
-				<div className='row mb-4'>
+				<div className='row'>
 					{yearTotalsPercent.map(({ year, amount, percent }) => (
 						<div className='col-2' key={year}>
 							<div className='border p-2 mb-2'>
@@ -239,6 +253,11 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 							</div>
 						</div>
 					))}
+				</div>
+				<div className='my-1'>
+					{moment().year()} current projection{' '}
+					{numeral(projection).format('$0,0.00')}{' '}
+					<Percent percent={projectionPercentage} />
 				</div>
 				<div className='row'>
 					<div className='col-3'>
