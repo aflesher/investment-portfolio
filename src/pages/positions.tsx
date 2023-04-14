@@ -157,47 +157,46 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 
 	const orders = data.allOrder.nodes;
 
-	const positions = _(positionNodes)
-		.orderBy(
-			(position) => {
-				switch (orderBy) {
-					case PositionsOrderBy.symbol:
-						return position.symbol;
-					case PositionsOrderBy.profits:
-						return (
-							(position.quote.price - position.averageEntryPrice) /
-							position.averageEntryPrice
-						);
-					case PositionsOrderBy.position:
-						return getCurrentValueCad(position) / totalPositionValue;
-					case PositionsOrderBy.investment:
-						return getTotalCostCad(position) / totalPositionCost;
-					case PositionsOrderBy.orders:
-						if (
-							orders.find((q) => q.symbol === position.symbol && q.action === 'buy')
-						) {
-							return 1;
-						}
+	const positions = _.orderBy(
+		positionNodes,
+		(position) => {
+			switch (orderBy) {
+				case PositionsOrderBy.symbol:
+					return position.symbol;
+				case PositionsOrderBy.profits:
+					return (
+						(position.quote.price - position.averageEntryPrice) /
+						position.averageEntryPrice
+					);
+				case PositionsOrderBy.position:
+					return getCurrentValueCad(position) / totalPositionValue;
+				case PositionsOrderBy.investment:
+					return getTotalCostCad(position) / totalPositionCost;
+				case PositionsOrderBy.orders:
+					if (
+						orders.find((q) => q.symbol === position.symbol && q.action === 'buy')
+					) {
+						return 1;
+					}
 
-						if (
-							orders.find((q) => q.symbol === position.symbol && q.action === 'sell')
-						) {
-							return 2;
-						}
-						return 0;
-					case PositionsOrderBy.rating:
-						return position.assessment?.rating;
-					case PositionsOrderBy.pe:
-						return position.company.pe;
-					case PositionsOrderBy.dividendYield:
-						return position.company.yield;
-					case PositionsOrderBy.cashProfits:
-						return getCurrentValueCad(position) - getTotalCostCad(position);
-				}
-			},
-			orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
-		)
-		.value();
+					if (
+						orders.find((q) => q.symbol === position.symbol && q.action === 'sell')
+					) {
+						return 2;
+					}
+					return 0;
+				case PositionsOrderBy.rating:
+					return position.assessment?.rating;
+				case PositionsOrderBy.pe:
+					return position.company.pe;
+				case PositionsOrderBy.dividendYield:
+					return position.company.yield;
+				case PositionsOrderBy.cashProfits:
+					return getCurrentValueCad(position) - getTotalCostCad(position);
+			}
+		},
+		orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
+	);
 
 	const getRatingPercent = (positionNode: IPositionNode) => {
 		const rating = positionNode.assessment?.rating || 'none';

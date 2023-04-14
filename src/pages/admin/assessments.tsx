@@ -165,10 +165,7 @@ const AssessmentsAdmin: React.FC<
 			type,
 			rating,
 			lastUpdated: (isEdit && assessment?.lastUpdated) || new Date(),
-			checklist: _(checklist)
-				.keyBy((q) => q.id)
-				.mapValues((q) => q.value)
-				.value(),
+			checklist: checklist.reduce((q, a) => ({ ...q, [a.id]: a.value }), {}),
 		};
 
 		await docRef.set(newAssessment, { merge: true });

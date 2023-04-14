@@ -96,10 +96,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 		return true;
 	});
 
-	const symbols = _(data.allTrade.nodes)
-		.map((t) => t.symbol)
-		.uniq()
-		.value();
+	const symbols = _.uniq(data.allTrade.nodes.map((t) => t.symbol));
 
 	const handleSymbolChange = (symbol: string): void => {
 		setSymbol(symbol);

@@ -128,14 +128,11 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 						))}
 				</div>
 			</div>
-			{_(notes)
-				.sampleSize(1)
-				.map(({ text }) => (
-					<div key={text} className='daily-note text-center b-1 py-2 px-4 mt-4'>
-						{text}
-					</div>
-				))
-				.value()}
+			{_.sampleSize(notes, 1).map(({ text }) => (
+				<div key={text} className='daily-note text-center b-1 py-2 px-4 mt-4'>
+					{text}
+				</div>
+			))}
 			<div className='mx-2 mt-4'>
 				<h3>Upcoming Earnings</h3>
 				{earningsDates.map(({ timestamp, symbol }) => (

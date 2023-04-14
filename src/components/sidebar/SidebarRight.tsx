@@ -32,13 +32,22 @@ const SidebarRight: React.FC<
 	const portfolioTotalCost = _.sumBy(positions, (p) => p.costCad);
 	const inTheBlack = portfolioTotalValue > portfolioTotalCost;
 
-	let dividendsAndTrades: (ITradeStateProps | IDividendStateProps)[] = [];
-	dividendsAndTrades = _(dividendsAndTrades)
-		.concat(trades)
-		.concat(dividends)
-		.orderBy((q) => q.timestamp, 'desc')
-		.slice(0, 5)
-		.value();
+	let dividendsAndTrades: (ITradeStateProps | IDividendStateProps)[] = [
+		...trades,
+		...dividends,
+	]
+		.sort((a, b) => {
+			if (a.timestamp > b.timestamp) {
+				return 1;
+			}
+
+			if (a.timestamp < b.timestamp) {
+				return -1;
+			}
+
+			return 0;
+		})
+		.slice(0, 5);
 
 	const pnl = ({
 		quoteCurrency,
@@ -83,46 +92,44 @@ const SidebarRight: React.FC<
 						%oP
 					</div>
 				</div>
-				{_(positions)
-					.orderBy(
-						(position) => {
-							switch (orderBy) {
-								case PositionOrderBy.symbol:
-									return position.symbol;
-								case PositionOrderBy.profits:
-									return position.quoteCurrency === Currency.cad
-										? (position.valueCad - position.costCad) / position.costCad
-										: (position.valueUsd - position.costUsd) / position.costUsd;
-								case PositionOrderBy.position:
-									return position.valueCad / portfolioTotalValue;
-							}
-						},
-						orderBy == PositionOrderBy.symbol ? 'asc' : 'desc'
-					)
-					.map((position) => (
-						<div className='row position' key={position.symbol}>
-							<div className='col-4 pr-0'>
-								<div className='d-inline-block'>
-									<StockHover {...position} />
-								</div>
-							</div>
-							<div
-								className={classNames({
-									'text-rtl': pnl(position) >= 0,
-									'col-4': true,
-									'text-right': true,
-									'text-positive': pnl(position) >= 0,
-									'text-negative': pnl(position) < 0,
-								})}
-							>
-								{numeral(pnl(position)).format('0,0.00%')}
-							</div>
-							<div className='col-4 text-right'>
-								{numeral(position.percentageOfPortfolio).format('0.0%')}
+				{_.orderBy(
+					positions,
+					(position) => {
+						switch (orderBy) {
+							case PositionOrderBy.symbol:
+								return position.symbol;
+							case PositionOrderBy.profits:
+								return position.quoteCurrency === Currency.cad
+									? (position.valueCad - position.costCad) / position.costCad
+									: (position.valueUsd - position.costUsd) / position.costUsd;
+							case PositionOrderBy.position:
+								return position.valueCad / portfolioTotalValue;
+						}
+					},
+					orderBy == PositionOrderBy.symbol ? 'asc' : 'desc'
+				).map((position) => (
+					<div className='row position' key={position.symbol}>
+						<div className='col-4 pr-0'>
+							<div className='d-inline-block'>
+								<StockHover {...position} />
 							</div>
 						</div>
-					))
-					.value()}
+						<div
+							className={classNames({
+								'text-rtl': pnl(position) >= 0,
+								'col-4': true,
+								'text-right': true,
+								'text-positive': pnl(position) >= 0,
+								'text-negative': pnl(position) < 0,
+							})}
+						>
+							{numeral(pnl(position)).format('0,0.00%')}
+						</div>
+						<div className='col-4 text-right'>
+							{numeral(position.percentageOfPortfolio).format('0.0%')}
+						</div>
+					</div>
+				))}
 			</div>
 
 			<div className='pt-2'>

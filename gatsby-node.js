@@ -10,8 +10,22 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
 					{
 						test: /firebase/,
 						use: loaders.null(),
-					}
+					},
 				],
+			},
+			resolve: {
+				fallback: {
+					crypto: require.resolve('crypto-browserify'),
+				},
+			},
+		});
+	} else {
+		actions.setWebpackConfig({
+			resolve: {
+				fallback: {
+					crypto: require.resolve('crypto-browserify'),
+					stream: require.resolve('stream-browserify'),
+				},
 			},
 		});
 	}

@@ -818,6 +818,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			console.log(`${trade.symbol} : ${trade.symbolId}`);
 		}
 
+		trade.pnl = trade.pnl || 0;
+
 		return {
 			isSell: trade.action === 'sell',
 			symbol: trade.symbol,

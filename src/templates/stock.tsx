@@ -525,39 +525,36 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 						<h3>Trades</h3>
 						<div>
 							{trades.length
-								? _(trades)
-										.orderBy((t) => t.timestamp, 'desc')
-										.map((trade, i) => (
-											<Trade
-												symbol={company.symbol}
-												isSell={trade.action == 'sell'}
-												quantity={trade.quantity}
-												key={i}
-												timestamp={trade.timestamp}
-												price={quote.price}
-												previousClosePrice={company.prevDayClosePrice}
-												name={company.name}
-												currency={quote.currency}
-												marketCap={company.marketCap || 0}
-												shareProgress={
-													position.totalCost / (assessment?.targetInvestment || 0)
-												}
-												priceProgress={quote.price / (assessment?.targetPrice || 0)}
-												activeCurrency={currency}
-												assetCurrency={quote.currency}
-												tradePrice={trade.price}
-												pnlCad={trade.pnlCad}
-												pnlUsd={trade.pnlUsd}
-												costCad={position.totalCostCad}
-												costUsd={position.totalCostUsd}
-												valueCad={position.currentMarketValueCad}
-												valueUsd={position.currentMarketValueUsd}
-												type={company.type}
-												quoteCurrency={quote.currency}
-												accountName={trade.accountName}
-											/>
-										))
-										.value()
+								? _.orderBy(trades, (t) => t.timestamp, 'desc').map((trade, i) => (
+										<Trade
+											symbol={company.symbol}
+											isSell={trade.action == 'sell'}
+											quantity={trade.quantity}
+											key={i}
+											timestamp={trade.timestamp}
+											price={quote.price}
+											previousClosePrice={company.prevDayClosePrice}
+											name={company.name}
+											currency={quote.currency}
+											marketCap={company.marketCap || 0}
+											shareProgress={
+												position.totalCost / (assessment?.targetInvestment || 0)
+											}
+											priceProgress={quote.price / (assessment?.targetPrice || 0)}
+											activeCurrency={currency}
+											assetCurrency={quote.currency}
+											tradePrice={trade.price}
+											pnlCad={trade.pnlCad}
+											pnlUsd={trade.pnlUsd}
+											costCad={position.totalCostCad}
+											costUsd={position.totalCostUsd}
+											valueCad={position.currentMarketValueCad}
+											valueUsd={position.currentMarketValueUsd}
+											type={company.type}
+											quoteCurrency={quote.currency}
+											accountName={trade.accountName}
+										/>
+								  ))
 								: '(no trades)'}
 						</div>
 					</div>
@@ -565,9 +562,8 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 						<h3>Dividends</h3>
 						<div>
 							{dividends.length
-								? _(dividends)
-										.orderBy((t) => t.timestamp, 'desc')
-										.map((dividend, i) => (
+								? _.orderBy(dividends, (t) => t.timestamp, 'desc').map(
+										(dividend, i) => (
 											<div key={i} className='row border-top-normal'>
 												<div className='col-6'>{formatDate(dividend.timestamp)}</div>
 												<div className='col-6'>
@@ -578,8 +574,8 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 													/>
 												</div>
 											</div>
-										))
-										.value()
+										)
+								  )
 								: '(no dividends)'}
 						</div>
 					</div>

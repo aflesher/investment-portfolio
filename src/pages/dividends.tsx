@@ -167,10 +167,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 		_.sumBy(dividends, (q) => q.amountUsd) +
 		_.sumBy(dividendPositions, (q) => q.amountUsd);
 
-	const symbols = _(data.allDividend.nodes)
-		.map((t) => t.symbol)
-		.uniq()
-		.value();
+	const symbols = [...new Set(data.allDividend.nodes.map((t) => t.symbol))];
 
 	const handleSymbolChange = (symbol: string): void => {
 		setSymbol(symbol);
