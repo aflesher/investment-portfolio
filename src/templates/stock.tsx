@@ -20,6 +20,7 @@ import {
 	coinsPerShare,
 	cryptoPremium,
 	getMaxShares,
+	getTimeHeld,
 } from '../utils/util';
 import { IStockSplit } from '../utils/stock-split';
 import StockSplits from '../components/stockSplits/StockSplits';
@@ -194,8 +195,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 		quote.currency === 'usd' ? potentialAth : potentialAth * cadToUsd;
 	const potentialAthCad =
 		quote.currency === 'cad' ? potentialAth : potentialAth * usdToCad;
-	const timeHeld =
-		new Date().getTime() - (openingTrade?.timestamp || new Date().getTime());
+	const timeHeld = getTimeHeld(trades);
 
 	const tradeAccountsMap: { [accountName: string]: number } = {};
 	trades.forEach(({ accountName, action, quantity }) => {

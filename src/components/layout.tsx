@@ -318,6 +318,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 			}
 		`}
 		render={(queryData: ILayoutGraphQL): JSX.Element => {
+			const [isCollapsed, setIsCollapsed] = React.useState(true);
 			const usdCad = _.first(queryData.allExchangeRate.nodes)?.rate || 1;
 			const cadUsd = 1 / usdCad;
 
@@ -407,12 +408,11 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 
 			return (
 				<div className='page-wrapper'>
-					<div className='page'>
+					<div className={`page ${isCollapsed && 'collapsed'}`}>
 						<div
-							className={classNames({
-								'sidebar-left': true,
-								'sidebar-open': showSidebar,
-							})}
+							className={`sidebar-left ${showSidebar && 'sidebar-open'} ${
+								isCollapsed && 'collapsed'
+							}`}
 						>
 							<div className='p-2'>
 								<SidebarLeft
@@ -421,6 +421,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 									usdCad={usdCad}
 									cadUsd={cadUsd}
 									authenticated={!!user}
+									isCollapsed={isCollapsed}
+									onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
 								/>
 							</div>
 						</div>
