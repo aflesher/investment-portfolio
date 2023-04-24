@@ -6,7 +6,11 @@ import _ from 'lodash';
 import { componentWillAppendToBody } from 'react-append-to-body';
 // @ts-ignore
 import { Link } from 'gatsby';
-import { displayMarketCap, obfuscateSymbol } from '../../utils/util';
+import {
+	displayMarketCap,
+	obfuscateCompany,
+	obfuscateSymbol,
+} from '../../utils/util';
 import XE from '../xe/XE';
 
 export interface IStockQuoteStateProps {
@@ -137,7 +141,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 									style={{ overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '300px' }}
 									className='font-weight-bold text-emphasis'
 								>
-									{name}
+									{obfuscateCompany(name).toUpperCase()}
 								</div>
 								<span>
 									{numeral(price).format('$0,000.00')}&nbsp;

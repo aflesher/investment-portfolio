@@ -4,7 +4,7 @@ import numeral from 'numeral';
 
 import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
 import { Currency } from '../../utils/enum';
-import { formatDateShort } from '../../utils/util';
+import { OBFUSCATE, formatDateShort } from '../../utils/util';
 
 export interface ICompletePositionStateProps extends IStockQuoteStateProps {
 	quantityBought: number;
@@ -69,26 +69,36 @@ const CompletedPosition: React.FC<ICompletePositionStateProps> = ({
 			<td className='text-right'>{quantityBought}</td>
 			<td className='text-right'>{numeral(avgPricePaid).format('$0.00')}</td>
 			<td className='text-right'>{numeral(avgPriceSold).format('$0.00')}</td>
-			<td
-				className={classNames({
-					'text-positive': pnlPercentage >= 0,
-					'text-negative': pnlPercentage < 0,
-					'text-right': true,
-				})}
-			>
-				{numeral(pnlPercentage).format('0.00%')}
-			</td>
-			<td
-				className={classNames({
-					'text-positive': pnlPercentage >= 0,
-					'text-negative': pnlPercentage < 0,
-					'text-right': true,
-				})}
-			>
-				{numeral(activeCurrency === Currency.cad ? pnlCad : pnlUsd).format(
-					'$0,0.00'
-				)}
-			</td>
+			{!OBFUSCATE && (
+				<td
+					className={classNames({
+						'text-positive': pnlPercentage >= 0,
+						'text-negative': pnlPercentage < 0,
+						'text-right': true,
+					})}
+				>
+					{numeral(pnlPercentage).format('0.00%')}
+				</td>
+			)}
+			{!OBFUSCATE && (
+				<td
+					className={classNames({
+						'text-positive': pnlPercentage >= 0,
+						'text-negative': pnlPercentage < 0,
+						'text-right': true,
+					})}
+				>
+					{numeral(activeCurrency === Currency.cad ? pnlCad : pnlUsd).format(
+						'$0,0.00'
+					)}
+				</td>
+			)}
+			{OBFUSCATE && (
+				<>
+					<td className='text-right'>-</td>
+					<td className='text-right'>-</td>
+				</>
+			)}
 			<td className='text-right'>{formatDateShort(openedTimestamp)}</td>
 			<td className='text-right'>{formatDateShort(closedTimestamp)}</td>
 		</tr>
