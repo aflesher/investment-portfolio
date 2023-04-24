@@ -45,7 +45,7 @@ const LINKS: ILink[] = [
 	{ text: 'Orders', icon: 'fa-book', route: '/orders' },
 	{ text: 'Calendar', icon: 'fa-calendar-alt', route: '/calendar' },
 	{ text: 'Cash', icon: 'fa-money-bill-alt', route: '/cash' },
-	{ text: 'Review', icon: 'fa-tasks', route: '/review' },
+	{ text: 'Reviews', icon: 'fa-tasks', route: '/reviews' },
 	{
 		text: 'Create Assessment',
 		icon: 'fa-balance-scale',
@@ -68,7 +68,7 @@ const LINKS: ILink[] = [
 	{
 		text: 'Crypto Trades',
 		icon: 'fa-sync',
-		route: '/admin/crypto-trade',
+		route: '/admin/crypto-trades',
 		addIcon: true,
 	},
 	{ text: 'Backup', icon: 'fa-file-download', route: '/admin/backup' },

@@ -33,7 +33,7 @@ const CustomText: React.FC<ICustomTextProps & ICustomTextStateProps> = ({
 	return (
 		<div>
 			{textPieces.map((text, index) => (
-				<span key={text}>
+				<span key={`${text}${index}`}>
 					<p>{text}</p>
 					{!!imageUrls?.[index] && (
 						<img style={{ width: '100%' }} src={imageUrls?.[index]} />

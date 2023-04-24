@@ -77,8 +77,6 @@ const Assessments: React.FC<IAssessmentsQuery & IAssessmentStateProps> = ({
 		setEndDate(new Date(event.target.value));
 	};
 
-	console.log(storage, storage);
-
 	return (
 		<Layout>
 			<div className='p-4'>
