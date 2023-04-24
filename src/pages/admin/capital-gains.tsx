@@ -127,7 +127,6 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 			} else {
 				const proceeds = t.quantity * t.price * getConversion(t) * multiplier;
 				const tradeCost = (cost / shares) * t.quantity;
-				console.log(t.symbol, tradeCost);
 				if (moment(t.timestamp).year() === year) {
 					capitalGains.push({
 						proceeds,
