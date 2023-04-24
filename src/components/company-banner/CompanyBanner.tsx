@@ -1,7 +1,7 @@
 import { navigate } from 'gatsby';
 import React from 'react';
 
-import { faClassForSymbol } from '../../utils/util';
+import { faClassForSymbol, obfuscateCompany } from '../../utils/util';
 
 export interface ICompanyBannerStateProps {
 	symbol: string;
@@ -23,9 +23,11 @@ const CompanyBanner: React.FC<ICompanyBannerStateProps> = ({
 		onClick={() => navigate(`/stock/${symbol}`)}
 	>
 		<i className={faClassForSymbol(symbol)}></i>
-		{name.split('').map((l, index) => (
-			<span key={`${l}${index}`}>{l}</span>
-		))}
+		{obfuscateCompany(name)
+			.split('')
+			.map((l, index) => (
+				<span key={`${l}${index}`}>{l}</span>
+			))}
 		<div></div>
 	</div>
 );

@@ -6,6 +6,7 @@ import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
 import { Currency, RatingType } from '../../utils/enum';
 import XE from '../xe/XE';
 import { PositionsOrderBy } from '../../pages/positions';
+import { OBFUSCATE } from '../../utils/util';
 
 export interface IPositionStateProps extends IStockQuoteStateProps {
 	index: number;
@@ -114,19 +115,21 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 			</td>
 			<td>{numeral(percentageOfPortfolio).format('0.0%')}</td>
 			<td>{numeral(percentageOfInvestment).format('0.0%')}</td>
-			<td
-				className={classNames({
-					'text-right': true,
-					'text-positive': pnl >= 0,
-					'text-negative': pnl < 0,
-				})}
-			>
-				<XE
-					cad={valueCad - costCad}
-					usd={valueUsd - costUsd}
-					currency={activeCurrency}
-				/>
-			</td>
+			{!OBFUSCATE && (
+				<td
+					className={classNames({
+						'text-right': true,
+						'text-positive': pnl >= 0,
+						'text-negative': pnl < 0,
+					})}
+				>
+					<XE
+						cad={valueCad - costCad}
+						usd={valueUsd - costUsd}
+						currency={activeCurrency}
+					/>
+				</td>
+			)}
 		</tr>
 	);
 };

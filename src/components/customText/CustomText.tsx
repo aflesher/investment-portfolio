@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { IStoreState } from '../../store/store';
 import { getDownloadURL, ref } from 'firebase/storage';
+import { OBFUSCATE } from '../../utils/util';
 
 interface ICustomTextProps {
 	text: string;
@@ -14,6 +15,7 @@ const CustomText: React.FC<ICustomTextProps & ICustomTextStateProps> = ({
 }) => {
 	const [imageUrls, setImageUrls] = useState<string[]>([]);
 	const [textPieces, setTextPieces] = useState<string[]>([]);
+	const blur = OBFUSCATE ? { filter: 'blur(10px)' } : {};
 
 	useEffect(() => {
 		if (storage && text) {
@@ -36,7 +38,7 @@ const CustomText: React.FC<ICustomTextProps & ICustomTextStateProps> = ({
 				<span key={text}>
 					<p>{text}</p>
 					{!!imageUrls?.[index] && (
-						<img style={{ width: '100%' }} src={imageUrls?.[index]} />
+						<img style={{ ...blur, width: '100%' }} src={imageUrls?.[index]} />
 					)}
 				</span>
 			))}

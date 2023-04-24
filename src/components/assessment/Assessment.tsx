@@ -3,7 +3,7 @@ import numeral from 'numeral';
 // @ts-ignore
 import { Link } from 'gatsby';
 
-import { formatDateShort } from '../../utils/util';
+import { formatDateShort, obfuscateSymbol } from '../../utils/util';
 import CompanyBanner, {
 	ICompanyBannerStateProps,
 } from '../company-banner/CompanyBanner';
@@ -55,7 +55,7 @@ const Assessment: React.FC<IAssessmentStateProps> = ({
 			{!!name && <CompanyBanner name={name} symbol={symbol} />}
 			<div className='clearfix mt-2'>
 				<div className='float-left text-uppercase'>
-					<Link to={`/stock/${symbol}`}>{symbol}</Link>
+					<Link to={`/stock/${symbol}`}>{obfuscateSymbol(symbol)}</Link>
 					<span className='text-subtle ml-2 font-italic'>{rating}</span>
 				</div>
 				<div className='float-right'>{formatDateShort(lastUpdatedTimestamp)}</div>

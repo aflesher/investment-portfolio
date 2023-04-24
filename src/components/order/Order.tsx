@@ -5,7 +5,7 @@ import { Link } from 'gatsby';
 
 import XE from '../xe/XE';
 import { IOrder } from '../../utils/order';
-import { positiveNegativeText } from '../../utils/util';
+import { obfuscateSymbol, positiveNegativeText } from '../../utils/util';
 
 interface IOrderStateProps
 	extends Omit<
@@ -70,7 +70,7 @@ const Order: React.FC<IOrderStateProps> = ({
 					<div className='text-uppercase font-weight-bold col-6'>
 						<span className={positiveNegativeText(action === 'buy')}>{action}</span>
 						&nbsp;
-						<Link to={`/stock/${symbol}`}>{symbol}</Link>
+						<Link to={`/stock/${symbol}`}>{obfuscateSymbol(symbol)}</Link>
 					</div>
 					<div className='text-right col-6'>
 						{numeral(openQuantity).format('0,0')}/
@@ -114,7 +114,7 @@ const Order: React.FC<IOrderStateProps> = ({
 					<div className='text-uppercase font-weight-bold col-4'>
 						<span className={positiveNegativeText(action === 'buy')}>{action}</span>
 						&nbsp;
-						<Link to={`/stock/${symbol}`}>{symbol}</Link>
+						<Link to={`/stock/${symbol}`}>{obfuscateSymbol(symbol)}</Link>
 					</div>
 					<div className='col-4 text-subtle'>{accountName}</div>
 					<div className='text-right col-4'>

@@ -4,6 +4,7 @@ import { Link } from 'gatsby';
 import classNames from 'classnames';
 import numeral from 'numeral';
 import { Currency } from '../../utils/enum';
+import { OBFUSCATE } from '../../utils/util';
 
 interface ISidebarLeftStateProps {
 	usdCad: number;
@@ -74,6 +75,8 @@ const LINKS: ILink[] = [
 	{ text: 'Backup', icon: 'fa-file-download', route: '/admin/backup' },
 ];
 
+const OBFUSCATED_LINKS = ['/cash'];
+
 const SidebarLeft: React.FC<
 	ISidebarLeftStateProps & ISidebarLeftDispatchProps
 > = ({
@@ -88,26 +91,30 @@ const SidebarLeft: React.FC<
 	return (
 		<div>
 			<div className='nav-links text-uppercase'>
-				{LINKS.map(({ text, icon, route, addIcon, spacer }) => (
-					<div key={route}>
-						<Link to={route}>
+				{LINKS.filter((q) => !OBFUSCATE || !OBFUSCATED_LINKS.includes(q.route)).map(
+					({ text, icon, route, addIcon, spacer }) => (
+						<>
 							{spacer && <div className='border-t my-2'></div>}
-							{isCollapsed && (
-								<>
-									<span>
-										<i className={`fas ${icon} mr-2`} title={text}></i>
-									</span>
-									{addIcon && (
-										<span>
-											<i className={`fas fa-plus mr-2 fa-xs`}></i>
-										</span>
+							<div style={{ position: 'relative' }} key={route}>
+								<Link to={route}>
+									{isCollapsed && (
+										<>
+											<span>
+												<i className={`fas ${icon} mr-2`} title={text}></i>
+											</span>
+											{addIcon && (
+												<span className='plus-icon'>
+													<i className={`fas fa-plus mr-2 fa-xs`}></i>
+												</span>
+											)}
+										</>
 									)}
-								</>
-							)}
-							{!isCollapsed && <span>{text}</span>}
-						</Link>
-					</div>
-				))}
+									{!isCollapsed && <span>{text}</span>}
+								</Link>
+							</div>
+						</>
+					)
+				)}
 				{!authenticated && (
 					<div className='border-t mt-2 pt-2'>
 						<Link to='/login'>Sign In</Link>

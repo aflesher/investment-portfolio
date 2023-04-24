@@ -10,7 +10,11 @@ import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
 import { ICash } from '../utils/cash';
 import { ITrade } from '../utils/trade';
-import { getMaxShares, getPercentSharesRemaining } from '../utils/util';
+import {
+	getMaxShares,
+	getPercentSharesRemaining,
+	OBFUSCATE,
+} from '../utils/util';
 import { IOrder } from '../utils/order';
 import { IPosition } from '../utils/position';
 import { IQuote } from '../utils/quote';
@@ -317,12 +321,14 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 									%oI
 								</span>
 							</th>
-							<th
-								className='text-right link'
-								onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
-							>
-								$P&L
-							</th>
+							{!OBFUSCATE && (
+								<th
+									className='text-right link'
+									onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
+								>
+									$P&L
+								</th>
+							)}
 						</tr>
 					</thead>
 					<tbody>
@@ -357,20 +363,24 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 								sellOrderPercent={getSellOrderPercent(position)}
 							/>
 						))}
-						<tr>
-							<td colSpan={7} className='text-right'>
-								<XE
-									cad={totalPositionValue - totalPositionCost}
-									usd={totalPositionValueUsd - totalPositionCostUsd}
-									currency={currency}
-								/>
-							</td>
-						</tr>
-						<tr>
-							<td className='link' onClick={() => setCombined(!combined)}>
-								{(combined && 'combined *') || 'not combined'}
-							</td>
-						</tr>
+						{!OBFUSCATE && (
+							<tr>
+								<td colSpan={7} className='text-right'>
+									<XE
+										cad={totalPositionValue - totalPositionCost}
+										usd={totalPositionValueUsd - totalPositionCostUsd}
+										currency={currency}
+									/>
+								</td>
+							</tr>
+						)}
+						{!OBFUSCATE && (
+							<tr>
+								<td className='link' onClick={() => setCombined(!combined)}>
+									{(combined && 'combined *') || 'not combined'}
+								</td>
+							</tr>
+						)}
 					</tbody>
 				</table>
 			</div>
@@ -382,7 +392,7 @@ export default connect(mapStateToProps)(Positions);
 
 export const pageQuery = graphql`
 	query {
-		allPosition {
+		allPosition(filter: { type: { eq: "stock" } }) {
 			nodes {
 				currency
 				totalCostCad

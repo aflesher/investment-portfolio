@@ -202,7 +202,9 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						rate
 					}
 				}
-				allPosition(filter: { company: { hisa: { eq: false } } }) {
+				allPosition(
+					filter: { company: { hisa: { eq: false }, type: { eq: "stock" } } }
+				) {
 					nodes {
 						symbol
 						currency
@@ -230,7 +232,11 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
-				allTrade(sort: { fields: [timestamp], order: DESC }, limit: 5) {
+				allTrade(
+					sort: { fields: [timestamp], order: DESC }
+					limit: 5
+					filter: { type: { eq: "stock" } }
+				) {
 					nodes {
 						accountId
 						quantity

@@ -9,6 +9,8 @@ const MARGIN_ACCOUNT_ID = 26418215;
 const TFSA_ACCOUNT_ID = 51443858;
 const RRSP_ACCOUNT_ID = 51637118;
 
+export const OBFUSCATE = true;
+
 export const displayMarketCap = (value: number): string =>
 	numeral(value).format('$1.00 a');
 
@@ -224,4 +226,43 @@ export const getTimeHeld = (
 		timeHeld += new Date().getTime() - startTime;
 	}
 	return timeHeld;
+};
+
+// write a function to that obfuscates a string
+export const obfuscateSymbol = (symbol: string): string => {
+	if (!OBFUSCATE) {
+		return symbol;
+	}
+	const min = 'a'.charCodeAt(0);
+
+	const obfuscated = symbol.split('').map((char, index) => {
+		if (char === '.') {
+			return char;
+		}
+		const charCode = char.charCodeAt(0);
+		const newCharCode = min + ((charCode * 37) % 26);
+		return String.fromCharCode(newCharCode);
+	});
+
+	return obfuscated.join('');
+};
+
+export const obfuscateCompany = (name: string): string => {
+	if (!OBFUSCATE) {
+		return name;
+	}
+	name = name.toLowerCase();
+	const min = 'a'.charCodeAt(0);
+	const max = 'z'.charCodeAt(0);
+
+	const obfuscated = name.split('').map((char, index) => {
+		if (char.charCodeAt(0) < min || char.charCodeAt(0) > max) {
+			return char;
+		}
+		const charCode = char.charCodeAt(0);
+		const newCharCode = min + ((charCode * 37) % 26);
+		return String.fromCharCode(newCharCode);
+	});
+
+	return obfuscated.join('');
 };

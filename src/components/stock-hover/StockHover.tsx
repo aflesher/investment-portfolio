@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { componentWillAppendToBody } from 'react-append-to-body';
 // @ts-ignore
 import { Link } from 'gatsby';
-import { displayMarketCap } from '../../utils/util';
+import { displayMarketCap, obfuscateSymbol } from '../../utils/util';
 import XE from '../xe/XE';
 
 export interface IStockQuoteStateProps {
@@ -120,7 +120,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
 			>
-				{symbol.substring(0, 8) + (symbolCharacter || '')}
+				{obfuscateSymbol(symbol).substring(0, 8) + (symbolCharacter || '')}
 			</Link>
 			{AppendedHoverComponent ? (
 				<AppendedHoverComponent>
