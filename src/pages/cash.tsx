@@ -156,7 +156,9 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 	);
 
 	const combinedBalances: IBalanceStateProps = {
-		amountCad: balances.reduce((sum, { amountCad }) => sum + amountCad, 0),
+		amountCad: balances
+			.filter((q) => q.name != 'EQ Bank')
+			.reduce((sum, { amountCad }) => sum + amountCad, 0),
 		amountUsd: balances.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
 		cadHISA: balances.reduce((sum, { cadHISA }) => sum + (cadHISA || 0), 0),
 		usdHISA: balances.reduce((sum, { usdHISA }) => sum + (usdHISA || 0), 0),
@@ -206,9 +208,7 @@ export const pageQuery = graphql`
 			}
 		}
 		allTrade(
-			filter: {
-				symbol: { regex: "/(cash.to)|(hsuv.u.to)|(hisa.to)|(hisu.u.to)/" }
-			}
+			filter: { company: { hisa: { eq: true } } }
 			sort: { fields: timestamp }
 		) {
 			nodes {
@@ -219,11 +219,7 @@ export const pageQuery = graphql`
 				currency
 			}
 		}
-		allQuote(
-			filter: {
-				symbol: { regex: "/(cash.to)|(hsuv.u.to)|(hisa.to)|(hisu.u.to)/" }
-			}
-		) {
+		allQuote(filter: { company: { hisa: { eq: true } } }) {
 			nodes {
 				price
 				priceCad

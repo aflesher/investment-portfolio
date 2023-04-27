@@ -11,4 +11,5 @@ export interface ICompany {
 	exchange: string;
 	highPrice52: number;
 	lowPrice52: number;
+	hisa?: boolean;
 }

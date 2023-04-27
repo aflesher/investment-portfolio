@@ -117,20 +117,39 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	currency,
 	data,
 }) => {
-	const usdCash = data.allCash.nodes.reduce(
+	let usdCash = data.allCash.nodes.reduce(
 		(sum, { amountUsd }) => sum + amountUsd,
 		0
 	);
-	const cadCash = data.allCash.nodes.reduce(
+	let cadCash = data.allCash.nodes.reduce(
 		(sum, { amountCad }) => sum + amountCad,
 		0
 	);
 
 	const positionNodes = data.allPosition.nodes.slice();
-	positionNodes.push(addCurrencyToPositions(usdCash, cadCash));
 
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
-	const [combined, setCombined] = React.useState(true);
+	const [combined, setCombined] = React.useState(false);
+
+	const hisaSymbols = ['hisa.to', 'cash.to', 'hisu.u.to', 'hsuv.u.to'];
+
+	if (combined) {
+		cadCash += positionNodes
+			.filter((q) => hisaSymbols.includes(q.symbol))
+			.reduce(
+				(sum, { currentMarketValueCad }) => sum + (currentMarketValueCad || 0),
+				0
+			);
+
+		usdCash += positionNodes
+			.filter((q) => hisaSymbols.includes(q.symbol))
+			.reduce(
+				(sum, { currentMarketValueUsd }) => sum + (currentMarketValueUsd || 0),
+				0
+			);
+	}
+
+	positionNodes.push(addCurrencyToPositions(usdCash, cadCash));
 
 	const getTotalCostCad = (position: IPositionNode): number =>
 		position.totalCostCad;
@@ -196,7 +215,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 			}
 		},
 		orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
-	);
+	).filter((q) => !combined || !hisaSymbols.includes(q.symbol));
 
 	const getRatingPercent = (positionNode: IPositionNode) => {
 		const rating = positionNode.assessment?.rating || 'none';

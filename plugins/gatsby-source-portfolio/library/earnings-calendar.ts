@@ -56,7 +56,10 @@ export const scrapeCdProjektRed = async (): Promise<IEarningsDate> => {
 		'https://www.cdprojekt.com/en/investors/events/'
 	);
 	const root = parse(response.data);
-	const calendarLine = root.querySelector('.calendar_line');
+	const calendarLines = root.querySelectorAll('.calendar_line');
+	const calendarLine = calendarLines.find((q) =>
+		q.innerHTML.match(/.*report\sfor\s(H|Q).*/)
+	);
 	const date = (
 		calendarLine?.querySelectorAll('span')?.[1].innerText || ''
 	).trim();

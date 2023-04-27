@@ -9,6 +9,7 @@ import Trade, { ITradeStateProps } from '../trade/Trade';
 import Dividend, { IDividendStateProps } from '../dividend/Dividend';
 import { Currency } from '../../utils/enum';
 import StockHover from '../stock-hover/StockHover';
+import Percent from '../percent/Percent';
 
 interface ISidebarRightStateProps {
 	positions: IPositionStateProps[];
@@ -21,16 +22,15 @@ interface ISidebarRightDispatchProps {}
 enum PositionOrderBy {
 	symbol = 1,
 	profits = 2,
-	position = 3,
+	quote = 3,
 }
+
+const MAX_ACTIVITY = 7;
 
 const SidebarRight: React.FC<
 	ISidebarRightStateProps & ISidebarRightDispatchProps
 > = ({ positions, trades, dividends }) => {
 	const [orderBy, setOrderBy] = React.useState(PositionOrderBy.profits);
-	const portfolioTotalValue = _.sumBy(positions, (p) => p.valueCad);
-	const portfolioTotalCost = _.sumBy(positions, (p) => p.costCad);
-	const inTheBlack = portfolioTotalValue > portfolioTotalCost;
 
 	let dividendsAndTrades: (ITradeStateProps | IDividendStateProps)[] = [
 		...trades,
@@ -38,17 +38,16 @@ const SidebarRight: React.FC<
 	]
 		.sort((a, b) => {
 			if (a.timestamp > b.timestamp) {
-				return 1;
+				return -1;
 			}
 
 			if (a.timestamp < b.timestamp) {
-				return -1;
+				return 1;
 			}
 
 			return 0;
 		})
-		.slice(0, 5);
-
+		.slice(0, MAX_ACTIVITY);
 	const pnl = ({
 		quoteCurrency,
 		costCad,
@@ -68,10 +67,17 @@ const SidebarRight: React.FC<
 		return amount;
 	};
 
+	const quotePercentage = ({
+		price,
+		previousClosePrice,
+	}: IPositionStateProps) => {
+		return (price - previousClosePrice) / price;
+	};
+
 	return (
 		<div>
 			<div className='positions'>
-				<h3>Portfolio</h3>
+				<h4>Portfolio</h4>
 				<div className='row'>
 					<div
 						className='col-4 link'
@@ -87,9 +93,9 @@ const SidebarRight: React.FC<
 					</div>
 					<div
 						className='col-4 text-right link'
-						onClick={(): void => setOrderBy(PositionOrderBy.position)}
+						onClick={(): void => setOrderBy(PositionOrderBy.quote)}
 					>
-						%oP
+						Q
 					</div>
 				</div>
 				{_.orderBy(
@@ -102,8 +108,8 @@ const SidebarRight: React.FC<
 								return position.quoteCurrency === Currency.cad
 									? (position.valueCad - position.costCad) / position.costCad
 									: (position.valueUsd - position.costUsd) / position.costUsd;
-							case PositionOrderBy.position:
-								return position.valueCad / portfolioTotalValue;
+							case PositionOrderBy.quote:
+								return quotePercentage(position);
 						}
 					},
 					orderBy == PositionOrderBy.symbol ? 'asc' : 'desc'
@@ -126,14 +132,14 @@ const SidebarRight: React.FC<
 							{numeral(pnl(position)).format('0,0.00%')}
 						</div>
 						<div className='col-4 text-right'>
-							{numeral(position.percentageOfPortfolio).format('0.0%')}
+							<Percent percent={quotePercentage(position)} />
 						</div>
 					</div>
 				))}
 			</div>
 
 			<div className='pt-2'>
-				<h3>Recent Trades</h3>
+				<h4>Recent Activity</h4>
 				<div></div>
 				<div>
 					<div className='d-flex py-1 justify-content-between'>

@@ -1,78 +1,83 @@
-
-
 %sidebar {
-  position: absolute;
+	position: absolute;
 
-  > div {
-    background-color: #242424;
-    color: white;
-    height: 100%;
-    position: fixed;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
+	> div {
+		background-color: #242424;
+		color: white;
+		height: 100%;
+		position: fixed;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
 }
 
 .sidebar-left {
-  @extend %sidebar;
-  left: 0;
+	@extend %sidebar;
+	left: 0;
 
-  > div {
-    width: $sidebar-left-width;
-  }
+	> div {
+		width: $sidebar-left-width;
+	}
 
-  .nav-links {
-    font-size: 1.2em;
+	&.collapsed {
+		> div {
+			width: $sidebar-left-collapsed-width;
+		}
+	}
 
-    a {
-      color: #fffcf7;
-      text-shadow: 0 0 2px #393a33, 0 0 35px #ffffff44, 0 0 10px #f39f05, 0 0 2px #f39f05;
-      text-decoration: none;
-      font-weight: 500;
-    }
+	.nav-links {
+		font-size: 1.2em;
 
-    >div {
-      margin: 5px 0;
-    }
-  }
+		a {
+			color: #fffcf7;
+			text-shadow: 0 0 2px #393a33, 0 0 35px #ffffff44, 0 0 10px #f39f05,
+				0 0 2px #f39f05;
+			text-decoration: none;
+			font-weight: 500;
+		}
 
-  ul {
-    font-size: 0.8em;
-    padding-left: 10px;
-    margin-bottom: 0;
+		> div {
+			margin: 5px 0;
+		}
+	}
 
-    li {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
+	ul {
+		font-size: 0.8em;
+		padding-left: 10px;
+		margin-bottom: 0;
+
+		li {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
 }
 
 .sidebar-right {
-  @extend %sidebar;
-  right: 0;
-  > div {
-    width: $sidebar-right-width;
-    margin-left: -$sidebar-right-width;
-  }
+	@extend %sidebar;
+	right: 0;
+	> div {
+		width: $sidebar-right-width;
+		margin-left: -$sidebar-right-width;
+	}
 
-  .positions {
-    padding-bottom: 5px;
-  }
+	.positions {
+		padding-bottom: 5px;
+	}
 
-  .totals {
-    div:nth-child(2) {
-      margin-left: 10px;
-    }
-  }
+	.totals {
+		div:nth-child(2) {
+			margin-left: 10px;
+		}
+	}
 
-  .trade {
-    padding: 5px 0;
-    border-bottom: 1px solid rgb(100, 99, 99);
-  
-    &:first-child {
-      border-top: 1px solid rgb(100, 99, 99);
-    }
-  }
+	.trade {
+		padding: 5px 0;
+		border-bottom: 1px solid rgb(100, 99, 99);
+
+		&:first-child {
+			border-top: 1px solid rgb(100, 99, 99);
+		}
+	}
 }
