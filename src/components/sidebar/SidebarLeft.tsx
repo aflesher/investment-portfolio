@@ -95,24 +95,26 @@ const SidebarLeft: React.FC<
 			</div>
 			<div className='nav-links text-uppercase'>
 				{LINKS.map(({ text, icon, route, addIcon, spacer }) => (
-					<div key={route}>
-						<Link to={route}>
-							{spacer && <div className='border-t my-2'></div>}
-							{isCollapsed && (
-								<>
-									<span>
-										<i className={`fas ${icon} mr-2`} title={text}></i>
-									</span>
-									{addIcon && (
+					<>
+						{spacer && <div className='border-t my-2'></div>}
+						<div style={{ position: 'relative' }} key={route}>
+							<Link to={route}>
+								{isCollapsed && (
+									<>
 										<span>
-											<i className={`fas fa-plus mr-2 fa-xs`}></i>
+											<i className={`fas ${icon} mr-2`} title={text}></i>
 										</span>
-									)}
-								</>
-							)}
-							{!isCollapsed && <span>{text}</span>}
-						</Link>
-					</div>
+										{addIcon && (
+											<span className='plus-icon'>
+												<i className={`fas fa-plus mr-2 fa-xs`}></i>
+											</span>
+										)}
+									</>
+								)}
+								{!isCollapsed && <span>{text}</span>}
+							</Link>
+						</div>
+					</>
 				))}
 				{!authenticated && (
 					<div className='border-t mt-2 pt-2'>
