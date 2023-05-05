@@ -223,14 +223,14 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	return (
 		<Layout>
 			{toggleIncomeStatement && (
-				<div>
+				<div className='income-statements mx-auto'>
 					<div>
 						<span className='link' onClick={() => setToggleIncomeStatement(false)}>
 							BACK
 						</span>
 					</div>
 					<div>
-						{incomeStatements.map((q) => (
+						{incomeStatements.reverse().map((q) => (
 							<FirebaseImage image={q} storage={storage} />
 						))}
 					</div>
