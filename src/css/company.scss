@@ -215,7 +215,9 @@
 .cash-to,
 .hsuv-u-to,
 .hisa-to,
-.hisu-u-to {
+.hisu-u-to,
+.psa.to,
+.psu-u-to {
 	@include companyBase(#fff, #85bb65, #fff);
 }
 

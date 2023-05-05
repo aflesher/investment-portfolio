@@ -87,6 +87,12 @@ const SidebarLeft: React.FC<
 }) => {
 	return (
 		<div>
+			<div>
+				<button onClick={() => onToggleCollapse()}>
+					{isCollapsed && <i className='far fa-caret-square-right'></i>}
+					{!isCollapsed && <i className='far fa-caret-square-left'></i>}
+				</button>
+			</div>
 			<div className='nav-links text-uppercase'>
 				{LINKS.map(({ text, icon, route, addIcon, spacer }) => (
 					<div key={route}>

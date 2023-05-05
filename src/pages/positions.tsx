@@ -45,7 +45,7 @@ interface IPositionNode
 	quote: Pick<IQuote, 'price' | 'priceCad' | 'priceUsd' | 'currency'>;
 	company: Pick<
 		ICompany,
-		'pe' | 'yield' | 'prevDayClosePrice' | 'marketCap' | 'name'
+		'pe' | 'yield' | 'prevDayClosePrice' | 'marketCap' | 'name' | 'hisa'
 	>;
 	assessment?: Pick<
 		IAssessment,
@@ -131,18 +131,16 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
 	const [combined, setCombined] = React.useState(false);
 
-	const hisaSymbols = ['hisa.to', 'cash.to', 'hisu.u.to', 'hsuv.u.to'];
-
 	if (combined) {
 		cadCash += positionNodes
-			.filter((q) => hisaSymbols.includes(q.symbol))
+			.filter((q) => q.company.hisa)
 			.reduce(
 				(sum, { currentMarketValueCad }) => sum + (currentMarketValueCad || 0),
 				0
 			);
 
 		usdCash += positionNodes
-			.filter((q) => hisaSymbols.includes(q.symbol))
+			.filter((q) => q.company.hisa)
 			.reduce(
 				(sum, { currentMarketValueUsd }) => sum + (currentMarketValueUsd || 0),
 				0
@@ -215,7 +213,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 			}
 		},
 		orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
-	).filter((q) => !combined || !hisaSymbols.includes(q.symbol));
+	).filter((q) => !combined || !q.company.hisa);
 
 	const getRatingPercent = (positionNode: IPositionNode) => {
 		const rating = positionNode.assessment?.rating || 'none';
@@ -402,6 +400,7 @@ export const pageQuery = graphql`
 					prevDayClosePrice
 					marketCap
 					name
+					hisa
 				}
 				assessment {
 					targetInvestmentProgress

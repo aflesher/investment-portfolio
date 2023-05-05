@@ -4,6 +4,7 @@ import _ from 'lodash';
 import numeral from 'numeral';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
+import moment from 'moment-timezone';
 
 import { IStoreState } from '../store/store';
 import { Currency, AssetType, RatingType } from '../utils/enum';
@@ -31,6 +32,8 @@ import { ITrade } from '../utils/trade';
 import { IAssessment } from '../utils/assessment';
 import { IDividend } from '../utils/dividend';
 import { IOrder } from '../utils/order';
+import { IEarningsDate } from '../utils/earnings-date';
+import FirebaseImage from '../components/firebaseImage/FirebaseImage';
 
 interface IStockTemplateStateProps
 	extends Pick<IStoreState, 'currency' | 'storage'> {}
@@ -115,6 +118,9 @@ interface IStockTemplateQuery {
 		allStockSplit: {
 			nodes: IStockSplit[];
 		};
+		allEarningsDate: {
+			nodes: Pick<IEarningsDate, 'timestamp'>[];
+		};
 	};
 }
 
@@ -131,6 +137,9 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	currency,
 	storage,
 }) => {
+	const [toggleIncomeStatement, setToggleIncomeStatement] = React.useState(
+		false
+	);
 	const company = data.allCompany.nodes[0];
 	const cryptoQuotes = data.allQuote.nodes;
 	const btcQuote = _.find(cryptoQuotes, (q) => q.symbol === 'btc');
@@ -205,369 +214,414 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	});
 
 	const positionFormat = company.type === 'crypto' ? '0,0.0000' : '0,0';
+	const earningsDate = data.allEarningsDate.nodes[0]?.timestamp || 0;
+	const incomeStatements =
+		assessment?.notes
+			.filter((q) => q.match(/image=\S+income-statement\S+/))
+			.map((q) => q.match(/image=(\S+income-statement\S+)/)?.[1] || '') || [];
 
 	return (
 		<Layout>
-			<div className='p-4'>
-				<CompanyBanner name={company.name} symbol={company.symbol} />
-
-				<div className='row mt-4'>
-					<div className='col-6'>
-						<h3 className='mt-4'>Information</h3>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Price</div>
-							<div className='col-6'>{numeral(quote.price).format('$0,0.00')}</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>52 Week High</div>
-							<div className='col-6'>
-								{numeral(company.highPrice52).format('$0,0.00')}&nbsp; (
-								{numeral((company.highPrice52 - quote.price) / quote.price).format(
-									'0.00%'
-								)}
-								)
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>52 Week Low</div>
-							<div className='col-6'>
-								{numeral(company.lowPrice52).format('$0,0.00')}&nbsp; (
-								{numeral((company.lowPrice52 - quote.price) / quote.price).format(
-									'0.00%'
-								)}
-								)
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Market Cap</div>
-							<div className='col-6 text-uppercase'>
-								{marketCap(company.marketCap)}
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Yield</div>
-							<div className='col-6'>
-								{numeral((company.yield || 0) / 100).format('%0.00')}
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>
-								<a
-									href={assetLink(company.symbol, company.name, company.type)}
-									target='_blank'
-									rel='noreferrer'
-								>
-									{company.type === AssetType.stock ? 'Yahoo Finance' : 'CoinMarketCap'}
-								</a>
-							</div>
-						</div>
+			{toggleIncomeStatement && (
+				<div>
+					<div>
+						<span className='link' onClick={() => setToggleIncomeStatement(false)}>
+							BACK
+						</span>
 					</div>
+					<div>
+						{incomeStatements.map((q) => (
+							<FirebaseImage image={q} storage={storage} />
+						))}
+					</div>
+				</div>
+			)}
+			{!toggleIncomeStatement && (
+				<div className='p-4'>
+					<CompanyBanner name={company.name} symbol={company.symbol} />
 
-					<div className='col-6'>
-						<h3 className='mt-4'>Position</h3>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Avg Share Price</div>
-							<div className='col-6 text-uppercase'>
-								{numeral(position?.averageEntryPrice).format('$0,0.00')}
+					<div className='row mt-4'>
+						<div className='col-6'>
+							<h3 className='mt-4'>Information</h3>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Price</div>
+								<div className='col-6'>{numeral(quote.price).format('$0,0.00')}</div>
 							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Opening Trade Price</div>
-							<div className='col-6 text-uppercase'>
-								{openingSharePrice
-									? numeral(openingSharePrice).format('$0,0.00')
-									: 'n/a'}
+							<div className='row font-weight-bold'>
+								<div className='col-6'>52 Week High</div>
+								<div className='col-6'>
+									{numeral(company.highPrice52).format('$0,0.00')}&nbsp; (
+									{numeral((company.highPrice52 - quote.price) / quote.price).format(
+										'0.00%'
+									)}
+									)
+								</div>
 							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Opening Trade to Avg</div>
-							<div className='col-6 text-uppercase'>
-								{openingToAverageSharePrice
-									? numeral(openingToAverageSharePrice).format('0.00%')
-									: 'n/a'}
+							<div className='row font-weight-bold'>
+								<div className='col-6'>52 Week Low</div>
+								<div className='col-6'>
+									{numeral(company.lowPrice52).format('$0,0.00')}&nbsp; (
+									{numeral((company.lowPrice52 - quote.price) / quote.price).format(
+										'0.00%'
+									)}
+									)
+								</div>
 							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>
-								{company.type === 'crypto' ? 'Coins' : 'Shares'}
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Market Cap</div>
+								<div className='col-6 text-uppercase'>
+									{marketCap(company.marketCap)}
+								</div>
 							</div>
-							<div className='col-6'>
-								{numeral(position?.quantity).format(positionFormat)}
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Yield</div>
+								<div className='col-6'>
+									{numeral((company.yield || 0) / 100).format('%0.00')}
+								</div>
 							</div>
-						</div>
-						{!!coins && (
-							<React.Fragment>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>
+									<a
+										href={assetLink(company.symbol, company.name, company.type)}
+										target='_blank'
+										rel='noreferrer'
+									>
+										{company.type === AssetType.stock ? 'Yahoo Finance' : 'CoinMarketCap'}
+									</a>
+								</div>
+							</div>
+							{!!earningsDate && (
 								<div className='row font-weight-bold'>
-									<div className='col-6'>Coins</div>
+									<div className='col-6'>Earnings</div>
 									<div className='col-6'>
-										{numeral(position?.quantity * coins).format('0,0.0000')}
+										{moment(earningsDate)
+											.startOf('day')
+											.diff(moment().startOf('day'), 'days')}{' '}
+										days away
 									</div>
 								</div>
+							)}
+							{!!incomeStatements?.length && (
 								<div className='row font-weight-bold'>
-									<div className='col-6'>Premium</div>
-									<div className='col-6'>{numeral(premium).format('0.00%')}</div>
-								</div>
-							</React.Fragment>
-						)}
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Open P & L %</div>
-							<div
-								className={classNames({
-									'col-6': true,
-									'text-positive': (position?.openPnl || 0) >= 0,
-									'text-negative': (position?.openPnl || 0) < 0,
-								})}
-							>
-								{numeral(position.openPnl / position.totalCost).format('0,0.00%')}
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Open P & L $</div>
-							<div
-								className={classNames({
-									'col-6': true,
-									'text-positive': position.openPnl >= 0,
-									'text-negative': position.openPnl < 0,
-								})}
-							>
-								<XE
-									cad={position.openPnlCad}
-									usd={position.openPnlUsd}
-									currency={currency}
-								/>
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Closed P & L $</div>
-							<div
-								className={classNames({
-									'col-6': true,
-									'text-positive': pAndLClosedCad >= 0,
-									'text-negative': pAndLClosedCad < 0,
-								})}
-							>
-								<XE cad={pAndLClosedCad} usd={pAndLClosedUsd} currency={currency} />
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Dividends</div>
-							<div
-								className={classNames({
-									'col-6': true,
-									'text-positive': dividends.length,
-								})}
-							>
-								<XE
-									cad={dividendsTotalCad}
-									usd={dividendsTotalUsd}
-									currency={currency}
-								/>
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Totals</div>
-							<div
-								className={classNames({
-									'col-6': true,
-									'text-positive': totalCad >= 0,
-									'text-negative': totalCad < 0,
-								})}
-							>
-								<XE cad={totalCad} usd={totalUsd} currency={currency} />
-							</div>
-						</div>
-						<div className='row font-weight-bold'>
-							<div className='col-6'>Value</div>
-							<div
-								className={classNames({
-									'col-6': true,
-								})}
-							>
-								<XE
-									cad={position.currentMarketValueCad}
-									usd={position.currentMarketValueUsd}
-									currency={currency}
-								/>
-							</div>
-						</div>
-						{!!accumulatedDividendsCad && (
-							<div className='row font-weight-bold font-italic'>
-								<div className='col-6'>*unspent dividends</div>
-								<div className='col-6'>
-									<XE
-										cad={accumulatedDividendsCad}
-										usd={accumulatedDividendsUsd}
-										currency={currency}
-									/>
-									<div>
-										({Math.floor(accumulatedDividendsCad / quote.priceCad)} shares)
+									<div className='col-6'>Income Statements</div>
+									<div className='col-6'>
+										<span
+											className='link'
+											onClick={() => setToggleIncomeStatement(!toggleIncomeStatement)}
+										>
+											{incomeStatements.length}
+										</span>
 									</div>
 								</div>
+							)}
+						</div>
+
+						<div className='col-6'>
+							<h3 className='mt-4'>Position</h3>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Avg Share Price</div>
+								<div className='col-6 text-uppercase'>
+									{numeral(position?.averageEntryPrice).format('$0,0.00')}
+								</div>
 							</div>
-						)}
-						{company.symbol === 'mana' && (
-							<div className='row font-weight-bold font-italic'>
-								<div className='col-6'>LAND</div>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Opening Trade Price</div>
+								<div className='col-6 text-uppercase'>
+									{openingSharePrice
+										? numeral(openingSharePrice).format('$0,0.00')
+										: 'n/a'}
+								</div>
+							</div>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Opening Trade to Avg</div>
+								<div className='col-6 text-uppercase'>
+									{openingToAverageSharePrice
+										? numeral(openingToAverageSharePrice).format('0.00%')
+										: 'n/a'}
+								</div>
+							</div>
+							<div className='row font-weight-bold'>
 								<div className='col-6'>
+									{company.type === 'crypto' ? 'Coins' : 'Shares'}
+								</div>
+								<div className='col-6'>
+									{numeral(position?.quantity).format(positionFormat)}
+								</div>
+							</div>
+							{!!coins && (
+								<React.Fragment>
+									<div className='row font-weight-bold'>
+										<div className='col-6'>Coins</div>
+										<div className='col-6'>
+											{numeral(position?.quantity * coins).format('0,0.0000')}
+										</div>
+									</div>
+									<div className='row font-weight-bold'>
+										<div className='col-6'>Premium</div>
+										<div className='col-6'>{numeral(premium).format('0.00%')}</div>
+									</div>
+								</React.Fragment>
+							)}
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Open P & L %</div>
+								<div
+									className={classNames({
+										'col-6': true,
+										'text-positive': (position?.openPnl || 0) >= 0,
+										'text-negative': (position?.openPnl || 0) < 0,
+									})}
+								>
+									{numeral(position.openPnl / position.totalCost).format('0,0.00%')}
+								</div>
+							</div>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Open P & L $</div>
+								<div
+									className={classNames({
+										'col-6': true,
+										'text-positive': position.openPnl >= 0,
+										'text-negative': position.openPnl < 0,
+									})}
+								>
 									<XE
-										cad={estimatedManaLandValue * quote.priceCad}
-										usd={estimatedManaLandValue * quote.priceUsd}
+										cad={position.openPnlCad}
+										usd={position.openPnlUsd}
 										currency={currency}
 									/>
 								</div>
 							</div>
-						)}
-						<div className='row'>
-							<div className='col-6'>Potential to 52WH</div>
-							<div
-								className={classNames({
-									'col-6': true,
-								})}
-							>
-								+<XE cad={potentialAthCad} usd={potentialAthUsd} currency={currency} />
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Closed P & L $</div>
+								<div
+									className={classNames({
+										'col-6': true,
+										'text-positive': pAndLClosedCad >= 0,
+										'text-negative': pAndLClosedCad < 0,
+									})}
+								>
+									<XE cad={pAndLClosedCad} usd={pAndLClosedUsd} currency={currency} />
+								</div>
 							</div>
-						</div>
-						{Boolean(openingTrade) && (
-							<div className='row'>
-								<div className='col-6'>Time held</div>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Dividends</div>
+								<div
+									className={classNames({
+										'col-6': true,
+										'text-positive': dividends.length,
+									})}
+								>
+									<XE
+										cad={dividendsTotalCad}
+										usd={dividendsTotalUsd}
+										currency={currency}
+									/>
+								</div>
+							</div>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Totals</div>
+								<div
+									className={classNames({
+										'col-6': true,
+										'text-positive': totalCad >= 0,
+										'text-negative': totalCad < 0,
+									})}
+								>
+									<XE cad={totalCad} usd={totalUsd} currency={currency} />
+								</div>
+							</div>
+							<div className='row font-weight-bold'>
+								<div className='col-6'>Value</div>
 								<div
 									className={classNames({
 										'col-6': true,
 									})}
 								>
-									Y:{Math.floor(timeHeld / 31557600000)} M:
-									{Math.floor((timeHeld % 31557600000) / 2629800000)}
+									<XE
+										cad={position.currentMarketValueCad}
+										usd={position.currentMarketValueUsd}
+										currency={currency}
+									/>
 								</div>
 							</div>
-						)}
-						<div className='row'>
-							<div className='col-6'>Accounts</div>
-							<div className='col-6'>
-								{Object.entries(tradeAccountsMap)
-									.filter(([key, quantity]) => quantity > 0)
-									.map(
-										([accountName, quantity]) =>
-											`${accountName}:${numeral(quantity).format(positionFormat)}`
-									)
-									.join(' / ')}
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<h3>Orders</h3>
-				{!!company.orders.length
-					? company.orders.map((order, index) => (
-							<div key={index} className='mb-4'>
-								<Order
-									symbol={company.symbol}
-									action={order.action}
-									openQuantity={order.openQuantity || 0}
-									positionQuantity={position?.quantity || 0}
-									limitPriceCad={order.limitPriceCad || 0}
-									limitPriceUsd={order.limitPriceUsd || 0}
-									limitPrice={order.limitPrice}
-									accountName={order.accountName}
-									quotePrice={quote.price}
-									positionCost={position?.totalCost || 0}
-									currency={currency}
-								/>
-							</div>
-					  ))
-					: '(no orders)'}
-
-				<h3>Assessment</h3>
-				<div>
-					{!!assessment ? (
-						<Assessment
-							symbol={company.symbol}
-							targetPrice={assessment.targetPrice}
-							lastUpdatedTimestamp={assessment.lastUpdatedTimestamp}
-							quotePrice={quote.price}
-							pluses={assessment.pluses}
-							minuses={assessment.minuses}
-							notes={assessment.notes}
-							questions={assessment.questions}
-							positionTotalCost={position?.totalCost || 0}
-							targetInvestment={assessment.targetInvestment}
-							valuations={assessment.valuations}
-							rating={assessment.rating}
-							name={''}
-							maxShares={getMaxShares(trades)}
-							currentShares={position.quantity}
-							storage={storage}
-						/>
-					) : (
-						<span>(no assessment)</span>
-					)}
-				</div>
-				{!!stockSplits.length && (
-					<div className='mb-4'>
-						<h3>Stock Splits</h3>
-						<StockSplits stockSplits={stockSplits} hideSymbols={true} />
-					</div>
-				)}
-				<div className='row'>
-					<div className='col-7'>
-						<h3>Trades</h3>
-						<div>
-							{trades.length
-								? _.orderBy(trades, (t) => t.timestamp, 'desc').map((trade, i) => (
-										<Trade
-											symbol={company.symbol}
-											isSell={trade.action == 'sell'}
-											quantity={trade.quantity}
-											key={i}
-											timestamp={trade.timestamp}
-											price={quote.price}
-											previousClosePrice={company.prevDayClosePrice}
-											name={company.name}
-											currency={quote.currency}
-											marketCap={company.marketCap || 0}
-											shareProgress={
-												position.totalCost / (assessment?.targetInvestment || 0)
-											}
-											priceProgress={quote.price / (assessment?.targetPrice || 0)}
-											activeCurrency={currency}
-											assetCurrency={quote.currency}
-											tradePrice={trade.price}
-											pnlCad={trade.pnlCad}
-											pnlUsd={trade.pnlUsd}
-											costCad={position.totalCostCad}
-											costUsd={position.totalCostUsd}
-											valueCad={position.currentMarketValueCad}
-											valueUsd={position.currentMarketValueUsd}
-											type={company.type}
-											quoteCurrency={quote.currency}
-											accountName={trade.accountName}
+							{!!accumulatedDividendsCad && (
+								<div className='row font-weight-bold font-italic'>
+									<div className='col-6'>*unspent dividends</div>
+									<div className='col-6'>
+										<XE
+											cad={accumulatedDividendsCad}
+											usd={accumulatedDividendsUsd}
+											currency={currency}
 										/>
-								  ))
-								: '(no trades)'}
+										<div>
+											({Math.floor(accumulatedDividendsCad / quote.priceCad)} shares)
+										</div>
+									</div>
+								</div>
+							)}
+							{company.symbol === 'mana' && (
+								<div className='row font-weight-bold font-italic'>
+									<div className='col-6'>LAND</div>
+									<div className='col-6'>
+										<XE
+											cad={estimatedManaLandValue * quote.priceCad}
+											usd={estimatedManaLandValue * quote.priceUsd}
+											currency={currency}
+										/>
+									</div>
+								</div>
+							)}
+							<div className='row'>
+								<div className='col-6'>Potential to 52WH</div>
+								<div
+									className={classNames({
+										'col-6': true,
+									})}
+								>
+									+<XE cad={potentialAthCad} usd={potentialAthUsd} currency={currency} />
+								</div>
+							</div>
+							{Boolean(openingTrade) && (
+								<div className='row'>
+									<div className='col-6'>Time held</div>
+									<div
+										className={classNames({
+											'col-6': true,
+										})}
+									>
+										Y:{Math.floor(timeHeld / 31557600000)} M:
+										{Math.floor((timeHeld % 31557600000) / 2629800000)}
+									</div>
+								</div>
+							)}
+							<div className='row'>
+								<div className='col-6'>Accounts</div>
+								<div className='col-6'>
+									{Object.entries(tradeAccountsMap)
+										.filter(([key, quantity]) => quantity > 0)
+										.map(
+											([accountName, quantity]) =>
+												`${accountName}:${numeral(quantity).format(positionFormat)}`
+										)
+										.join(' / ')}
+								</div>
+							</div>
 						</div>
 					</div>
-					<div className='col-5'>
-						<h3>Dividends</h3>
-						<div>
-							{dividends.length
-								? _.orderBy(dividends, (t) => t.timestamp, 'desc').map(
-										(dividend, i) => (
-											<div key={i} className='row border-top-normal'>
-												<div className='col-6'>{formatDate(dividend.timestamp)}</div>
-												<div className='col-6'>
-													<XE
-														cad={dividend.amountCad}
-														usd={dividend.amountUsd}
-														currency={currency}
-													/>
+
+					<h3>Orders</h3>
+					{!!company.orders.length
+						? company.orders.map((order, index) => (
+								<div key={index} className='mb-4'>
+									<Order
+										symbol={company.symbol}
+										action={order.action}
+										openQuantity={order.openQuantity || 0}
+										positionQuantity={position?.quantity || 0}
+										limitPriceCad={order.limitPriceCad || 0}
+										limitPriceUsd={order.limitPriceUsd || 0}
+										limitPrice={order.limitPrice}
+										accountName={order.accountName}
+										quotePrice={quote.price}
+										positionCost={position?.totalCost || 0}
+										currency={currency}
+									/>
+								</div>
+						  ))
+						: '(no orders)'}
+
+					<h3>Assessment</h3>
+					<div>
+						{!!assessment ? (
+							<Assessment
+								symbol={company.symbol}
+								targetPrice={assessment.targetPrice}
+								lastUpdatedTimestamp={assessment.lastUpdatedTimestamp}
+								quotePrice={quote.price}
+								pluses={assessment.pluses}
+								minuses={assessment.minuses}
+								notes={assessment.notes}
+								questions={assessment.questions}
+								positionTotalCost={position?.totalCost || 0}
+								targetInvestment={assessment.targetInvestment}
+								valuations={assessment.valuations}
+								rating={assessment.rating}
+								name={''}
+								maxShares={getMaxShares(trades)}
+								currentShares={position.quantity}
+								storage={storage}
+							/>
+						) : (
+							<span>(no assessment)</span>
+						)}
+					</div>
+					{!!stockSplits.length && (
+						<div className='mb-4'>
+							<h3>Stock Splits</h3>
+							<StockSplits stockSplits={stockSplits} hideSymbols={true} />
+						</div>
+					)}
+					<div className='row'>
+						<div className='col-7'>
+							<h3>Trades</h3>
+							<div>
+								{trades.length
+									? _.orderBy(trades, (t) => t.timestamp, 'desc').map((trade, i) => (
+											<Trade
+												symbol={company.symbol}
+												isSell={trade.action == 'sell'}
+												quantity={trade.quantity}
+												key={i}
+												timestamp={trade.timestamp}
+												price={quote.price}
+												previousClosePrice={company.prevDayClosePrice}
+												name={company.name}
+												currency={quote.currency}
+												marketCap={company.marketCap || 0}
+												shareProgress={
+													position.totalCost / (assessment?.targetInvestment || 0)
+												}
+												priceProgress={quote.price / (assessment?.targetPrice || 0)}
+												activeCurrency={currency}
+												assetCurrency={quote.currency}
+												tradePrice={trade.price}
+												pnlCad={trade.pnlCad}
+												pnlUsd={trade.pnlUsd}
+												costCad={position.totalCostCad}
+												costUsd={position.totalCostUsd}
+												valueCad={position.currentMarketValueCad}
+												valueUsd={position.currentMarketValueUsd}
+												type={company.type}
+												quoteCurrency={quote.currency}
+												accountName={trade.accountName}
+											/>
+									  ))
+									: '(no trades)'}
+							</div>
+						</div>
+						<div className='col-5'>
+							<h3>Dividends</h3>
+							<div>
+								{dividends.length
+									? _.orderBy(dividends, (t) => t.timestamp, 'desc').map(
+											(dividend, i) => (
+												<div key={i} className='row border-top-normal'>
+													<div className='col-6'>{formatDate(dividend.timestamp)}</div>
+													<div className='col-6'>
+														<XE
+															cad={dividend.amountCad}
+															usd={dividend.amountUsd}
+															currency={currency}
+														/>
+													</div>
 												</div>
-											</div>
-										)
-								  )
-								: '(no dividends)'}
+											)
+									  )
+									: '(no dividends)'}
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
 		</Layout>
 	);
 };
@@ -664,6 +718,11 @@ export const pageQuery = graphql`
 				date
 				isReverse
 				isApplied
+			}
+		}
+		allEarningsDate(filter: { symbol: { eq: $symbol } }) {
+			nodes {
+				timestamp
 			}
 		}
 	}

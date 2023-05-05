@@ -17,37 +17,37 @@ const addActivities = async (): Promise<boolean> => {
 	// cloud.addDividend({
 	// 	symbol: 'TCEHY',
 	// 	symbolId: 38411,
-	// 	tradeDate: new Date('2022/04/18'),
+	// 	tradeDate: new Date('2023/04/20'),
 	// 	action: '',
-	// 	transactionDate: new Date('2022/04/18'),
-	// 	settlementDate: new Date('2022/04/18'),
+	// 	transactionDate: new Date('2023/04/20'),
+	// 	settlementDate: new Date('2023/04/20'),
 	// 	description: 'dividend',
 	// 	currency: 'USD',
-	// 	quantity: 292,
-	// 	price: 382.54,
-	// 	grossAmount: 382.54,
+	// 	quantity: 282,
+	// 	price: 463.21,
+	// 	grossAmount: 463.21,
 	// 	commission: 0,
-	// 	netAmount: 382.54,
+	// 	netAmount: 463.21,
 	// 	type: 'Dividends',
-	// 	accountId: '51637118' as any
+	// 	accountId: '51637118' as any,
 	// });
 
 	// cloud.addDividend({
 	// 	symbol: 'TCEHY',
 	// 	symbolId: 38411,
-	// 	tradeDate: new Date('2022/04/18'),
+	// 	tradeDate: new Date('2023/04/20'),
 	// 	action: '',
-	// 	transactionDate: new Date('2022/04/18'),
-	// 	settlementDate: new Date('2022/04/18'),
+	// 	transactionDate: new Date('2023/04/20'),
+	// 	settlementDate: new Date('2023/04/20'),
 	// 	description: 'dividend',
 	// 	currency: 'USD',
-	// 	quantity: 34,
-	// 	price: 44.54,
-	// 	grossAmount: 44.54,
+	// 	quantity: 89,
+	// 	price: 146.19,
+	// 	grossAmount: 146.19,
 	// 	commission: 0,
-	// 	netAmount: 44.54,
+	// 	netAmount: 146.19,
 	// 	type: 'Dividends',
-	// 	accountId: '51443858' as any
+	// 	accountId: '51443858' as any,
 	// });
 
 	_.forEach(activities, (activity) => {

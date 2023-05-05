@@ -230,7 +230,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
-				allTrade(sort: { fields: [timestamp], order: DESC }, limit: 5) {
+				allTrade(sort: { fields: [timestamp], order: DESC }, limit: 7) {
 					nodes {
 						accountId
 						quantity
@@ -277,7 +277,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
-				allDividend(limit: 5, sort: { fields: timestamp, order: DESC }) {
+				allDividend(limit: 7, sort: { fields: timestamp, order: DESC }) {
 					nodes {
 						amountCad
 						amountUsd
