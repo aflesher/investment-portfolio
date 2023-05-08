@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link, graphql } from 'gatsby';
 import _ from 'lodash';
-import Paginate from 'react-paginate';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import moment from 'moment';
 import numeral from 'numeral';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { Currency, AssetType } from '../utils/enum';
 import Layout from '../components/layout';
@@ -68,7 +68,7 @@ interface IDividendsQueryProps {
 	};
 }
 
-const DIVIDENDS_PER_PAGE = 30;
+const PAGE_SIZE = 30;
 
 const mapStateToProps = ({ currency }: IStoreState): IDividendsStateProps => ({
 	currency,
@@ -92,6 +92,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
 	const [page, setPage] = React.useState(0);
+	const [showLength, setShownLength] = React.useState(PAGE_SIZE);
 	const trackedYears = util.getTrackedYears();
 
 	const dividends = _.filter(data.allDividend.nodes, (dividend) => {
@@ -312,66 +313,58 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 						</div>
 					</div>
 				</div>
-				<div className='row'>
-					<div className='col-12'>
-						<div className='paginate d-flex justify-content-center'>
-							<Paginate
-								pageCount={Math.ceil(dividends.length / DIVIDENDS_PER_PAGE)}
-								onPageChange={(resp): void => setPage(resp.selected)}
-								nextLabel='>'
-								previousLabel='<'
-								forcePage={page}
-								pageRangeDisplayed={6}
-								marginPagesDisplayed={3}
-							/>
+				<InfiniteScroll
+					dataLength={Math.min(showLength, dividends.length)}
+					next={() => setShownLength(showLength + PAGE_SIZE)}
+					hasMore={showLength < dividends.length}
+					loader={<></>}
+				>
+					{dividends.slice(0, showLength).map((dividend, index) => (
+						<div
+							className='row py-1 border-b'
+							key={`${dividend.symbol}${dividend.timestamp}${index}`}
+						>
+							<div className='col-3'>
+								<StockHover
+									symbol={dividend.symbol}
+									assetCurrency={dividend.currency}
+									activeCurrency={currency}
+									priceProgress={dividend.assessment?.targetPriceProgress || 0}
+									shareProgress={dividend.assessment?.targetInvestmentProgress || 0}
+									name={dividend.company?.name || ''}
+									marketCap={dividend.company?.marketCap || 0}
+									previousClosePrice={dividend.company?.prevDayClosePrice || 0}
+									quantity={dividend.position?.quantity || 0}
+									costUsd={dividend.position?.totalCostUsd || 0}
+									costCad={dividend.position?.totalCostCad || 0}
+									valueCad={dividend.position?.currentMarketValueCad || 0}
+									valueUsd={dividend.position?.currentMarketValueUsd || 0}
+									price={dividend.quote?.price || 0}
+									type={dividend?.company?.type || AssetType.stock}
+									quoteCurrency={dividend?.quote?.currency || Currency.cad}
+								/>
+							</div>
+							<div className='col-3 text-right'>
+								{util.formatDate(dividend.timestamp)}
+							</div>
+							<div className='col-3 text-right'>
+								<XE
+									cad={dividend.amountCad}
+									usd={dividend.amountUsd}
+									currency={dividend.currency}
+								/>
+							</div>
+							<div className='col-3 text-right'>
+								<XE
+									cad={dividend.amountCad}
+									usd={dividend.amountUsd}
+									currency={currency}
+									hideCurrency={true}
+								/>
+							</div>
 						</div>
-					</div>
-				</div>
-				{dividends.map((dividend, index) => (
-					<div
-						className='row py-1 border-b'
-						key={`${dividend.symbol}${dividend.timestamp}${index}`}
-					>
-						<div className='col-3'>
-							<StockHover
-								symbol={dividend.symbol}
-								assetCurrency={dividend.currency}
-								activeCurrency={currency}
-								priceProgress={dividend.assessment?.targetPriceProgress || 0}
-								shareProgress={dividend.assessment?.targetInvestmentProgress || 0}
-								name={dividend.company?.name || ''}
-								marketCap={dividend.company?.marketCap || 0}
-								previousClosePrice={dividend.company?.prevDayClosePrice || 0}
-								quantity={dividend.position?.quantity || 0}
-								costUsd={dividend.position?.totalCostUsd || 0}
-								costCad={dividend.position?.totalCostCad || 0}
-								valueCad={dividend.position?.currentMarketValueCad || 0}
-								valueUsd={dividend.position?.currentMarketValueUsd || 0}
-								price={dividend.quote?.price || 0}
-								type={dividend?.company?.type || AssetType.stock}
-								quoteCurrency={dividend?.quote?.currency || Currency.cad}
-							/>
-						</div>
-						<div className='col-3 text-right'>
-							{util.formatDate(dividend.timestamp)}
-						</div>
-						<div className='col-3 text-right'>
-							<XE
-								cad={dividend.amountCad}
-								usd={dividend.amountUsd}
-								currency={dividend.currency}
-							/>
-						</div>
-						<div className='col-3 text-right'>
-							<XE
-								cad={dividend.amountCad}
-								usd={dividend.amountUsd}
-								currency={currency}
-								hideCurrency={true}
-							/>
-						</div>
-					</div>
-				))}
+					))}
+				</InfiniteScroll>
 				{dividendPositions.map((dividend, index) => (
 					<div
 						className='row py-1 border-b'

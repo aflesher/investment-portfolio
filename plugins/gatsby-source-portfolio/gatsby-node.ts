@@ -27,6 +27,7 @@ import { IEarningsDate, getEarningsDates } from './library/earnings-calendar';
 import { ICash } from '../../src/utils/cash';
 import { useDebugValue } from 'react';
 import { IStockSplit } from '../../src/utils/stock-split';
+import { ICrypto52Weeks, getCrypto52Weeks } from './library/crypto';
 
 const assessmentsPromise = firebase.getAssessments();
 const stockSplitsPromise = firebase.getStockSplits();
@@ -210,6 +211,11 @@ const cryptoQuotesPromise = (async (): Promise<
 	const slugs = await cryptoSlugsPromise;
 
 	return await coinmarketcap.quote(slugs);
+})();
+
+const crypto52WeeksPromise = (async (): Promise<ICrypto52Weeks[]> => {
+	const positions = await cryptoPositionsPromise;
+	return await getCrypto52Weeks(positions.map((q) => q.symbol));
 })();
 
 const hash = (content: string): string => {
@@ -1121,7 +1127,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			yield: 0,
 			prevDayClosePrice: q.prevDayClosePrice,
 			type: AssetType.crypto,
-			highPrice52: metaData?.allTimeHighUsd || q.price,
+			highPrice52: metaData?.oneYearHighUsd || q.price,
 			lowPrice52: metaData?.oneYearLowUsd || q.price,
 			hisa: false,
 		};
@@ -1387,7 +1393,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const stockSplitNodes = await stockSplitNodesPromise;
 		outputCleared('stock split nodes');
 
-		await firebase.checkAndUpdateCryptoMetaData(cryptoQuotesPromise);
+		await firebase.checkAndUpdateCryptoMetaData(crypto52WeeksPromise);
 		await applyStockSplits();
 
 		outputCleared('ALL!');

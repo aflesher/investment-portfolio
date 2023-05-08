@@ -15,6 +15,7 @@ import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
 import { ICash } from '../../../src/utils/cash';
 import { IStockSplit } from '../../../src/utils/stock-split';
+import { ICrypto52Weeks } from './crypto';
 
 const serviceAccount = require('../json/firebase.json');
 let firestore: FirebaseFirestore.Firestore;
@@ -381,18 +382,11 @@ export const getReviews = async (): Promise<IReview[]> => {
 
 interface ICryptoMetaDataDoc extends firebase.firestore.DocumentData {
 	symbol: string;
-	allTimeHighUsd: number;
 	oneYearLowUsd: number;
-	oneYearLowTimestamp: {
-		_seconds: number;
-		_nanoseconds: number;
-	};
+	oneYearHighUsd: number;
 }
 
-export interface ICryptoMetaData
-	extends Omit<ICryptoMetaDataDoc, 'oneYearLowTimestamp'> {
-	oneYearLowTimestamp: number;
-}
+export interface ICryptoMetaData extends ICryptoMetaDataDoc {}
 
 export const checkAndUpdateEarningsDates = async (
 	earningsDates: IEarningsDate[]
@@ -496,46 +490,22 @@ export const getCash = async (): Promise<IFirebaseCash[]> => {
 };
 
 export const checkAndUpdateCryptoMetaData = async (
-	quotesPromise: Promise<ICoinMarketCapQuote[]>
+	crypto52WeeksPromise: Promise<ICrypto52Weeks[]>
 ) => {
 	await initDeferredPromise.promise;
-	const quotes = await quotesPromise;
+	const crypto52Weeks = await crypto52WeeksPromise;
 
 	const querySnapshot = await firestore.collection('cryptoMetaData').get();
 
 	return querySnapshot.docs.map(async (documentSnapshot) => {
 		const data: ICryptoMetaDataDoc = documentSnapshot.data() as ICryptoMetaDataDoc;
 
-		const quote = _.find(quotes, (q) => q.symbol === data.symbol);
-
-		// This is isn't working. You would have to keep a record of day to accurately
-		// track the lowest day in the previous 52 days
-		// if (data.oneYearLowTimestamp._seconds < moment().subtract(1, 'year').unix()) {
-		// 	console.log(
-		// 		data.symbol,
-		// 		' has expired ',
-		// 		data.oneYearLowTimestamp._seconds,
-		// 		moment().subtract(1, 'year').unix()
-		// 	);
-		// }
-
-		if (
-			!quote ||
-			(quote.price < data.allTimeHighUsd && quote.price > data.oneYearLowUsd)
-		) {
-			return;
+		const crypto52Week = crypto52Weeks.find((q) => q.symbol === data.symbol);
+		if (crypto52Week && crypto52Week.high && crypto52Week.low) {
+			data.oneYearHighUsd = crypto52Week.high;
+			data.oneYearLowUsd = crypto52Week.low;
+			await documentSnapshot?.ref?.set(data, { merge: true });
 		}
-
-		if (quote.price > data.allTimeHighUsd) {
-			data.allTimeHighUsd = quote.price;
-		}
-
-		if (quote.price < data.oneYearLowUsd) {
-			data.oneYearLowUsd = quote.price;
-			data.oneYearLowTimestamp = new Date() as any;
-		}
-
-		await documentSnapshot?.ref?.set(data, { merge: true });
 	});
 };
 
@@ -548,16 +518,14 @@ export const getCryptoMetaData = async (): Promise<ICryptoMetaData[]> => {
 	const results = querySnapshot.docs.map((documentSnapshot) => {
 		const {
 			symbol,
-			allTimeHighUsd,
+			oneYearHighUsd,
 			oneYearLowUsd,
-			oneYearLowTimestamp,
 		}: ICryptoMetaDataDoc = documentSnapshot.data() as ICryptoMetaDataDoc;
 
 		const data: ICryptoMetaData = {
 			symbol,
-			allTimeHighUsd,
+			oneYearHighUsd,
 			oneYearLowUsd,
-			oneYearLowTimestamp: oneYearLowTimestamp._seconds * 1000,
 		};
 
 		return data;
