@@ -37,6 +37,9 @@ interface IOrdersQueryProps {
 		allOrder: {
 			nodes: IOrderNode[];
 		};
+		allPosition: {
+			nodes: Pick<IPosition, 'quantity' | 'totalCost' | 'symbol'>[];
+		};
 	};
 }
 
@@ -55,6 +58,7 @@ const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({
 				? (quote.price - limitPrice) / quote.price
 				: (limitPrice - quote.price) / quote.price
 	);
+	const positions = data.allPosition.nodes;
 	return (
 		<Layout>
 			<div className='p-4'>
@@ -62,8 +66,12 @@ const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({
 					<Order
 						key={`${order.symbol}${index}`}
 						{...order}
-						positionQuantity={order.position?.quantity || 0}
-						positionCost={order.position?.totalCost || 0}
+						positionQuantity={
+							positions.find(({ symbol }) => order.symbol === symbol)?.quantity || 0
+						}
+						positionCost={
+							positions.find(({ symbol }) => order.symbol === symbol)?.totalCost || 0
+						}
 						quotePrice={order.quote.price}
 						currency={currency}
 					/>
@@ -98,6 +106,13 @@ export const pageQuery = graphql`
 					quantity
 					totalCost
 				}
+			}
+		}
+		allPosition {
+			nodes {
+				symbol
+				quantity
+				totalCost
 			}
 		}
 	}
