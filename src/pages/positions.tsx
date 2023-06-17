@@ -130,6 +130,9 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
 	const [combined, setCombined] = React.useState(false);
+	const [typeFilter, setTypeFilter] = React.useState<'all' | 'crypto' | 'stock'>(
+		'all'
+	);
 
 	if (combined) {
 		cadCash += positionNodes
@@ -149,6 +152,11 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 
 	positionNodes.push(addCurrencyToPositions(usdCash, cadCash));
 
+	const filterPosition = ({ type }: IPositionNode) =>
+		typeFilter === 'all' ||
+		(typeFilter === 'crypto' && type === 'crypto') ||
+		(typeFilter === 'stock' && type === 'stock');
+
 	const getTotalCostCad = (position: IPositionNode): number =>
 		position.totalCostCad;
 
@@ -162,15 +170,21 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 		position.currentMarketValueUsd;
 
 	const totalPositionValue = _.sumBy(
-		positionNodes,
+		positionNodes.filter(filterPosition),
 		(p) => p.currentMarketValueCad
 	);
-	const totalPositionCost = _.sumBy(positionNodes, (p) => p.totalCostCad);
+	const totalPositionCost = _.sumBy(
+		positionNodes.filter(filterPosition),
+		(p) => p.totalCostCad
+	);
 	const totalPositionValueUsd = _.sumBy(
-		positionNodes,
+		positionNodes.filter(filterPosition),
 		(p) => p.currentMarketValueUsd
 	);
-	const totalPositionCostUsd = _.sumBy(positionNodes, (p) => p.totalCostUsd);
+	const totalPositionCostUsd = _.sumBy(
+		positionNodes.filter(filterPosition),
+		(p) => p.totalCostUsd
+	);
 
 	const orders = data.allOrder.nodes;
 
@@ -213,7 +227,14 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 			}
 		},
 		orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
-	).filter((q) => !combined || !q.company.hisa);
+	)
+		.filter((q) => !combined || !q.company.hisa)
+		.filter(
+			(q) =>
+				typeFilter === 'all' ||
+				(typeFilter === 'crypto' && q.type === 'crypto') ||
+				(typeFilter === 'stock' && q.type === 'stock')
+		);
 
 	const getRatingPercent = (positionNode: IPositionNode) => {
 		const rating = positionNode.assessment?.rating || 'none';
@@ -365,6 +386,22 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						<tr>
 							<td className='link' onClick={() => setCombined(!combined)}>
 								{(combined && 'combined *') || 'not combined'}
+							</td>
+							<td
+								className='link'
+								onClick={() =>
+									setTypeFilter((type) => {
+										if (type === 'all') {
+											return 'crypto';
+										}
+										if (type === 'crypto') {
+											return 'stock';
+										}
+										return 'all';
+									})
+								}
+							>
+								{typeFilter}
 							</td>
 						</tr>
 					</tbody>
