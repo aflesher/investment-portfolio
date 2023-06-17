@@ -111,6 +111,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 		return true;
 	});
 
+	// TODO: I think we can just divide this by the number of months in the current year
 	const dividendPositionsCurrent = data.allPosition.nodes.map(
 		({ symbol, openPnlCad, openPnlUsd, currency }) => {
 			const previousYearAmount = DIVIDEND_POSITIONS_YEAR_END.find(

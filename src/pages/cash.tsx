@@ -1,5 +1,6 @@
 import React from 'react';
 import { graphql } from 'gatsby';
+import numeral from 'numeral';
 import { ICash } from '../utils/cash';
 import Balance, { IBalanceStateProps } from '../components/balance/Balance';
 import { Currency } from '../utils/enum';
@@ -155,9 +156,21 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 		}
 	);
 
-	const combinedBalances: IBalanceStateProps = {
-		amountCad: balances.reduce((sum, { amountCad }) => sum + amountCad, 0),
-		amountUsd: balances.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
+	console.log(data.allCash.nodes.filter(({ accountId }) => !!accountId));
+
+	const combinedBalances = {
+		amountCad: data.allCash.nodes
+			.filter(({ accountId, currency }) => !!accountId && currency === 'cad')
+			.reduce((sum, { amountCad }) => sum + amountCad, 0),
+		amountUsd: data.allCash.nodes
+			.filter(({ accountId, currency }) => !!accountId && currency === 'usd')
+			.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
+		savingsAmountCad: data.allCash.nodes
+			.filter(({ accountId, currency }) => !accountId && currency === 'cad')
+			.reduce((sum, { amountCad }) => sum + amountCad, 0),
+		savingsAmountUsd: data.allCash.nodes
+			.filter(({ accountId, currency }) => !accountId && currency === 'usd')
+			.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
 		cadHISA: balances.reduce((sum, { cadHISA }) => sum + (cadHISA || 0), 0),
 		usdHISA: balances.reduce((sum, { usdHISA }) => sum + (usdHISA || 0), 0),
 		combinedCadHISA: balances.reduce(
@@ -172,8 +185,7 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 		combinedUsd: balances.reduce((sum, { combinedUsd }) => sum + combinedUsd, 0),
 		name: 'Combined',
 	};
-
-	balances.push(combinedBalances);
+	const format = '$0,0.00';
 
 	return (
 		<Layout>
@@ -184,6 +196,76 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 							<Balance {...balance} />
 						</div>
 					))}
+				</div>
+				<div className='row'>
+					<div className='col-12' key={combinedBalances.name}>
+						<div className='py-4 my-1 pl-4 border'>
+							<div className='row text-emphasis'>
+								<div className='col-6'>Account:</div>
+								<div className='col-6'>{combinedBalances.name}</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$CAD (Exchange Cash)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.amountCad).format(format)}
+								</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$USD (Exchange Cash)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.amountUsd).format(format)}
+								</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$CAD (Savings Accounts)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.savingsAmountCad).format(format)}
+								</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$USD (Savings Accounts)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.savingsAmountUsd).format(format)}
+								</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$CAD (HISA Stock)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.cadHISA).format(format)}
+								</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$USD (HISA Stocks)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.usdHISA).format(format)}
+								</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$CAD (Combined HISA Stocks)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.combinedCadHISA).format(format)}
+								</div>
+							</div>
+							<div className='row'>
+								<div className='col-6'>$USD (Combined HISA Stocks)</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.combinedUsdHISA).format(format)}
+								</div>
+							</div>
+							<div className='row text-subtle'>
+								<div className='col-6'>$CAD COMBINED TOTAL</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.combinedCad).format(format)}
+								</div>
+							</div>
+							<div className='row text-subtle'>
+								<div className='col-6'>$USD COMBINED TOTAL</div>
+								<div className='col-6'>
+									{numeral(combinedBalances.combinedUsd).format(format)}
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</Layout>
