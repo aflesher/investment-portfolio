@@ -6,6 +6,7 @@ import { Link } from 'gatsby';
 import XE from '../xe/XE';
 import { IOrder } from '../../utils/order';
 import { positiveNegativeText } from '../../utils/util';
+import ColoredNumbers from '../colored-numbers/ColoredNumbers';
 
 interface IOrderStateProps
 	extends Omit<
@@ -62,6 +63,7 @@ const Order: React.FC<IOrderStateProps> = ({
 
 	const curAvgPrice = positionCost / positionQuantity;
 	const avgPriceDiff = (curAvgPrice - newAvgPrice) / curAvgPrice;
+	const pnlDiff = quotePrice - curAvgPrice;
 
 	return (
 		<div className='border-top-normal'>
@@ -145,6 +147,12 @@ const Order: React.FC<IOrderStateProps> = ({
 						<div className='col-4'>
 							New Avg Price:&nbsp;
 							{numeral(newAvgPrice).format('$0,0.00')}
+						</div>
+					)}
+					{action === 'sell' && (
+						<div className='col-4'>
+							P&L:&nbsp;
+							<ColoredNumbers value={pnlDiff * openQuantity} type='dollar' />
 						</div>
 					)}
 					{action === 'buy' && (
