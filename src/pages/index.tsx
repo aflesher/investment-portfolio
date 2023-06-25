@@ -10,6 +10,7 @@ import CompanyBanner from '../components/company-banner/CompanyBanner';
 import { compareNumber } from '../utils/util';
 import moment from 'moment-timezone';
 import Order from '../components/order/Order';
+import { IPosition } from '../utils/position';
 
 interface IIndexQueryProps extends PageProps {
 	data: {
@@ -60,6 +61,9 @@ interface IIndexQueryProps extends PageProps {
 				};
 			}[];
 		};
+		allPosition: {
+			nodes: Pick<IPosition, 'quantity' | 'totalCost' | 'symbol'>[];
+		};
 	};
 }
 
@@ -82,6 +86,7 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 		.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
 		.filter(({ timestamp }) => moment(timestamp).diff(moment(), 'days') >= 0)
 		.slice(0, 5);
+	const positions = data.allPosition.nodes;
 	const orders = _.orderBy(
 		data.allOrder.nodes,
 		({ action, quote, limitPrice }) =>
@@ -164,8 +169,12 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 					<Order
 						key={`${order.symbol}${index}`}
 						{...order}
-						positionQuantity={order.position?.quantity || 0}
-						positionCost={order.position?.totalCost || 0}
+						positionQuantity={
+							positions.find(({ symbol }) => order.symbol === symbol)?.quantity || 0
+						}
+						positionCost={
+							positions.find(({ symbol }) => order.symbol === symbol)?.totalCost || 0
+						}
 						quotePrice={order.quote.price}
 						currency={currency}
 					/>
@@ -224,6 +233,13 @@ export const pageQuery = graphql`
 					quantity
 					totalCost
 				}
+			}
+		}
+		allPosition {
+			nodes {
+				symbol
+				quantity
+				totalCost
 			}
 		}
 	}
