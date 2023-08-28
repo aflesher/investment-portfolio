@@ -29,13 +29,7 @@ interface IDividendsStateProps {
 interface IDividendsQueryNode
 	extends Pick<
 		IDividend,
-		| 'symbol'
-		| 'timestamp'
-		| 'amount'
-		| 'currency'
-		| 'accountId'
-		| 'amountUsd'
-		| 'amountCad'
+		'symbol' | 'timestamp' | 'amount' | 'currency' | 'amountUsd' | 'amountCad'
 	> {
 	assessment?: Pick<
 		IAssessment,
@@ -68,7 +62,7 @@ interface IDividendsQueryProps {
 	};
 }
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 60;
 
 const mapStateToProps = ({ currency }: IStoreState): IDividendsStateProps => ({
 	currency,
@@ -95,39 +89,29 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 	const [showLength, setShownLength] = React.useState(PAGE_SIZE);
 	const trackedYears = util.getTrackedYears();
 
-	const dividends = _.filter(data.allDividend.nodes, (dividend) => {
-		if (startDate && startDate > new Date(dividend.timestamp)) {
-			return false;
-		}
-
-		if (endDate && endDate < new Date(dividend.timestamp)) {
-			return false;
-		}
-
-		if (symbol && !dividend.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
-			return false;
-		}
-
-		return true;
-	});
-
-	// TODO: I think we can just divide this by the number of months in the current year
-	const dividendPositionsCurrent = data.allPosition.nodes.map(
-		({ symbol, openPnlCad, openPnlUsd, currency }) => {
+	const dividendPositionsCurrent: IDividendsQueryNode[] = _.flatten(
+		data.allPosition.nodes.map(({ symbol, openPnlCad, openPnlUsd, currency }) => {
 			const previousYearAmount = DIVIDEND_POSITIONS_YEAR_END.find(
 				(q) => q.symbol === symbol && q.year === moment().year() - 1
 			) || { amountCad: 0, amountUsd: 0 };
-			return {
-				symbol,
-				timestamp: new Date().getTime(),
-				amountCad: openPnlCad - previousYearAmount.amountCad,
-				amountUsd: openPnlUsd - previousYearAmount.amountUsd,
-				currency,
-			};
-		}
+			const months = moment().month() + 1;
+			const cadDividends = (openPnlCad - previousYearAmount.amountCad) / months;
+			const usdDividends = (openPnlUsd - previousYearAmount.amountUsd) / months;
+
+			return Array.from(Array(months).keys()).map((month) => {
+				return {
+					symbol,
+					timestamp: moment(`${month + 1}/1/${moment().year()}`).unix() * 1000,
+					amountCad: cadDividends,
+					amountUsd: usdDividends,
+					currency,
+					amount: currency === Currency.cad ? cadDividends : usdDividends,
+				};
+			});
+		})
 	);
 
-	const dividendPositionsOld = DIVIDEND_POSITIONS_YEAR_END.map(
+	const dividendPositionsOld: IDividendsQueryNode[] = DIVIDEND_POSITIONS_YEAR_END.map(
 		({ year, symbol, amountCad, amountUsd, currency }) => ({
 			symbol,
 			timestamp: moment('12/31/' + year)
@@ -136,38 +120,37 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 			amountCad,
 			amountUsd,
 			currency,
+			amount: currency === Currency.cad ? amountCad : amountUsd,
 		})
 	);
 
-	const mergedDividendPositions = [
-		...dividendPositionsCurrent,
-		...dividendPositionsOld,
-	];
+	const unOrderedDividends = _.filter(
+		[
+			...data.allDividend.nodes,
+			...dividendPositionsCurrent,
+			...dividendPositionsOld,
+		],
+		(dividend) => {
+			if (startDate && startDate > new Date(dividend.timestamp)) {
+				return false;
+			}
 
-	const dividendPositions = mergedDividendPositions.filter((dividend) => {
-		if (startDate && startDate > new Date(dividend.timestamp)) {
-			return false;
+			if (endDate && endDate < new Date(dividend.timestamp)) {
+				return false;
+			}
+
+			if (symbol && !dividend.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
+				return false;
+			}
+
+			return true;
 		}
-		if (
-			endDate &&
-			endDate <= moment(dividend.timestamp).startOf('day').toDate()
-		) {
-			return false;
-		}
+	);
 
-		if (symbol && !dividend.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
-			return false;
-		}
+	const dividends = _.orderBy(unOrderedDividends, ['timestamp'], ['desc']);
 
-		return true;
-	});
-
-	const totalCad =
-		_.sumBy(dividends, (q) => q.amountCad) +
-		_.sumBy(dividendPositions, (q) => q.amountCad);
-	const totalUsd =
-		_.sumBy(dividends, (q) => q.amountUsd) +
-		_.sumBy(dividendPositions, (q) => q.amountUsd);
+	const totalCad = _.sumBy(dividends, (q) => q.amountCad);
+	const totalUsd = _.sumBy(dividends, (q) => q.amountUsd);
 
 	const symbols = [...new Set(data.allDividend.nodes.map((t) => t.symbol))];
 
@@ -208,7 +191,11 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 
 	const yearTotals = trackedYears.map((year) => ({
 		year,
-		amount: [...data.allDividend.nodes, ...mergedDividendPositions]
+		amount: [
+			...data.allDividend.nodes,
+			...dividendPositionsCurrent,
+			...dividendPositionsOld,
+		]
 			.filter(({ timestamp }) => moment(timestamp).year() === year)
 			.reduce((sum, { amountCad }) => sum + amountCad, 0),
 	}));
@@ -366,36 +353,6 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 						</div>
 					))}
 				</InfiniteScroll>
-				{dividendPositions.map((dividend, index) => (
-					<div
-						className='row py-1 border-b'
-						key={`${dividend.symbol}${dividend.timestamp}${index}`}
-					>
-						<div className='col-3'>
-							<Link to={`/stock/${dividend.symbol}`} className='link text-uppercase'>
-								{dividend.symbol}
-							</Link>
-						</div>
-						<div className='col-3 text-right'>
-							{util.formatDate(dividend.timestamp)}
-						</div>
-						<div className='col-3 text-right'>
-							<XE
-								cad={dividend.amountCad}
-								usd={dividend.amountUsd}
-								currency={dividend.currency}
-							/>
-						</div>
-						<div className='col-3 text-right'>
-							<XE
-								cad={dividend.amountCad}
-								usd={dividend.amountUsd}
-								currency={currency}
-								hideCurrency={true}
-							/>
-						</div>
-					</div>
-				))}
 				<div className='row mt-2'>
 					<div className='col-3 text-right offset-6'>Total</div>
 					<div className='col-3 text-right'>
@@ -423,7 +380,6 @@ export const pageQuery = graphql`
 				amountUsd
 				currency
 				symbol
-				accountId
 				timestamp
 				assessment {
 					targetInvestmentProgress
