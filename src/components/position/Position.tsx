@@ -14,7 +14,6 @@ export interface IPositionStateProps extends IStockQuoteStateProps {
 	valueUsd: number;
 	costUsd: number;
 	percentageOfPortfolio: number;
-	percentageOfInvestment: number;
 	pe?: number;
 	dividendYield?: number;
 	positionsOrderBy?: PositionsOrderBy;
@@ -32,7 +31,6 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		valueUsd,
 		costUsd,
 		index,
-		percentageOfInvestment,
 		percentageOfPortfolio,
 		quoteCurrency,
 		rating,
@@ -113,7 +111,6 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 					)}
 			</td>
 			<td>{numeral(percentageOfPortfolio).format('0.0%')}</td>
-			<td>{numeral(percentageOfInvestment).format('0.0%')}</td>
 			<td
 				className={classNames({
 					'text-right': true,

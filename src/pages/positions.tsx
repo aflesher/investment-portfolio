@@ -1,7 +1,8 @@
 import React from 'react';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
-import { connect, ResolveArrayThunks } from 'react-redux';
+import { connect } from 'react-redux';
+import numeral from 'numeral';
 
 import Position from '../components/position/Position';
 import Layout from '../components/layout';
@@ -10,7 +11,7 @@ import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
 import { ICash } from '../utils/cash';
 import { ITrade } from '../utils/trade';
-import { getMaxShares, getPercentSharesRemaining } from '../utils/util';
+import { getPercentSharesRemaining } from '../utils/util';
 import { IOrder } from '../utils/order';
 import { IPosition } from '../utils/position';
 import { IQuote } from '../utils/quote';
@@ -23,7 +24,6 @@ export enum PositionsOrderBy {
 	position,
 	orders,
 	rating,
-	investment,
 	pe,
 	dividendYield,
 	cashProfits,
@@ -117,6 +117,12 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	currency,
 	data,
 }) => {
+	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
+	const [combined, setCombined] = React.useState(true);
+	const [typeFilter, setTypeFilter] = React.useState<'all' | 'crypto' | 'stock'>(
+		'all'
+	);
+
 	let usdCash = data.allCash.nodes.reduce(
 		(sum, { amountUsd }) => sum + amountUsd,
 		0
@@ -126,31 +132,32 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 		0
 	);
 
-	const positionNodes = data.allPosition.nodes.slice();
-
-	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
-	const [combined, setCombined] = React.useState(false);
-	const [typeFilter, setTypeFilter] = React.useState<'all' | 'crypto' | 'stock'>(
-		'all'
+	let positions = data.allPosition.nodes.filter(
+		(q) =>
+			typeFilter === 'all' ||
+			(typeFilter === 'crypto' && q.type === 'crypto') ||
+			(typeFilter === 'stock' && q.type === 'stock')
 	);
 
 	if (combined) {
-		cadCash += positionNodes
+		cadCash += positions
 			.filter((q) => q.company.hisa)
 			.reduce(
 				(sum, { currentMarketValueCad }) => sum + (currentMarketValueCad || 0),
 				0
 			);
 
-		usdCash += positionNodes
+		usdCash += positions
 			.filter((q) => q.company.hisa)
 			.reduce(
 				(sum, { currentMarketValueUsd }) => sum + (currentMarketValueUsd || 0),
 				0
 			);
+
+		positions = positions.filter((q) => !q.company.hisa);
 	}
 
-	positionNodes.push(addCurrencyToPositions(usdCash, cadCash));
+	positions.push(addCurrencyToPositions(usdCash, cadCash));
 
 	const filterPosition = ({ type }: IPositionNode) =>
 		typeFilter === 'all' ||
@@ -170,26 +177,36 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 		position.currentMarketValueUsd;
 
 	const totalPositionValue = _.sumBy(
-		positionNodes.filter(filterPosition),
+		positions.filter(filterPosition),
 		(p) => p.currentMarketValueCad
 	);
 	const totalPositionCost = _.sumBy(
-		positionNodes.filter(filterPosition),
+		positions.filter(filterPosition),
 		(p) => p.totalCostCad
 	);
 	const totalPositionValueUsd = _.sumBy(
-		positionNodes.filter(filterPosition),
+		positions.filter(filterPosition),
 		(p) => p.currentMarketValueUsd
 	);
 	const totalPositionCostUsd = _.sumBy(
-		positionNodes.filter(filterPosition),
+		positions.filter(filterPosition),
 		(p) => p.totalCostUsd
 	);
 
 	const orders = data.allOrder.nodes;
 
-	const positions = _.orderBy(
-		positionNodes,
+	const cashTotalValue = positions
+		.filter(({ type, company }) => type === AssetType.cash || company.hisa)
+		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
+	const stockTotalValue = positions
+		.filter(({ type, company }) => type === AssetType.stock && !company.hisa)
+		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
+	const cryptoTotalValue = positions
+		.filter(({ type }) => type === AssetType.crypto)
+		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
+
+	positions = _.orderBy(
+		positions,
 		(position) => {
 			switch (orderBy) {
 				case PositionsOrderBy.symbol:
@@ -201,8 +218,6 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 					);
 				case PositionsOrderBy.position:
 					return getCurrentValueCad(position) / totalPositionValue;
-				case PositionsOrderBy.investment:
-					return getTotalCostCad(position) / totalPositionCost;
 				case PositionsOrderBy.orders:
 					if (
 						orders.find((q) => q.symbol === position.symbol && q.action === 'buy')
@@ -227,14 +242,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 			}
 		},
 		orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
-	)
-		.filter((q) => !combined || !q.company.hisa)
-		.filter(
-			(q) =>
-				typeFilter === 'all' ||
-				(typeFilter === 'crypto' && q.type === 'crypto') ||
-				(typeFilter === 'stock' && q.type === 'stock')
-		);
+	);
 
 	const getRatingPercent = (positionNode: IPositionNode) => {
 		const rating = positionNode.assessment?.rating || 'none';
@@ -326,14 +334,6 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 							>
 								%oP
 							</th>
-							<th className=''>
-								<span
-									className='link'
-									onClick={() => setOrderBy(PositionsOrderBy.investment)}
-								>
-									%oI
-								</span>
-							</th>
 							<th
 								className='text-right link'
 								onClick={() => setOrderBy(PositionsOrderBy.cashProfits)}
@@ -361,7 +361,6 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 								percentageOfPortfolio={
 									getCurrentValueCad(position) / totalPositionValue
 								}
-								percentageOfInvestment={getTotalCostCad(position) / totalPositionCost}
 								shareProgress={position.assessment?.targetInvestmentProgress || 0}
 								priceProgress={position.assessment?.targetPriceProgress}
 								activeCurrency={currency}
@@ -406,6 +405,17 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						</tr>
 					</tbody>
 				</table>
+				<div>
+					<div>
+						Cash: {numeral(cashTotalValue / totalPositionValue).format('0.00%')}
+					</div>
+					<div>
+						Stocks: {numeral(stockTotalValue / totalPositionValue).format('0.00%')}
+					</div>
+					<div>
+						Crypto: {numeral(cryptoTotalValue / totalPositionValue).format('0.00%')}
+					</div>
+				</div>
 			</div>
 		</Layout>
 	);
