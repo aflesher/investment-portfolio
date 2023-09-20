@@ -7,6 +7,11 @@ import XE from '../xe/XE';
 import { IOrder } from '../../utils/order';
 import { positiveNegativeText } from '../../utils/util';
 import ColoredNumbers from '../colored-numbers/ColoredNumbers';
+import {
+	orderNewAvgPrice,
+	orderPnL,
+	orderPriceGap,
+} from '../../utils/calculate';
 
 interface IOrderStateProps
 	extends Omit<
@@ -39,18 +44,16 @@ const Order: React.FC<IOrderStateProps> = ({
 	quotePrice,
 	positionCost,
 }) => {
-	const gap =
-		action == 'buy'
-			? (quotePrice - limitPrice) / quotePrice
-			: (limitPrice - quotePrice) / quotePrice;
+	const gap = orderPriceGap(quotePrice, limitPrice, action === 'sell');
+	const curAvgPrice = positionCost / positionQuantity;
 
-	const newAvgPrice =
-		action == 'buy' && positionQuantity
-			? (positionCost + limitPrice * openQuantity) /
-			  (positionQuantity + openQuantity)
-			: action == 'buy'
-			? limitPrice
-			: positionCost / positionQuantity;
+	const newAvgPrice = orderNewAvgPrice(
+		positionQuantity,
+		curAvgPrice,
+		limitPrice,
+		openQuantity,
+		action === 'sell'
+	);
 
 	const gapColor = (gap: number): string => {
 		const scale = Math.min(gap * 10, 1);
@@ -60,10 +63,7 @@ const Order: React.FC<IOrderStateProps> = ({
 
 		return `rgb(${red}, ${green}, ${blue})`;
 	};
-
-	const curAvgPrice = positionCost / positionQuantity;
 	const avgPriceDiff = (curAvgPrice - newAvgPrice) / curAvgPrice;
-	const pnlDiff = quotePrice - curAvgPrice;
 
 	return (
 		<div className='border-top-normal'>
@@ -152,7 +152,10 @@ const Order: React.FC<IOrderStateProps> = ({
 					{action === 'sell' && (
 						<div className='col-4'>
 							P&L:&nbsp;
-							<ColoredNumbers value={pnlDiff * openQuantity} type='dollar' />
+							<ColoredNumbers
+								value={orderPnL(curAvgPrice, limitPrice, openQuantity)}
+								type='dollar'
+							/>
 						</div>
 					)}
 					{action === 'buy' && (

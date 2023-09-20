@@ -6,7 +6,7 @@ import numeral from 'numeral';
 
 import Position from '../components/position/Position';
 import Layout from '../components/layout';
-import { Currency, AssetType, RatingType } from '../utils/enum';
+import { Currency, AssetType } from '../utils/enum';
 import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
 import { ICash } from '../utils/cash';
