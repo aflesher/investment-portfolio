@@ -8,6 +8,7 @@ import Layout from '../components/layout';
 import { IPosition } from '../utils/position';
 import { ITrade } from '../utils/trade';
 import { IQuote } from '../utils/quote';
+import { addUpCash } from '../utils/calculate';
 
 interface ICashQueryTrade
 	extends Pick<
@@ -159,18 +160,10 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 	console.log(data.allCash.nodes.filter(({ accountId }) => !!accountId));
 
 	const combinedBalances = {
-		amountCad: data.allCash.nodes
-			.filter(({ accountId, currency }) => !!accountId && currency === 'cad')
-			.reduce((sum, { amountCad }) => sum + amountCad, 0),
-		amountUsd: data.allCash.nodes
-			.filter(({ accountId, currency }) => !!accountId && currency === 'usd')
-			.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
-		savingsAmountCad: data.allCash.nodes
-			.filter(({ accountId, currency }) => !accountId && currency === 'cad')
-			.reduce((sum, { amountCad }) => sum + amountCad, 0),
-		savingsAmountUsd: data.allCash.nodes
-			.filter(({ accountId, currency }) => !accountId && currency === 'usd')
-			.reduce((sum, { amountUsd }) => sum + amountUsd, 0),
+		amountCad: addUpCash(data.allCash.nodes, Currency.cad, true, false),
+		amountUsd: addUpCash(data.allCash.nodes, Currency.usd, true, false),
+		savingsAmountCad: addUpCash(data.allCash.nodes, Currency.cad, false, true),
+		savingsAmountUsd: addUpCash(data.allCash.nodes, Currency.usd, false, true),
 		cadHISA: balances.reduce((sum, { cadHISA }) => sum + (cadHISA || 0), 0),
 		usdHISA: balances.reduce((sum, { usdHISA }) => sum + (usdHISA || 0), 0),
 		combinedCadHISA: balances.reduce(

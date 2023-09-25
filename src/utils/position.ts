@@ -23,4 +23,5 @@ export interface IPosition {
 	openPnlUsd: number;
 	openPnlCad: number;
 	openingTrade?: ITrade;
+	accountName?: string;
 }
