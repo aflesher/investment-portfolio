@@ -5,35 +5,19 @@ import moment from 'moment-timezone';
 import { setExchangeRate } from './firebase';
 
 let api = '';
-let apiKey = '';
+let appId = '';
 
-export const init = (_api: string, _apiKey: string): void => {
+export const init = (_api: string, _appId: string): void => {
 	api = _api;
-	apiKey = _apiKey;
+	appId = _appId;
 };
 
-export const getRate = async (
-	from: string,
-	to: string,
-	date: string
-): Promise<number | null> => {
-	const key = `${from.toUpperCase()}_${to.toUpperCase()}`;
-
-	// This is a restriction of the endpoint. I think you'll need to manually backfill
-	if (
-		moment(date).toDate() <= moment().startOf('day').subtract(1, 'year').toDate()
-	) {
-		console.error(date, '    is missing for rates');
-		return 1;
-	}
-
+export const getTodaysRate = async (): Promise<number | null> => {
 	const resp = await axios
-		.get(api, {
+		.get(`${api}latest.json`, {
 			params: {
-				q: key,
-				compact: 'ultra',
-				apiKey,
-				date,
+				app_id: appId,
+				base: 'USD',
 			},
 		})
 		.catch(console.log);
@@ -42,9 +26,9 @@ export const getRate = async (
 		return null;
 	}
 
-	const rate = resp.data[key][date];
+	const rate = resp.data.rates.CAD;
 
-	await setExchangeRate(key, date, rate);
+	await setExchangeRate('USD_CAD', moment().format('YYYY-MM-DD'), Number(rate));
 
-	return rate;
+	return resp.data.rates.CAD;
 };

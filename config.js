@@ -30,4 +30,9 @@ config.binance = {
 	secretKey: process.env.BINANCE_API_SECRET,
 };
 
+config.openexchangerates = {
+	api: 'https://openexchangerates.org/api/',
+	appId: process.env.OPEN_EXCHANGE_RATES_APP_ID,
+};
+
 module.exports = config;

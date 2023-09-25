@@ -25,7 +25,6 @@ import { replaceSymbol } from './library/util';
 import { IExchangeRate } from '../../src/utils/exchange';
 import { IEarningsDate, getEarningsDates } from './library/earnings-calendar';
 import { ICash } from '../../src/utils/cash';
-import { useDebugValue } from 'react';
 import { IStockSplit } from '../../src/utils/stock-split';
 import { ICrypto52Weeks, getCrypto52Weeks } from './library/crypto';
 
@@ -62,7 +61,7 @@ const SYMBOL_ID_REPLACEMENTS = [
 
 const INVALID_QUOTE_IDS = [17488686];
 
-const checkExchangeRate = async () => {
+const checkEnvExchangeRate = async () => {
 	const rate = process.env.USD_CAD;
 	if (!rate) {
 		return;
@@ -223,9 +222,9 @@ const hash = (content: string): string => {
 };
 
 const getTodaysRate = async (): Promise<number> => {
-	await checkExchangeRate();
+	await checkEnvExchangeRate();
 	const date = moment().format('YYYY-MM-DD');
-	let rate = await exchange.getRate('usd', 'cad', date);
+	let rate = await exchange.getTodaysRate();
 	if (rate) {
 		return rate;
 	}
@@ -303,7 +302,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return createNodeId(hash(`split${symbol}${index}`));
 	};
 
-	exchange.init(configOptions.currency.api, configOptions.currency.apiKey);
+	exchange.init(
+		configOptions.openexchangerates.api,
+		configOptions.openexchangerates.appId
+	);
 	firebase.init(configOptions.firebase);
 	coinmarketcap.init(
 		configOptions.coinmarketcap.api,
