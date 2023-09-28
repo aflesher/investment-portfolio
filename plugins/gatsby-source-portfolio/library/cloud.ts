@@ -2,7 +2,7 @@ import { Storage } from '@google-cloud/storage';
 import crypto from 'crypto';
 import _ from 'lodash';
 import { Currency } from '../../../src/utils/enum';
-import { IStockSplit } from '../../../src/utils/stock-split';
+import { IStockSplit } from '../../../declarations';
 import { IQuestradeActivity } from './questrade';
 import { replaceSymbol } from './util';
 import numeral from 'numeral';

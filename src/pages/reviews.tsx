@@ -3,7 +3,7 @@ import { graphql } from 'gatsby';
 import crypto from 'crypto';
 import { connect } from 'react-redux';
 import Layout from '../components/layout';
-import { IReview } from '../utils/review';
+import { IReview } from '../../declarations/review';
 import { compareNumber } from '../utils/util';
 import {
 	IGoalStatus,

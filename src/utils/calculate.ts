@@ -1,8 +1,8 @@
-import { ICash } from './cash';
+import { ICash } from '../../declarations/cash';
 import { Currency } from './enum';
-import { IPosition } from './position';
-import { IQuote } from './quote';
-import { ITrade } from './trade';
+import { IPosition } from '../../declarations/position';
+import { IQuote } from '../../declarations/quote';
+import { ITrade } from '../../declarations/trade';
 
 export const orderPnL = (
 	avgSharePrice: number,

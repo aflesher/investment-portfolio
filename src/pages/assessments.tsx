@@ -6,11 +6,11 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import Assessment from '../components/assessment/Assessment';
 import Layout from '../components/layout';
 import { dateInputFormat, getMaxShares } from '../utils/util';
-import { IAssessment } from '../utils/assessment';
-import { ITrade } from '../utils/trade';
-import { IPosition } from '../utils/position';
-import { IQuote } from '../utils/quote';
-import { ICompany } from '../utils/company';
+import { IAssessment } from '../../declarations/assessment';
+import { ITrade } from '../../declarations/trade';
+import { IPosition } from '../../declarations/position';
+import { IQuote } from '../../declarations/quote';
+import { ICompany } from '../../declarations/company';
 import { connect } from 'react-redux';
 import { IStoreState } from '../store/store';
 

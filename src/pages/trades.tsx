@@ -11,11 +11,11 @@ import DateRange from '../components/dateRange/DateRange';
 import { IStoreState } from '../store/store';
 import { Currency, AssetType } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';
-import { ITrade } from '../utils/trade';
-import { ICompany } from '../utils/company';
-import { IQuote } from '../utils/quote';
-import { IAssessment } from '../utils/assessment';
-import { IPosition } from '../utils/position';
+import { ITrade } from '../../declarations/trade';
+import { ICompany } from '../../declarations/company';
+import { IQuote } from '../../declarations/quote';
+import { IAssessment } from '../../declarations/assessment';
+import { IPosition } from '../../declarations/position';
 
 interface ITradeProps {
 	currency: Currency;
@@ -72,7 +72,7 @@ const mapStateToProps = ({ currency }: IStoreState): ITradeProps => ({
 	currency,
 });
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 50;
 
 const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));

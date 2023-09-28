@@ -4,7 +4,7 @@ import numeral from 'numeral';
 import { Link } from 'gatsby';
 
 import XE from '../xe/XE';
-import { IOrder } from '../../utils/order';
+import { IOrder } from '../../../declarations/order';
 import { positiveNegativeText } from '../../utils/util';
 import ColoredNumbers from '../colored-numbers/ColoredNumbers';
 import {

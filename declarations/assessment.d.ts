@@ -1,4 +1,4 @@
-import { AssetType, RatingType } from './enum';
+import { AssetType, RatingType } from '../src/utils/enum';
 
 export interface IAssessment {
 	checklist: { [key: string]: boolean };

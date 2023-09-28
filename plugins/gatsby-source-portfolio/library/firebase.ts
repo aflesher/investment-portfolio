@@ -4,17 +4,19 @@ import firebase from 'firebase/compat/app';
 import NP from 'number-precision';
 
 import { deferredPromise } from './util';
-import { IAssessment } from '../../../src/utils/assessment';
-import { IExchangeRate } from '../../../src/utils/exchange';
-import { IPosition } from '../../../src/utils/position';
+import {
+	IAssessment,
+	IExchangeRate,
+	IPosition,
+	IReview,
+	ITrade,
+	ICash,
+	IStockSplit,
+	ICryptoPosition,
+} from '../../../declarations';
 import { Currency, AssetType } from '../../../src/utils/enum';
-import { IReview } from '../../../src/utils/review';
-import { ITrade } from '../../../src/utils/trade';
-import { ICoinMarketCapQuote } from './coinmarketcap';
 import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
-import { ICash } from '../../../src/utils/cash';
-import { IStockSplit } from '../../../src/utils/stock-split';
 import { ICrypto52Weeks } from './crypto';
 
 const serviceAccount = require('../json/firebase.json');
@@ -213,20 +215,6 @@ export const updateExchangeRates = async (): Promise<void> => {
 		});
 	});
 };
-
-export interface ICryptoPosition
-	extends Pick<
-		IPosition,
-		| 'currency'
-		| 'type'
-		| 'averageEntryPrice'
-		| 'quantity'
-		| 'symbol'
-		| 'totalCostCad'
-	> {
-	averageEntryPriceCad: number;
-	totalCostUsd: number;
-}
 
 interface ICryptoTradeDoc {
 	symbol: string;

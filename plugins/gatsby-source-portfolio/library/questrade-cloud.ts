@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 import * as questrade from './questrade';
 import * as cloud from './cloud';
-import { IStockSplit } from '../../../src/utils/stock-split';
+import { IStockSplit } from '../../../declarations';
 
 export const clear = async (): Promise<void> => {
 	console.log('clear');

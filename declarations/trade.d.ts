@@ -2,7 +2,7 @@ import { ICompany } from './company';
 import { IPosition } from './position';
 import { IQuote } from './quote';
 import { IAssessment } from './assessment';
-import { Currency, AssetType } from './enum';
+import { Currency, AssetType } from '../src/utils/enum';
 
 export interface ITrade {
 	symbol: string;

@@ -1,4 +1,4 @@
-import { AssetType, Currency } from './enum';
+import { AssetType, Currency } from '../src/utils/enum';
 
 export interface IQuote {
 	price: number;

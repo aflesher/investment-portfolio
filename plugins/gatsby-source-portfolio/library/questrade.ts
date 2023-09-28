@@ -8,7 +8,7 @@ import moment from 'moment';
 import * as util from './util';
 import * as firebase from './firebase';
 import { Currency } from '../../../src/utils/enum';
-import { ICash } from '../../../src/utils/cash';
+import { ICash } from '../../../declarations';
 
 const loginUrl = 'https://login.questrade.com/oauth2/token';
 const accountsRoute = 'v1/accounts';

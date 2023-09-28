@@ -7,10 +7,10 @@ import Order from '../components/order/Order';
 import { IStoreState } from '../store/store';
 import { Currency } from '../utils/enum';
 import Layout from '../components/layout';
-import { IOrder } from '../utils/order';
-import { IQuote } from '../utils/quote';
-import { ICompany } from '../utils/company';
-import { IPosition } from '../utils/position';
+import { IOrder } from '../../declarations/order';
+import { IQuote } from '../../declarations/quote';
+import { ICompany } from '../../declarations/company';
+import { IPosition } from '../../declarations/position';
 
 interface IOrdersStateProps {
 	currency: Currency;

@@ -1,13 +1,13 @@
 import React from 'react';
 import { graphql } from 'gatsby';
 import numeral from 'numeral';
-import { ICash } from '../utils/cash';
+import { ICash } from '../../declarations/cash';
 import Balance, { IBalanceStateProps } from '../components/balance/Balance';
 import { Currency } from '../utils/enum';
 import Layout from '../components/layout';
-import { IPosition } from '../utils/position';
-import { ITrade } from '../utils/trade';
-import { IQuote } from '../utils/quote';
+import { IPosition } from '../../declarations/position';
+import { ITrade } from '../../declarations/trade';
+import { IQuote } from '../../declarations/quote';
 import { addUpCash } from '../utils/calculate';
 
 interface ICashQueryTrade
@@ -156,8 +156,6 @@ const Cash: React.FC<ICashQuery> = ({ data }) => {
 			balance.combinedUsd += amountUsd;
 		}
 	);
-
-	console.log(data.allCash.nodes.filter(({ accountId }) => !!accountId));
 
 	const combinedBalances = {
 		amountCad: addUpCash(data.allCash.nodes, Currency.cad, true, false),

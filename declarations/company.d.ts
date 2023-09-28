@@ -1,4 +1,4 @@
-import { AssetType } from './enum';
+import { AssetType } from '../src/utils/enum';
 
 export interface ICompany {
 	pe?: number;

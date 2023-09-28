@@ -1,4 +1,4 @@
-import { Currency } from './enum';
+import { Currency } from '../src/utils/enum';
 import { ICompany } from './company';
 import { IPosition } from './position';
 import { IQuote } from './quote';

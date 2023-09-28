@@ -5,7 +5,7 @@ import numeral from 'numeral';
 
 import { Currency } from '../../utils/enum';
 import Layout from '../../components/layout';
-import { ICash } from '../../utils/cash';
+import { ICash } from '../../../declarations/cash';
 
 interface IFinancialsQuery {
 	data: {

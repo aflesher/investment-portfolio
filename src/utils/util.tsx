@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 import _ from 'lodash';
 import { AssetType } from './enum';
 import { clamp } from 'lodash';
-import { ITrade } from './trade';
+import { ITrade } from '../../declarations/trade';
 
 const MARGIN_ACCOUNT_ID = 26418215;
 const TFSA_ACCOUNT_ID = 51443858;

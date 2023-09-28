@@ -9,7 +9,7 @@ import { IStoreState } from '../../store/store';
 import { connect } from 'react-redux';
 import { AssetType, RatingType } from '../../utils/enum';
 import Layout from '../../components/layout';
-import { IAssessment } from '../../utils/assessment';
+import { IAssessment } from '../../../declarations/assessment';
 interface IAssessmentsStateProps {
 	user: firebase.User | null | undefined;
 	firebase: firebase.app.App | undefined;

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
-import { IDividend } from '../../utils/dividend';
+import { IDividend } from '../../../declarations/dividend';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
 import { Currency } from '../../utils/enum';

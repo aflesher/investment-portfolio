@@ -9,14 +9,14 @@ import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
 import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
-import { ICash } from '../utils/cash';
-import { ITrade } from '../utils/trade';
+import { ICash } from '../../declarations/cash';
+import { ITrade } from '../../declarations/trade';
 import { getPercentSharesRemaining } from '../utils/util';
-import { IOrder } from '../utils/order';
-import { IPosition } from '../utils/position';
-import { IQuote } from '../utils/quote';
-import { ICompany } from '../utils/company';
-import { IAssessment } from '../utils/assessment';
+import { IOrder } from '../../declarations/order';
+import { IPosition } from '../../declarations/position';
+import { IQuote } from '../../declarations/quote';
+import { ICompany } from '../../declarations/company';
+import { IAssessment } from '../../declarations/assessment';
 
 export enum PositionsOrderBy {
 	symbol,

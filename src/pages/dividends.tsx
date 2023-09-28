@@ -16,11 +16,11 @@ import * as util from '../utils/util';
 import { dateInputFormat } from '../utils/util';
 import DateRange from '../components/dateRange/DateRange';
 import Percent from '../components/percent/Percent';
-import { IDividend } from '../utils/dividend';
-import { IAssessment } from '../utils/assessment';
-import { ICompany } from '../utils/company';
-import { IPosition } from '../utils/position';
-import { IQuote } from '../utils/quote';
+import { IDividend } from '../../declarations/dividend';
+import { IAssessment } from '../../declarations/assessment';
+import { ICompany } from '../../declarations/company';
+import { IPosition } from '../../declarations/position';
+import { IQuote } from '../../declarations/quote';
 
 interface IDividendsStateProps {
 	currency: Currency;

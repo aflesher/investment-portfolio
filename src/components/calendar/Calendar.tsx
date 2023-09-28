@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 import React from 'react';
-import { IEarningsDate } from '../../utils/earnings-date';
+import { IEarningsDate } from '../../../declarations/earnings-date';
 import { times, flatMap, chunk } from 'lodash';
 import CompanyBanner from '../company-banner/CompanyBanner';
 

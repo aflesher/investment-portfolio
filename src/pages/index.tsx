@@ -10,7 +10,7 @@ import CompanyBanner from '../components/company-banner/CompanyBanner';
 import { compareNumber } from '../utils/util';
 import moment from 'moment-timezone';
 import Order from '../components/order/Order';
-import { IPosition } from '../utils/position';
+import { IPosition } from '../../declarations/position';
 
 interface IIndexQueryProps extends PageProps {
 	data: {

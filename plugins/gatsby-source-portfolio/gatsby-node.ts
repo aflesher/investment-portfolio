@@ -12,20 +12,24 @@ import * as questradeCloud from './library/questrade-cloud';
 import * as cloud from './library/cloud';
 import * as coinmarketcap from './library/coinmarketcap';
 import * as binance from './library/binanace';
-import { IAssessment } from '../../src/utils/assessment';
+import {
+	IAssessment,
+	IQuote,
+	IOrder,
+	IReview,
+	IPosition,
+	ITrade,
+	IDividend,
+	ICompany,
+	IEarningsDate,
+	ICash,
+	IStockSplit,
+	IExchangeRate,
+	ICryptoPosition,
+} from '../../declarations';
 import { AssetType, Currency } from '../../src/utils/enum';
-import { IQuote } from '../../src/utils/quote';
-import { IOrder } from '../../src/utils/order';
-import { IReview } from '../../src/utils/review';
-import { IPosition } from '../../src/utils/position';
-import { ITrade } from '../../src/utils/trade';
-import { IDividend } from '../../src/utils/dividend';
-import { ICompany } from '../../src/utils/company';
 import { replaceSymbol } from './library/util';
-import { IExchangeRate } from '../../src/utils/exchange';
-import { IEarningsDate, getEarningsDates } from './library/earnings-calendar';
-import { ICash } from '../../src/utils/cash';
-import { IStockSplit } from '../../src/utils/stock-split';
+import { getEarningsDates } from './library/earnings-calendar';
 import { ICrypto52Weeks, getCrypto52Weeks } from './library/crypto';
 
 const assessmentsPromise = firebase.getAssessments();
@@ -181,24 +185,21 @@ const cryptoSlugsPromise = (async (): Promise<string[]> => {
 	const trades = await cryptoTradesPromise;
 	const orders = await binanceOrdersPromise;
 
-	const allSlugs = _.concat(
-		_(positions)
-			.map((q) => q.symbol)
-			.map(coinmarketcap.symbolToSlug)
-			.value(),
-		_(assessments)
-			.filter({ type: AssetType.crypto })
-			.map((q) => q.symbol)
-			.map(coinmarketcap.symbolToSlug)
-			.value(),
-		_(trades)
-			.map((q) => q.symbol)
-			.map(coinmarketcap.symbolToSlug)
-			.value(),
-		_(orders)
-			.map((o) => o.symbol.replace('USDT', '').toLocaleLowerCase())
-			.map(coinmarketcap.symbolToSlug)
-			.value()
+	const test = _(assessments)
+		.filter({ type: AssetType.crypto })
+		.map((q) => q.symbol)
+		.map(coinmarketcap.symbolToSlug)
+		.value();
+
+	const allSlugs: string[] = _.concat(
+		positions.map(({ symbol }) => coinmarketcap.symbolToSlug(symbol)),
+		assessments
+			.filter(({ type }) => type === AssetType.crypto)
+			.map(({ symbol }) => coinmarketcap.symbolToSlug(symbol)),
+		trades.map(({ symbol }) => coinmarketcap.symbolToSlug(symbol)),
+		orders.map(({ symbol }) =>
+			coinmarketcap.symbolToSlug(symbol.replace('USDT', '').toLocaleLowerCase())
+		)
 	);
 
 	return _.uniq(allSlugs.filter((q) => !!q));
@@ -729,7 +730,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	};
 
 	const mapCryptoPositionToPosition = (
-		position: firebase.ICryptoPosition,
+		position: ICryptoPosition,
 		usdToCadRate: number,
 		cadToUsdRate: number,
 		cryptoQuotes: coinmarketcap.ICoinMarketCapQuote[]

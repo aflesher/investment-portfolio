@@ -1,19 +1,33 @@
 {
-  "include": ["./src/**/*"],
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "lib": ["dom", "es2017"],
-    // "allowJs": true,
-    // "checkJs": true,
-    "jsx": "react",
-    "strict": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
-    "moduleResolution": "node"
-  }
+	"include": [
+		"./src/**/*",
+		"declarations/assessment.d.ts",
+		"declarations/cash.d.ts",
+		"declarations/company.d.ts",
+		"declarations/dividend.d.ts",
+		"declarations/earnings-date.d.ts",
+		"declarations/order.d.ts",
+		"declarations/exchange.d.ts",
+		"declarations/position.d.ts",
+		"declarations/quote.d.ts",
+		"declarations/review.d.ts",
+		"declarations/stock-split.d.ts",
+		"declarations/trade.d.ts"
+	],
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"lib": ["dom", "es2017"],
+		// "allowJs": true,
+		// "checkJs": true,
+		"jsx": "react",
+		"strict": true,
+		"esModuleInterop": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"strictNullChecks": true,
+		"moduleResolution": "node"
+	}
 }

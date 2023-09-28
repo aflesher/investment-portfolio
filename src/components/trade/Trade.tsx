@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import numeral from 'numeral';
 
 import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
-import { ITrade } from '../../utils/trade';
+import { ITrade } from '../../../declarations/trade';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
 

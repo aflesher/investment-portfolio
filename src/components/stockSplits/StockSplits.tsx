@@ -1,5 +1,5 @@
 import React from 'react';
-import { IStockSplit } from '../../utils/stock-split';
+import { IStockSplit } from '../../../declarations/stock-split';
 
 interface StockSplitProps {
 	stockSplits: IStockSplit[];

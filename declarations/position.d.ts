@@ -1,5 +1,5 @@
 import { IAssessment } from './assessment';
-import { Currency, AssetType } from './enum';
+import { Currency, AssetType } from '../src/utils/enum';
 import { ICompany } from './company';
 import { IQuote } from './quote';
 import { ITrade } from './trade';
@@ -24,4 +24,18 @@ export interface IPosition {
 	openPnlCad: number;
 	openingTrade?: ITrade;
 	accountName?: string;
+}
+
+export interface ICryptoPosition
+	extends Pick<
+		IPosition,
+		| 'currency'
+		| 'type'
+		| 'averageEntryPrice'
+		| 'quantity'
+		| 'symbol'
+		| 'totalCostCad'
+	> {
+	averageEntryPriceCad: number;
+	totalCostUsd: number;
 }

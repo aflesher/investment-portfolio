@@ -6,7 +6,7 @@ import firebase from 'firebase/compat/app';
 import Layout from '../../components/layout';
 import { connect } from 'react-redux';
 import { IStoreState } from '../../store/store';
-import { IReview } from '../../utils/review';
+import { IReview } from '../../../declarations/review';
 
 interface IReviewStateProps {
 	user: firebase.User | null | undefined;

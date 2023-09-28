@@ -1,4 +1,4 @@
-import { Currency } from './enum';
+import { Currency } from '../src/utils/enum';
 
 export interface IOrder {
 	symbol: string;

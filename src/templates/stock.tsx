@@ -23,16 +23,16 @@ import {
 	getMaxShares,
 	getTimeHeld,
 } from '../utils/util';
-import { IStockSplit } from '../utils/stock-split';
+import { IStockSplit } from '../../declarations/stock-split';
 import StockSplits from '../components/stockSplits/StockSplits';
-import { ICompany } from '../utils/company';
-import { IPosition } from '../utils/position';
-import { IQuote } from '../utils/quote';
-import { ITrade } from '../utils/trade';
-import { IAssessment } from '../utils/assessment';
-import { IDividend } from '../utils/dividend';
-import { IOrder } from '../utils/order';
-import { IEarningsDate } from '../utils/earnings-date';
+import { ICompany } from '../../declarations/company';
+import { IPosition } from '../../declarations/position';
+import { IQuote } from '../../declarations/quote';
+import { ITrade } from '../../declarations/trade';
+import { IAssessment } from '../../declarations/assessment';
+import { IDividend } from '../../declarations/dividend';
+import { IOrder } from '../../declarations/order';
+import { IEarningsDate } from '../../declarations/earnings-date';
 import FirebaseImage from '../components/firebaseImage/FirebaseImage';
 
 interface IStockTemplateStateProps
