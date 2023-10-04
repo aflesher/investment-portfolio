@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { StaticQuery, graphql } from 'gatsby';
-import classNames from 'classnames';
 import _ from 'lodash';
 import firebase from 'firebase/compat/app';
 

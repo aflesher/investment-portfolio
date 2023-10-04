@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import firebase from 'firebase/compat/app';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import { ref, getDownloadURL } from 'firebase/storage';
 import { IStoreState } from '../../store/store';
 import { connect } from 'react-redux';
 import Layout from '../../components/layout';

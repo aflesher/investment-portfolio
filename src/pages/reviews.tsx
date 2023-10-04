@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { graphql } from 'gatsby';
 import crypto from 'crypto';
 import { connect } from 'react-redux';

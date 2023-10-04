@@ -3,7 +3,6 @@ import { graphql } from 'gatsby';
 import _ from 'lodash';
 import numeral from 'numeral';
 
-import { Currency } from '../../utils/enum';
 import Layout from '../../components/layout';
 import { ICash } from '../../../declarations/cash';
 

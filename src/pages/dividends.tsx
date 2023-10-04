@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, graphql } from 'gatsby';
+import { graphql } from 'gatsby';
 import _ from 'lodash';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import moment from 'moment';
@@ -14,7 +14,6 @@ import { IStoreState } from '../store/store';
 import { connect } from 'react-redux';
 import * as util from '../utils/util';
 import { dateInputFormat } from '../utils/util';
-import DateRange from '../components/dateRange/DateRange';
 import Percent from '../components/percent/Percent';
 import { IDividend } from '../../declarations/dividend';
 import { IAssessment } from '../../declarations/assessment';
@@ -85,7 +84,6 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 	);
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
-	const [page, setPage] = React.useState(0);
 	const [showLength, setShownLength] = React.useState(PAGE_SIZE);
 	const trackedYears = util.getTrackedYears();
 
@@ -156,27 +154,18 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 
 	const handleSymbolChange = (symbol: string): void => {
 		setSymbol(symbol);
-		setPage(0);
 	};
 
 	const handleStartDateChange = (
 		event: React.ChangeEvent<HTMLInputElement>
 	): void => {
 		setStartDate(new Date(event.target.value));
-		setPage(0);
 	};
 
 	const handleEndDateChange = (
 		event: React.ChangeEvent<HTMLInputElement>
 	): void => {
 		setEndDate(new Date(event.target.value));
-		setPage(0);
-	};
-
-	const handleDateRangeChange = (start: Date, end: Date): void => {
-		setStartDate(start);
-		setEndDate(end);
-		setPage(0);
 	};
 
 	const onYearChange = (year: string): void => {

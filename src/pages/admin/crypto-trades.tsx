@@ -1,7 +1,7 @@
 import React from 'react';
 import firebase from 'firebase/compat/app';
 import 'firebase/firestore';
-import numeral, { format } from 'numeral';
+import numeral from 'numeral';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 import moment from 'moment';
@@ -32,12 +32,17 @@ interface ICryptoTradesQuery {
 	};
 }
 
+interface FirebaseTimestamp {
+	seconds: number;
+	nanoseconds: number;
+}
+
 interface IFirebaseCryptoTradesFields extends firebase.firestore.DocumentData {
 	isSell: boolean;
 	symbol: string;
 	price: number;
 	quantity: number;
-	timestamp: { seconds: number; nanoseconds: number };
+	timestamp: FirebaseTimestamp;
 }
 
 interface IFirebaseCryptoTrades extends IFirebaseCryptoTradesFields {
@@ -102,13 +107,22 @@ const CryptoTrades: React.FC<ICryptoTradesQuery & ICryptoTradeStateProps> = ({
 		setTrades(_.sortBy(trades, (t) => t.timestamp.seconds).reverse());
 	};
 
+	const reset = () => {
+		setId(null);
+		setIsSell(false);
+		setSymbol('');
+		setPrice('');
+		setQuantity('');
+		setTradeDate(moment().format(DATE_FORMAT));
+	};
+
 	React.useEffect(() => {
 		if (!firestore && firebase && firebase.firestore && user) {
 			const db = firebase.firestore();
 			setFirestore(db);
 			fetchCryptoTrades(db);
 		}
-	}, [firebase, user]);
+	}, [firebase, user, firestore]);
 
 	const save = async (): Promise<void> => {
 		if (!firestore) {
@@ -127,7 +141,10 @@ const CryptoTrades: React.FC<ICryptoTradesQuery & ICryptoTradeStateProps> = ({
 			priceCad: Number(price || 0) * Number(usdCad),
 			priceUsd: Number(price || 0),
 			quantity: Number(quantity || 0),
-			timestamp: moment(tradeDate, DATE_FORMAT).toDate() as any,
+			timestamp: (moment(
+				tradeDate,
+				DATE_FORMAT
+			).toDate() as unknown) as FirebaseTimestamp,
 		};
 		await docRef.set(newTrade, { merge: true });
 		reset();
@@ -145,15 +162,6 @@ const CryptoTrades: React.FC<ICryptoTradesQuery & ICryptoTradeStateProps> = ({
 		setPrice(`${trade.price}`);
 		setQuantity(`${trade.quantity}`);
 		setTradeDate(moment(date).format(DATE_FORMAT));
-	};
-
-	const reset = () => {
-		setId(null);
-		setIsSell(false);
-		setSymbol('');
-		setPrice('');
-		setQuantity('');
-		setTradeDate(moment().format(DATE_FORMAT));
 	};
 
 	const applyXe = () => {

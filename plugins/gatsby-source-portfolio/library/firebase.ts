@@ -7,7 +7,6 @@ import { deferredPromise } from './util';
 import {
 	IAssessment,
 	IExchangeRate,
-	IPosition,
 	IReview,
 	ITrade,
 	ICash,
@@ -300,30 +299,6 @@ export interface ICryptoTrade
 		'symbol' | 'timestamp' | 'isSell' | 'quantity' | 'price' | 'type' | 'pnl'
 	> {}
 
-export const getCryptoTrades = async (): Promise<ICryptoTrade[]> => {
-	await initDeferredPromise.promise;
-
-	const querySnapshot = await firestore.collection('cryptoTrades').get();
-
-	const trades = querySnapshot.docs.map((documentSnapshot) => {
-		const doc: ICryptoTradeDoc = documentSnapshot.data() as ICryptoTradeDoc;
-		return {
-			currency: Currency.usd,
-			type: AssetType.crypto,
-			price: doc.price,
-			quantity: doc.quantity,
-			symbol: doc.symbol,
-			isSell: doc.isSell,
-			timestamp: doc.timestamp._seconds * 1000,
-			pnl: 0,
-		};
-	});
-
-	setCryptoTradeGainsAndLosses(trades);
-
-	return trades;
-};
-
 export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
 	const tradeTotals: {
 		[symbol: string]: { cost: number; shares: number };
@@ -356,6 +331,30 @@ export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
 			}
 		}
 	});
+};
+
+export const getCryptoTrades = async (): Promise<ICryptoTrade[]> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore.collection('cryptoTrades').get();
+
+	const trades = querySnapshot.docs.map((documentSnapshot) => {
+		const doc: ICryptoTradeDoc = documentSnapshot.data() as ICryptoTradeDoc;
+		return {
+			currency: Currency.usd,
+			type: AssetType.crypto,
+			price: doc.price,
+			quantity: doc.quantity,
+			symbol: doc.symbol,
+			isSell: doc.isSell,
+			timestamp: doc.timestamp._seconds * 1000,
+			pnl: 0,
+		};
+	});
+
+	setCryptoTradeGainsAndLosses(trades);
+
+	return trades;
 };
 
 export const getReviews = async (): Promise<IReview[]> => {
@@ -523,9 +522,7 @@ export const getCryptoMetaData = async (): Promise<ICryptoMetaData[]> => {
 	return results;
 };
 
-export const updateCryptoTrades = async (
-	rates: IExchangeRate[]
-): Promise<void> => {
+export const updateCryptoTrades = async (): Promise<void> => {
 	await initDeferredPromise.promise;
 
 	const querySnapshot = await firestore.collection('cryptoTrades').get();

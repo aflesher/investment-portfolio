@@ -77,7 +77,7 @@ const defaultChecklist = [
 
 const AssessmentsAdmin: React.FC<
 	IAssessmentsStateProps & IAssessmentsQuery
-> = ({ firebase, user, data }) => {
+> = ({ firebase, user }) => {
 	const [symbol, setSymbol] = React.useState('');
 	const [notes, setNotes] = React.useState<string[]>([]);
 	const [targetInvestment, setTargetInvestment] = React.useState<string>('');
@@ -178,7 +178,7 @@ const AssessmentsAdmin: React.FC<
 			fetchAssessments(db);
 			// saveBtc(db);
 		}
-	}, [firebase, user]);
+	}, [firebase, user, firestore]);
 
 	const onSymbolChange = (symbol: string) => {
 		setSymbol(symbol);

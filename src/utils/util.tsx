@@ -5,15 +5,15 @@ import { AssetType } from './enum';
 import { clamp } from 'lodash';
 import { ITrade } from '../../declarations/trade';
 
-const MARGIN_ACCOUNT_ID = 26418215;
-const TFSA_ACCOUNT_ID = 51443858;
-const RRSP_ACCOUNT_ID = 51637118;
+export const MARGIN_ACCOUNT_ID = 26418215;
+export const TFSA_ACCOUNT_ID = 51443858;
+export const RRSP_ACCOUNT_ID = 51637118;
 
 export const displayMarketCap = (value: number): string =>
 	numeral(value).format('$1.00 a');
 
 export const faClassForSymbol = (symbol: string): string => {
-	const lookup: any = {
+	const lookup: { [key: string]: string } = {
 		btc: 'fab fa-btc mr-2',
 		gbtc: 'fab fa-btc mr-2',
 		xmr: 'fab fa-monero mr-2',
@@ -167,7 +167,7 @@ export const getMaxShares = (trades: IMaxSharesTrade[]) => {
 	trades
 		.slice()
 		.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
-		.forEach(({ isSell, quantity, timestamp }) => {
+		.forEach(({ isSell, quantity }) => {
 			if (!isSell) {
 				shares += quantity;
 			} else {

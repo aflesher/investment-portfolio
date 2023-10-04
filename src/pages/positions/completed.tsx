@@ -181,7 +181,7 @@ const CompletedPositions: React.FC<
 			completedPosition.avgPricePaid;
 	});
 
-	let filteredCompletedPositions = completedPositions.filter((cp) => {
+	const filteredCompletedPositions = completedPositions.filter((cp) => {
 		if (!cp.quantityBought) {
 			return false;
 		}

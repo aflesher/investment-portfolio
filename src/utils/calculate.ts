@@ -109,7 +109,7 @@ export const getPositionsFromTrades = (
 			positions.push(position);
 		}
 
-		const quote = quotes.find((q) => q.symbol === position!.symbol);
+		const quote = quotes.find((q) => q.symbol === position?.symbol);
 		if (!quote) {
 			return;
 		}

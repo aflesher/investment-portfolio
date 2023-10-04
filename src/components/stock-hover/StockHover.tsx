@@ -34,7 +34,7 @@ function HoverComponent({ children }: { children: JSX.Element }): JSX.Element {
 	return <div>{children}</div>;
 }
 
-let AppendedHoverComponent: any = null;
+let AppendedHoverComponent: React.ElementType | null = null;
 
 const StockHover: React.FC<IStockQuoteStateProps> = ({
 	symbol,
@@ -60,10 +60,10 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 
 	const [hoverStyles, setHoverStyles] = React.useState<{
 		display: string;
-		top: any;
-		left: any;
-		marginTop?: any;
-		right?: any;
+		top: number | string;
+		left: number | string;
+		marginTop?: number | string;
+		right?: number | string;
 	}>({
 		display: 'none',
 		top: 0,
@@ -74,10 +74,13 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 		AppendedHoverComponent = componentWillAppendToBody(HoverComponent);
 	}, []);
 
-	const stockQuoteRef = React.useRef();
+	const stockQuoteRef = React.useRef<HTMLDivElement>();
 
 	const onMouseEnter = (): void => {
-		const rect = (stockQuoteRef.current as any).getBoundingClientRect();
+		const rect = stockQuoteRef.current?.getBoundingClientRect();
+		if (!rect) {
+			return;
+		}
 		const useLeft = rect.left < document.body.offsetWidth - 400;
 		const left = useLeft ? rect.left : 'auto';
 		const right = useLeft ? 'auto' : 10;

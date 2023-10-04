@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import _ from 'lodash';
 import TextareaAutosize from 'react-textarea-autosize';
 import firebase from 'firebase/compat/app';
@@ -57,7 +57,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 	const [lowlights, setLowlights] = React.useState<string[]>([]);
 	const [comments, setComments] = React.useState<string>('');
 
-	const setEmptyYear = (): void => {
+	const setEmptyYear = useCallback((): void => {
 		setStart([]);
 		setStop([]);
 		setContinues([]);
@@ -66,52 +66,76 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		setGoals([]);
 		setComments('');
 		setGrade('');
-	};
+	}, [
+		setStart,
+		setStop,
+		setContinues,
+		setHighlights,
+		setLowlights,
+		setGoals,
+		setComments,
+		setGrade,
+	]);
 
-	const loadReview = (year: string, loadedReviews?: IFirebaseReview[]): void => {
-		if (!year) {
-			return setEmptyYear();
-		}
-
-		const review = _.find(
-			loadedReviews || reviews,
-			(q) => q.year === Number(year)
-		);
-		if (!review) {
-			return setEmptyYear();
-		}
-
-		setStart(review.start);
-		setStop(review.stop);
-		setContinues(review.continue);
-		setHighlights(review.highlights);
-		setLowlights(review.lowlights);
-		setGoals(review.goals);
-		setComments(review.comments);
-		setGrade(review.grade);
-	};
-
-	const fetchReviews = async (
-		db: firebase.firestore.Firestore
-	): Promise<void> => {
-		const querySnapshot = await db.collection('reviews').get();
-
-		const reviews = querySnapshot.docs.map(
-			(queryDocumentSnapshot: firebase.firestore.QueryDocumentSnapshot) => {
-				const data = queryDocumentSnapshot.data() as IFirebaseReviewFields;
-				return {
-					id: queryDocumentSnapshot.id,
-					docRef: queryDocumentSnapshot.ref,
-					...data,
-				};
+	const loadReview = useCallback(
+		(year: string, loadedReviews?: IFirebaseReview[]): void => {
+			if (!year) {
+				return setEmptyYear();
 			}
-		);
 
-		setReviews(reviews);
-		loadReview(year, reviews);
-	};
+			const review = _.find(
+				loadedReviews || reviews,
+				(q) => q.year === Number(year)
+			);
+			if (!review) {
+				return setEmptyYear();
+			}
 
-	const saveReview = async () => {
+			setStart(review.start);
+			setStop(review.stop);
+			setContinues(review.continue);
+			setHighlights(review.highlights);
+			setLowlights(review.lowlights);
+			setGoals(review.goals);
+			setComments(review.comments);
+			setGrade(review.grade);
+		},
+		[
+			setEmptyYear,
+			setStart,
+			setStop,
+			setContinues,
+			setHighlights,
+			setLowlights,
+			setGoals,
+			setComments,
+			setGrade,
+			reviews,
+		]
+	);
+
+	const fetchReviews = useCallback(
+		async (db: firebase.firestore.Firestore): Promise<void> => {
+			const querySnapshot = await db.collection('reviews').get();
+
+			const reviews = querySnapshot.docs.map(
+				(queryDocumentSnapshot: firebase.firestore.QueryDocumentSnapshot) => {
+					const data = queryDocumentSnapshot.data() as IFirebaseReviewFields;
+					return {
+						id: queryDocumentSnapshot.id,
+						docRef: queryDocumentSnapshot.ref,
+						...data,
+					};
+				}
+			);
+
+			setReviews(reviews);
+			loadReview(year, reviews);
+		},
+		[setReviews, loadReview, year]
+	);
+
+	const saveReview = useCallback(async () => {
 		if (!firestore) {
 			return;
 		}
@@ -132,12 +156,28 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		};
 
 		await docRef.set(fields, { merge: true });
-	};
+	}, [
+		fetchReviews,
+		firestore,
+		reviews,
+		year,
+		start,
+		stop,
+		continues,
+		goals,
+		highlights,
+		lowlights,
+		comments,
+		grade,
+	]);
 
-	const onSetYear = (year: string): void => {
-		setYear(year);
-		loadReview(year);
-	};
+	const onSetYear = useCallback(
+		(year: string): void => {
+			setYear(year);
+			loadReview(year);
+		},
+		[setYear, loadReview]
+	);
 
 	const handleAddInputField = (
 		state: string[],
@@ -154,7 +194,7 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 			setFirestore(db);
 			fetchReviews(db);
 		}
-	}, [firebase, user]);
+	}, [firebase, user, firestore, fetchReviews]);
 
 	const createInputFields = (
 		state: string[],

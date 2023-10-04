@@ -7,6 +7,7 @@ import Layout from '../components/layout';
 
 interface ISignInStateProps {
 	user: firebase.User | null | undefined;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	firebase: any;
 }
 
@@ -37,7 +38,7 @@ const SignIn: React.FC<ISignInStateProps> = ({ user, firebase }) => {
 				ui.start('#firebaseui-auth-container', uiConfig);
 			}
 		}
-	}, [firebase]);
+	}, [firebase, user]);
 
 	return (
 		<Layout>

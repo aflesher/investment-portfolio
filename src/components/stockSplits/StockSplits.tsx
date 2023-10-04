@@ -3,13 +3,9 @@ import { IStockSplit } from '../../../declarations/stock-split';
 
 interface StockSplitProps {
 	stockSplits: IStockSplit[];
-	hideSymbols: boolean;
 }
 
-const StockSplits: React.FC<StockSplitProps> = ({
-	stockSplits,
-	hideSymbols,
-}) => {
+const StockSplits: React.FC<StockSplitProps> = ({ stockSplits }) => {
 	return (
 		<div>
 			{stockSplits.map(({ date, ratio, isReverse }) => (

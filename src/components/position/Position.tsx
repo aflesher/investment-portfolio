@@ -30,7 +30,6 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		costCad,
 		valueUsd,
 		costUsd,
-		index,
 		percentageOfPortfolio,
 		quoteCurrency,
 		rating,

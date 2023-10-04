@@ -1,7 +1,6 @@
 import { createStore as reduxCreateStore, Store } from 'redux';
 import { Currency } from '../utils/enum';
 import firebase from 'firebase/compat/app';
-import { FirebaseStorage, getStorage } from 'firebase/storage';
 
 export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
 export const SET_USER_ACTION = 'SET_USER_ACTION';

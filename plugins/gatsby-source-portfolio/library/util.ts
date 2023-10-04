@@ -1,13 +1,13 @@
 interface IDeferredPromise {
-	promise: Promise<any>;
-	resolve: (value?: any) => void;
-	reject: (value?: any) => void;
+	promise: Promise<void>;
+	resolve: () => void;
+	reject: () => void;
 }
 
 export const deferredPromise = (): IDeferredPromise => {
 	let resolve;
 	let reject;
-	const promise = new Promise((res, rej) => {
+	const promise = new Promise<void>((res, rej) => {
 		resolve = res;
 		reject = rej;
 	});

@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import _ from 'lodash';
 import { graphql } from 'gatsby';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { connect } from 'react-redux';

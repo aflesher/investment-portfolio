@@ -48,7 +48,9 @@ const DateRange: React.FC<IDateRangeStateProps & IDateRangeDispatchProps> = ({
 		options.unshift(<option key='null' value={name}></option>);
 	}
 
-	const handleOptionChange = (event: any): void => {
+	const handleOptionChange = (
+		event: React.ChangeEvent<HTMLSelectElement>
+	): void => {
 		const name = event.target.value;
 		const option = _.find(dateOptions, { name });
 		if (!option) {

@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import moment from 'moment-timezone';
 
 import { IStoreState } from '../store/store';
-import { Currency, AssetType, RatingType } from '../utils/enum';
+import { AssetType } from '../utils/enum';
 import Layout from '../components/layout';
 import CompanyBanner from '../components/company-banner/CompanyBanner';
 import XE from '../components/xe/XE';
@@ -231,7 +231,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 					</div>
 					<div>
 						{incomeStatements.reverse().map((q) => (
-							<FirebaseImage image={q} storage={storage} />
+							<FirebaseImage key={q} image={q} storage={storage} />
 						))}
 					</div>
 				</div>
@@ -497,7 +497,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								<div className='col-6'>Accounts</div>
 								<div className='col-6'>
 									{Object.entries(tradeAccountsMap)
-										.filter(([key, quantity]) => quantity > 0)
+										.filter((q) => q[1] > 0)
 										.map(
 											([accountName, quantity]) =>
 												`${accountName}:${numeral(quantity).format(positionFormat)}`
@@ -557,7 +557,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 					{!!stockSplits.length && (
 						<div className='mb-4'>
 							<h3>Stock Splits</h3>
-							<StockSplits stockSplits={stockSplits} hideSymbols={true} />
+							<StockSplits stockSplits={stockSplits} />
 						</div>
 					)}
 					<div className='row'>

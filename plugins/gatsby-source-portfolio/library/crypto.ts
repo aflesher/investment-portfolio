@@ -6,17 +6,6 @@ export interface ICrypto52Weeks {
 	high: number;
 }
 
-export const getCrypto52Weeks = (
-	symbols: string[]
-): Promise<ICrypto52Weeks[]> => {
-	return Promise.all(
-		symbols.map(async (symbol) => {
-			const [low, high] = await scrapeCrypto52Weeks(symbol);
-			return { symbol, low, high };
-		})
-	);
-};
-
 export const scrapeCrypto52Weeks = async (symbol: string) => {
 	const response = await axios
 		.get(`https://finance.yahoo.com/quote/${symbol.toUpperCase()}-USD/`)
@@ -34,4 +23,15 @@ export const scrapeCrypto52Weeks = async (symbol: string) => {
 	const low = parseFloat((matches?.[1] || '0').replace(',', ''));
 	const high = parseFloat((matches?.[3] || '0').replace(',', ''));
 	return [low, high];
+};
+
+export const getCrypto52Weeks = (
+	symbols: string[]
+): Promise<ICrypto52Weeks[]> => {
+	return Promise.all(
+		symbols.map(async (symbol) => {
+			const [low, high] = await scrapeCrypto52Weeks(symbol);
+			return { symbol, low, high };
+		})
+	);
 };

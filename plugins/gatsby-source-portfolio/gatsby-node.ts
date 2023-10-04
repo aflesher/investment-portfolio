@@ -185,12 +185,6 @@ const cryptoSlugsPromise = (async (): Promise<string[]> => {
 	const trades = await cryptoTradesPromise;
 	const orders = await binanceOrdersPromise;
 
-	const test = _(assessments)
-		.filter({ type: AssetType.crypto })
-		.map((q) => q.symbol)
-		.map(coinmarketcap.symbolToSlug)
-		.value();
-
 	const allSlugs: string[] = _.concat(
 		positions.map(({ symbol }) => coinmarketcap.symbolToSlug(symbol)),
 		assessments
@@ -418,9 +412,9 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 	interface INode {
 		id?: string;
-		parent?: any;
-		children?: any[];
-		internal?: any;
+		parent?: null;
+		children?: INode[];
+		internal?: { type: string; content: string; contentDigest: string };
 	}
 
 	interface IAssessmentNode extends IAssessment, INode {
@@ -834,7 +828,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return {
 			isSell: trade.action === 'sell',
 			symbol: trade.symbol,
-			accountId: parseInt(trade.accountId as any),
+			accountId: Number(trade.accountId),
 			priceCad: trade.price * cadRate,
 			priceUsd: trade.price * usdRate,
 			timestamp: new Date(trade.date).getTime(),
@@ -854,8 +848,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 	const mapCryptoTradeToTrade = (
 		trade: firebase.ICryptoTrade,
-		cadRate: number,
-		usdRate: number
+		cadRate: number
 	): ITrade => ({
 		isSell: trade.isSell,
 		symbol: trade.symbol,
@@ -908,9 +901,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			_.map(cloudTrades, (t) =>
 				mapQuestradeTradesToTrades(t, cadToUsdRate, usdToCadRate)
 			),
-			_.map(cryptoTrades, (t) =>
-				mapCryptoTradeToTrade(t, cadToUsdRate, usdToCadRate)
-			)
+			_.map(cryptoTrades, (t) => mapCryptoTradeToTrade(t, cadToUsdRate))
 		);
 
 		const groupedTradesDictionary = _.groupBy(trades, (t) => t.symbol);
@@ -1228,43 +1219,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const getExchangeRateNodes = async (): Promise<IRateNode[]> => {
 		await questradeSync;
 
-		const dividends = cloud.readDividends();
-		const trades = cloud.readTrades();
-		const cryptoTrades = await cryptoTradesPromise;
-
-		const marginUsdTradeDates = _(trades)
-			.filter(
-				(q) => q.accountId === MARGIN_ACCOUNT_ID && q.currency === Currency.usd
-			)
-			.map((trade) => moment(trade.date).format('YYYY-MM-DD'))
-			.uniq()
-			.value();
-
-		const marginUsdDividendDates = _(dividends)
-			.filter(
-				(q) => q.accountId === MARGIN_ACCOUNT_ID && q.currency === Currency.usd
-			)
-			.map((dividend) => moment(dividend.date).format('YYYY-MM-DD'))
-			.uniq()
-			.value();
-
-		const cryptoTradeDates = _(cryptoTrades)
-			.map((trade) => moment(trade.timestamp).format('YYYY-MM-DD'))
-			.uniq()
-			.value();
-
-		const dates = _([
-			marginUsdTradeDates,
-			marginUsdDividendDates,
-			cryptoTradeDates,
-		])
-			.flatten()
-			.uniq()
-			.value();
-
 		const rates: IExchangeRate[] = await ratesPromise;
-		const exchangeRateDates = rates.map((r) => r.date);
-		// console.log('missing rates', _.without(dates,  ...exchangeRateDates));
 
 		return rates.map((rate) => {
 			const rateNode = rate;
@@ -1353,7 +1308,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		console.log(`cleared`.magenta + ' ' + text);
 	};
 
-	const getAll = async (): Promise<any[]> => {
+	const getAll = async (): Promise<INode[]> => {
 		const assessmentsPromise = getAssessmentNodes();
 		const notesPromise = getNoteNodes();
 		const positionNodesPromise = getPositionsNodes();
@@ -1400,21 +1355,21 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		await applyStockSplits();
 
 		outputCleared('ALL!');
-		return _.concat(
-			assessments as any[],
-			notes,
-			questradePositions,
-			questradeTrades,
-			questradeDividends,
-			questradeQuotes,
-			questradeCompanies,
-			exchangeRateNodes,
-			orderNodes,
-			reviewNodes,
-			earningsNodes,
-			cashNodes,
-			stockSplitNodes
-		);
+		return [
+			...assessments,
+			...notes,
+			...questradePositions,
+			...questradeTrades,
+			...questradeDividends,
+			...questradeQuotes,
+			...questradeCompanies,
+			...exchangeRateNodes,
+			...orderNodes,
+			...reviewNodes,
+			...earningsNodes,
+			...cashNodes,
+			...stockSplitNodes,
+		];
 	};
 
 	delete configOptions.plugins;

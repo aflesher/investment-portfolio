@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 // @ts-ignore
 import { Link } from 'gatsby';
-import classNames from 'classnames';
 import numeral from 'numeral';
 import { Currency } from '../../utils/enum';
 

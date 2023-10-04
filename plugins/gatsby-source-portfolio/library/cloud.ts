@@ -40,7 +40,7 @@ export interface ICloudDividend {
 // Creates a client
 const storage = new Storage({
 	keyFilename: './key.json',
-} as any);
+});
 const bucket = storage.bucket('dollar-jockey-5d690.appspot.com');
 const tradesFile = bucket.file('trades.json');
 const dividendsFile = bucket.file('dividends.json');
@@ -53,7 +53,7 @@ const dividendsMap = {};
 
 let profitsAndLosses: IProfitAndLose[] = [];
 
-const DEBUG_TRADE_PNL: string = '';
+const DEBUG_TRADE_PNL = '';
 
 const symbolChange = {
 	'twd.vn': 'weed.to',

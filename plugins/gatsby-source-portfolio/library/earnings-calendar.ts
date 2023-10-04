@@ -74,7 +74,7 @@ export const scrapeZacks = async (
 ): Promise<IEarningsDate[]> => {
 	const results = await Promise.all(
 		filterZacks(symbols).map((symbol) => fetchZacks(symbol))
-	).catch((e) => console.error('zacks failed'));
+	).catch(() => console.error('zacks failed'));
 
 	return results || [];
 };

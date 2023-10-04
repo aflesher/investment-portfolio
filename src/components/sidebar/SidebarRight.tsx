@@ -32,7 +32,7 @@ const SidebarRight: React.FC<
 > = ({ positions, trades, dividends }) => {
 	const [orderBy, setOrderBy] = React.useState(PositionOrderBy.profits);
 
-	let dividendsAndTrades: (ITradeStateProps | IDividendStateProps)[] = [
+	const dividendsAndTrades: (ITradeStateProps | IDividendStateProps)[] = [
 		...trades,
 		...dividends,
 	]
