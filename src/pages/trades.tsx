@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import _ from 'lodash';
 import { graphql } from 'gatsby';
 import { Typeahead } from 'react-bootstrap-typeahead';
@@ -80,44 +80,62 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 	const [symbol, setSymbol] = React.useState('');
 	const [showLength, setShownLength] = React.useState(PAGE_SIZE);
 
-	const trades = _.filter(data.allTrade.nodes, (trade) => {
-		if (startDate && startDate > new Date(trade.timestamp)) {
-			return false;
-		}
+	const trades = useMemo(
+		() =>
+			data.allTrade.nodes.filter((trade) => {
+				if (startDate && startDate > new Date(trade.timestamp)) {
+					return false;
+				}
 
-		if (endDate && endDate < new Date(trade.timestamp)) {
-			return false;
-		}
+				if (endDate && endDate < new Date(trade.timestamp)) {
+					return false;
+				}
 
-		if (symbol && !trade.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
-			return false;
-		}
+				if (symbol && !trade.symbol.match(new RegExp(`^${symbol}.*`, 'gi'))) {
+					return false;
+				}
 
-		return true;
-	});
+				return true;
+			}),
+		[startDate, endDate, symbol, data]
+	);
 
-	const symbols = _.uniq(data.allTrade.nodes.map((t) => t.symbol));
+	const symbols = useMemo(
+		() =>
+			trades
+				.map((q) => q.symbol)
+				.filter((q, index, array) => array.indexOf(q) === index),
+		[trades]
+	);
 
-	const handleSymbolChange = (symbol: string): void => {
-		setSymbol(symbol);
-	};
+	const handleSymbolChange = useCallback(
+		(symbol: string): void => {
+			setSymbol(symbol);
+		},
+		[setSymbol]
+	);
 
-	const handleStartDateChange = (
-		event: React.ChangeEvent<HTMLInputElement>
-	): void => {
-		setStartDate(new Date(event.target.value));
-	};
+	const handleStartDateChange = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>): void => {
+			setStartDate(new Date(event.target.value));
+		},
+		[setStartDate]
+	);
 
-	const handleEndDateChange = (
-		event: React.ChangeEvent<HTMLInputElement>
-	): void => {
-		setEndDate(new Date(event.target.value));
-	};
+	const handleEndDateChange = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>): void => {
+			setEndDate(new Date(event.target.value));
+		},
+		[setEndDate]
+	);
 
-	const handleDateRangeChange = (start: Date, end: Date): void => {
-		setStartDate(start);
-		setEndDate(end);
-	};
+	const handleDateRangeChange = useCallback(
+		(start: Date, end: Date): void => {
+			setStartDate(start);
+			setEndDate(end);
+		},
+		[setStartDate, setEndDate]
+	);
 
 	return (
 		<Layout>
