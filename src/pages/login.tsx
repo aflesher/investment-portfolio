@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import firebase from 'firebase/compat/app';
 import { connect } from 'react-redux';
 import * as firebaseui from 'firebaseui';
@@ -19,7 +19,7 @@ const mapStateToProps = ({
 });
 
 const SignIn: React.FC<ISignInStateProps> = ({ user, firebase }) => {
-	React.useEffect(() => {
+	useEffect(() => {
 		if (firebase) {
 			const uiConfig = {
 				// Popup signin flow rather than redirect flow.
@@ -41,7 +41,7 @@ const SignIn: React.FC<ISignInStateProps> = ({ user, firebase }) => {
 
 	return (
 		<Layout>
-			{user ? (
+			{!!user ? (
 				<div>Already signed in</div>
 			) : (
 				<div id='firebaseui-auth-container'></div>
