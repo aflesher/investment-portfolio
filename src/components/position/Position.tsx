@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
 
-import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
+import StockHover from '../stock-hover/StockHover';
 import { Currency, RatingType } from '../../utils/enum';
 import XE from '../xe/XE';
 import { PositionsOrderBy } from '../../pages/positions';
+import { CurrencyContext } from '../../context/currency.context';
 
-export interface IPositionStateProps extends IStockQuoteStateProps {
+export interface IPositionStateProps {
 	index: number;
 	valueCad: number;
 	costCad: number;
@@ -21,27 +22,31 @@ export interface IPositionStateProps extends IStockQuoteStateProps {
 	ratingPercent?: number;
 	buyOrderPercent?: number;
 	sellOrderPercent?: number;
+	assetCurrency: Currency;
+	symbol: string;
 }
 
 const Position: React.FC<IPositionStateProps> = (props) => {
 	const {
-		activeCurrency,
 		valueCad,
 		costCad,
 		valueUsd,
 		costUsd,
 		percentageOfPortfolio,
-		quoteCurrency,
 		rating,
 		ratingPercent,
 		buyOrderPercent,
 		sellOrderPercent,
+		assetCurrency,
+		symbol,
 	} = props;
 
 	let pnl =
-		quoteCurrency === Currency.cad
+		assetCurrency === Currency.cad
 			? (valueCad - costCad) / costCad
 			: (valueUsd - costUsd) / costUsd;
+
+	const activeCurrency = useContext(CurrencyContext);
 
 	if (Math.abs(pnl) < 0.0001) {
 		pnl = 0;
@@ -50,7 +55,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		<tr className='position colored-row'>
 			<td className='pr-0'>
 				<div className='d-inline-block'>
-					<StockHover {...props} />
+					<StockHover symbol={symbol} />
 				</div>
 			</td>
 			<td

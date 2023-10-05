@@ -79,6 +79,7 @@ interface IStockTemplateNode
 		| 'priceUsd'
 		| 'isSell'
 		| 'accountName'
+		| 'type'
 	>[];
 	assessment?: Pick<
 		IAssessment,
@@ -572,27 +573,12 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 												quantity={trade.quantity}
 												key={i}
 												timestamp={trade.timestamp}
-												price={quote.price}
-												previousClosePrice={company.prevDayClosePrice}
-												name={company.name}
 												currency={quote.currency}
-												marketCap={company.marketCap || 0}
-												shareProgress={
-													position.totalCost / (assessment?.targetInvestment || 0)
-												}
-												priceProgress={quote.price / (assessment?.targetPrice || 0)}
-												activeCurrency={currency}
-												assetCurrency={quote.currency}
 												tradePrice={trade.price}
 												pnlCad={trade.pnlCad}
 												pnlUsd={trade.pnlUsd}
-												costCad={position.totalCostCad}
-												costUsd={position.totalCostUsd}
-												valueCad={position.currentMarketValueCad}
-												valueUsd={position.currentMarketValueUsd}
-												type={company.type}
-												quoteCurrency={quote.currency}
 												accountName={trade.accountName}
+												type={trade.type}
 											/>
 									  ))
 									: '(no trades)'}
@@ -671,6 +657,7 @@ export const pageQuery = graphql`
 					priceCad
 					isSell
 					accountName
+					type
 				}
 				assessment {
 					symbol

@@ -88,7 +88,7 @@ interface ICompletedPosition extends ICompletePositionStateProps {
 
 const CompletedPositions: React.FC<
 	ICompletedPositionsStateProps & ICompletedPositionsQuery
-> = ({ currency, data }) => {
+> = ({ data }) => {
 	let completedPositions: ICompletedPosition[] = [];
 	const runningCompletedPositions: ICompletedPosition[] = [];
 
@@ -119,21 +119,9 @@ const CompletedPositions: React.FC<
 				openedTimestamp: 0,
 				pnlCad: 0,
 				pnlUsd: 0,
-				quantity: trade.position?.quantity || 0,
-				valueUsd: trade.position?.currentMarketValueUsd || 0,
-				valueCad: trade.position?.currentMarketValueCad || 0,
-				costCad: trade.position?.totalCostCad || 0,
-				costUsd: trade.position?.totalCostUsd || 0,
 				...trade.quote,
 				...trade.company,
 				pnlPercentage: 0,
-				previousClosePrice: trade.company.prevDayClosePrice,
-				assetCurrency: trade.quote.currency,
-				activeCurrency: currency,
-				shareProgress: trade.assessment?.targetInvestmentProgress || 0,
-				priceProgress: trade.assessment?.targetPriceProgress || 0,
-				type: trade.assessment?.type || AssetType.stock,
-				quoteCurrency: trade.quote.currency,
 			};
 			runningCompletedPositions.push(completedPosition);
 		}

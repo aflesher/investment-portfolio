@@ -2,13 +2,13 @@ import React from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
 
-import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
+import StockHover, { IAssetHoverProps } from '../stock-hover/StockHover';
 import { ITrade } from '../../../declarations/trade';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
 
 export interface ITradeStateProps
-	extends Omit<IStockQuoteStateProps, 'quantity'>,
+	extends Omit<IAssetHoverProps, 'quantity'>,
 		Pick<
 			ITrade,
 			| 'isSell'
@@ -18,6 +18,7 @@ export interface ITradeStateProps
 			| 'pnlUsd'
 			| 'currency'
 			| 'accountName'
+			| 'type'
 		> {
 	tradePrice: number;
 }
@@ -32,8 +33,8 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 		pnlUsd,
 		currency,
 		tradePrice,
-		type,
 		accountName,
+		type,
 	} = props;
 	return (
 		<div className='trade border-top-normal'>

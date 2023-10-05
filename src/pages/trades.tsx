@@ -8,7 +8,7 @@ import Trade from '../components/trade/Trade';
 import Layout from '../components/layout';
 import DateRange from '../components/date-range/DateRange';
 import { IStoreState } from '../store/store';
-import { Currency, AssetType } from '../utils/enum';
+import { Currency } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';
 import { ITrade } from '../../declarations/trade';
 import { ICompany } from '../../declarations/company';
@@ -34,6 +34,7 @@ interface ITradeNode
 		| 'pnlUsd'
 		| 'currency'
 		| 'symbol'
+		| 'type'
 	> {
 	company: Pick<
 		ICompany,
@@ -73,7 +74,7 @@ const mapStateToProps = ({ currency }: IStoreState): ITradeProps => ({
 
 const PAGE_SIZE = 50;
 
-const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
+const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
 	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
@@ -205,24 +206,11 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ currency, data }) => {
 								timestamp={trade.timestamp}
 								pnlCad={trade.pnlCad}
 								pnlUsd={trade.pnlUsd}
-								{...trade.quote}
 								tradePrice={trade.price}
-								previousClosePrice={trade.company.prevDayClosePrice}
-								assetCurrency={trade.currency}
 								isSell={trade.action === 'sell'}
-								name={trade.company.name}
-								marketCap={trade.company.marketCap}
 								currency={trade.currency}
-								priceProgress={trade.assessment?.targetPriceProgress || 0}
-								shareProgress={trade.assessment?.targetInvestmentProgress || 0}
-								type={trade.assessment?.type || AssetType.stock}
-								costCad={trade.position?.totalCostCad || 0}
-								costUsd={trade.position?.totalCostUsd || 0}
-								valueCad={trade.position?.currentMarketValueCad || 0}
-								valueUsd={trade.position?.currentMarketValueUsd || 0}
-								activeCurrency={currency}
-								quoteCurrency={trade.quote.currency}
 								accountName={trade.accountName}
+								type={trade.type}
 							/>
 						))}
 					</InfiniteScroll>
@@ -249,6 +237,7 @@ export const pageQuery = graphql`
 				pnlCad
 				pnlUsd
 				currency
+				type
 				assessment {
 					targetInvestmentProgress
 					targetPriceProgress

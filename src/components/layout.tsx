@@ -13,10 +13,15 @@ import {
 } from '../store/store';
 import { Currency, AssetType } from '../utils/enum';
 import SidebarLeft from './sidebar/SidebarLeft';
-import SidebarRight from './sidebar/SidebarRight';
-import { IPositionStateProps } from './position/Position';
+import SidebarRight, { ISidebarPosition } from './sidebar/SidebarRight';
 import { ITradeStateProps } from './trade/Trade';
 import { IDividendStateProps } from './dividend/Dividend';
+import { AssetPreviewContext } from '../context/assetPreview.context';
+import { IQuote } from '../../declarations/quote';
+import { ICompany } from '../../declarations/company';
+import { IPosition } from '../../declarations/position';
+import { IAssessment } from '../../declarations/assessment';
+import { CurrencyContext } from '../context/currency.context';
 
 interface ILayoutStateProps {
 	currency: Currency;
@@ -59,6 +64,32 @@ const mapDispatchToProps = (
 			}),
 	};
 };
+
+interface IQuoteNode
+	extends Pick<
+		IQuote,
+		| 'symbol'
+		| 'afterHoursPrice'
+		| 'currency'
+		| 'price'
+		| 'priceCad'
+		| 'priceUsd'
+		| 'type'
+	> {
+	company?: Pick<ICompany, 'name' | 'prevDayClosePrice' | 'marketCap'>;
+	position?: Pick<
+		IPosition,
+		| 'quantity'
+		| 'totalCostCad'
+		| 'totalCostUsd'
+		| 'currentMarketValueCad'
+		| 'currentMarketValueUsd'
+	>;
+	assessment?: Pick<
+		IAssessment,
+		'targetInvestmentProgress' | 'targetPriceProgress'
+	>;
+}
 
 interface ILayoutGraphQL {
 	allExchangeRate: {
@@ -178,6 +209,9 @@ interface ILayoutGraphQL {
 				openPnlUsd: number;
 			};
 		}[];
+	};
+	allQuote: {
+		nodes: IQuoteNode[];
 	};
 }
 
@@ -314,6 +348,34 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
+				allQuote {
+					nodes {
+						afterHoursPrice
+						currency
+						id
+						price
+						priceCad
+						priceUsd
+						symbol
+						type
+						position {
+							quantity
+							totalCostCad
+							totalCostUsd
+							currentMarketValueCad
+							currentMarketValueUsd
+						}
+						assessment {
+							targetInvestmentProgress
+							targetPriceProgress
+						}
+						company {
+							name
+							prevDayClosePrice
+							marketCap
+						}
+					}
+				}
 			}
 		`}
 		render={(queryData: ILayoutGraphQL): JSX.Element => {
@@ -331,27 +393,11 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 				(q) => q.totalCostCad
 			);
 
-			const positions: IPositionStateProps[] = queryData.allPosition.nodes.map(
+			const positions: ISidebarPosition[] = queryData.allPosition.nodes.map(
 				(position) => ({
 					...position,
-					isFullPosition: false,
-					valueCad: position.currentMarketValueCad,
-					valueUsd: position.currentMarketValueUsd,
-					costCad: position.totalCostCad,
-					costUsd: position.totalCostUsd,
-					index: 0,
+					quotePrice: position.quote.price,
 					previousClosePrice: position.company.prevDayClosePrice,
-					name: position.company.name,
-					price: position.quote.price,
-					assetCurrency: position.currency,
-					marketCap: position.company.marketCap,
-					percentageOfInvestment: position.totalCostCad / portfolioCost,
-					percentageOfPortfolio: position.currentMarketValueCad / portfolioValue,
-					activeCurrency: currency,
-					shareProgress: position.assessment?.targetInvestmentProgress || 0,
-					priceProgress: position.assessment?.targetPriceProgress || 0,
-					quoteCurrency: position.quote.currency,
-					isPristine: false,
 				})
 			);
 
@@ -405,41 +451,63 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 				})
 			);
 
+			const assetHovers = queryData.allQuote.nodes.map((quote) => ({
+				symbol: quote.symbol,
+				previousClosePrice: quote.company?.prevDayClosePrice || 0,
+				price: quote.price,
+				name: quote.company?.name || '',
+				marketCap: quote.company?.marketCap || 0,
+				quantity: quote.position?.quantity,
+				costCad: quote.position?.totalCostCad,
+				costUsd: quote.position?.totalCostUsd,
+				valueCad: quote.position?.currentMarketValueCad,
+				valueUsd: quote.position?.currentMarketValueUsd,
+				shareProgress: quote.assessment?.targetInvestmentProgress,
+				priceProgress: quote.assessment?.targetPriceProgress,
+				type: quote.type,
+				activeCurrency: Currency.cad,
+				quoteCurrency: quote.currency,
+			}));
+
 			return (
 				<div className='page-wrapper'>
-					<div className={`page ${isCollapsed && 'collapsed'}`}>
-						<div
-							className={`sidebar-left ${showSidebar && 'sidebar-open'} ${
-								isCollapsed && 'collapsed'
-							}`}
-						>
-							<div className='p-2'>
-								<SidebarLeft
-									currency={currency}
-									onSetCurrency={setCurrency}
-									usdCad={usdCad}
-									cadUsd={cadUsd}
-									authenticated={!!user}
-									isCollapsed={isCollapsed}
-									onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-								/>
+					<AssetPreviewContext.Provider value={assetHovers}>
+						<CurrencyContext.Provider value={currency}>
+							<div className={`page ${isCollapsed && 'collapsed'}`}>
+								<div
+									className={`sidebar-left ${showSidebar && 'sidebar-open'} ${
+										isCollapsed && 'collapsed'
+									}`}
+								>
+									<div className='p-2'>
+										<SidebarLeft
+											currency={currency}
+											onSetCurrency={setCurrency}
+											usdCad={usdCad}
+											cadUsd={cadUsd}
+											authenticated={!!user}
+											isCollapsed={isCollapsed}
+											onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+										/>
+									</div>
+								</div>
+								<div className='sidebar-right'>
+									<div className='p-2'>
+										<SidebarRight
+											positions={positions}
+											trades={trades}
+											dividends={dividends}
+										/>
+									</div>
+								</div>
+								<div
+									className='mobile-nav-link'
+									onClick={(): void => setShowSidebar(!showSidebar)}
+								></div>
+								<div className='main-content'>{children}</div>
 							</div>
-						</div>
-						<div className='sidebar-right'>
-							<div className='p-2'>
-								<SidebarRight
-									positions={positions}
-									trades={trades}
-									dividends={dividends}
-								/>
-							</div>
-						</div>
-						<div
-							className='mobile-nav-link'
-							onClick={(): void => setShowSidebar(!showSidebar)}
-						></div>
-						<div className='main-content'>{children}</div>
-					</div>
+						</CurrencyContext.Provider>
+					</AssetPreviewContext.Provider>
 				</div>
 			);
 		}}

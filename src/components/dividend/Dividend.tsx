@@ -1,13 +1,13 @@
 import React from 'react';
 
-import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
+import StockHover, { IAssetHoverProps } from '../stock-hover/StockHover';
 import { IDividend } from '../../../declarations/dividend';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
 import { Currency } from '../../utils/enum';
 
 export interface IDividendStateProps
-	extends IStockQuoteStateProps,
+	extends IAssetHoverProps,
 		Pick<IDividend, 'timestamp' | 'amountCad' | 'amountUsd' | 'currency'> {
 	activeCurrency: Currency;
 }

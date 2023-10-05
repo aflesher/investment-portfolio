@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
 // @ts-ignore
@@ -7,26 +7,12 @@ import { componentWillAppendToBody } from 'react-append-to-body';
 import { Link } from 'gatsby';
 import { displayMarketCap } from '../../utils/util';
 import XE from '../xe/XE';
+import { AssetPreviewContext } from '../../context/assetPreview.context';
+import { CurrencyContext } from '../../context/currency.context';
 
-export interface IStockQuoteStateProps {
+export interface IAssetHoverProps {
 	symbol: string;
-	previousClosePrice: number;
-	price: number;
-	name: string;
-	assetCurrency: string;
-	marketCap: number;
-	quantity: number | undefined;
 	css?: object;
-	costCad: number | undefined;
-	costUsd: number | undefined;
-	valueCad: number | undefined;
-	valueUsd: number | undefined;
-	shareProgress: number | undefined;
-	priceProgress: number | undefined;
-	type: string;
-	activeCurrency: string;
-	quoteCurrency: string;
-	symbolCharacter?: string;
 }
 
 function HoverComponent({ children }: { children: JSX.Element }): JSX.Element {
@@ -35,29 +21,11 @@ function HoverComponent({ children }: { children: JSX.Element }): JSX.Element {
 
 let AppendedHoverComponent: React.ElementType | null = null;
 
-const StockHover: React.FC<IStockQuoteStateProps> = ({
-	symbol,
-	previousClosePrice,
-	price,
-	name,
-	marketCap,
-	quantity,
-	css,
-	costCad,
-	costUsd,
-	valueCad,
-	valueUsd,
-	shareProgress,
-	priceProgress,
-	type,
-	activeCurrency,
-	quoteCurrency,
-	symbolCharacter,
-}) => {
+const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 	const marginTopAbove = '-145px';
 	const marginTopBelow = '30px';
 
-	const [hoverStyles, setHoverStyles] = React.useState<{
+	const [hoverStyles, setHoverStyles] = useState<{
 		display: string;
 		top: number | string;
 		left: number | string;
@@ -68,6 +36,38 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 		top: 0,
 		left: 0,
 	});
+
+	const defaults = {
+		name: 'unknown',
+		type: 'stock',
+		valueCad: 0,
+		valueUsd: 0,
+		costCad: 0,
+		costUsd: 0,
+		previousClosePrice: 0,
+		price: 0,
+		quoteCurrency: 'cad',
+		marketCap: 0,
+	};
+
+	const asset = useContext(AssetPreviewContext).find((q) => q.symbol === symbol);
+	const activeCurrency = useContext(CurrencyContext);
+
+	const {
+		previousClosePrice,
+		price,
+		name,
+		marketCap,
+		quantity,
+		costCad,
+		costUsd,
+		valueCad,
+		valueUsd,
+		shareProgress,
+		priceProgress,
+		type,
+		quoteCurrency,
+	} = { ...defaults, ...asset };
 
 	React.useEffect(() => {
 		AppendedHoverComponent = componentWillAppendToBody(HoverComponent);
@@ -100,13 +100,6 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 	const isProfit = profitsLosses >= 0;
 	const profitsLossesPercentage = Math.abs(profitsLosses) / price;
 
-	type = type || 'stock';
-	valueCad = valueCad || 0;
-	valueUsd = valueUsd || 0;
-	costCad = costCad || 0;
-	costUsd = costUsd || 0;
-	activeCurrency = activeCurrency || 'cad';
-
 	return (
 		// @ts-ignore
 		<div ref={stockQuoteRef}>
@@ -121,7 +114,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
 			>
-				{symbol.substring(0, 8) + (symbolCharacter || '')}
+				{symbol.substring(0, 8)}
 			</Link>
 			{AppendedHoverComponent ? (
 				<AppendedHoverComponent>
@@ -131,6 +124,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 								'hover-positive': isProfit,
 								'hover-negative': !isProfit,
 								'stock-hover': true,
+								...css,
 							})}
 						>
 							<div className='p-2'>

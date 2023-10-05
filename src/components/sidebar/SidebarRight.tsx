@@ -4,15 +4,29 @@ import _ from 'lodash';
 import { Link } from 'gatsby';
 import numeral from 'numeral';
 
-import { IPositionStateProps } from '../position/Position';
 import Trade, { ITradeStateProps } from '../trade/Trade';
 import Dividend, { IDividendStateProps } from '../dividend/Dividend';
 import { Currency } from '../../utils/enum';
 import StockHover from '../stock-hover/StockHover';
 import Percent from '../percent/Percent';
+import { IPosition } from '../../../declarations/position';
+
+export interface ISidebarPosition
+	extends Pick<
+		IPosition,
+		| 'symbol'
+		| 'currency'
+		| 'currentMarketValueCad'
+		| 'currentMarketValueUsd'
+		| 'totalCostCad'
+		| 'totalCostUsd'
+	> {
+	quotePrice: number;
+	previousClosePrice: number;
+}
 
 interface ISidebarRightStateProps {
-	positions: IPositionStateProps[];
+	positions: ISidebarPosition[];
 	trades: ITradeStateProps[];
 	dividends: IDividendStateProps[];
 }
@@ -49,16 +63,16 @@ const SidebarRight: React.FC<
 		})
 		.slice(0, MAX_ACTIVITY);
 	const pnl = ({
-		quoteCurrency,
-		costCad,
-		costUsd,
-		valueCad,
-		valueUsd,
-	}: IPositionStateProps) => {
+		currency,
+		totalCostCad,
+		totalCostUsd,
+		currentMarketValueCad,
+		currentMarketValueUsd,
+	}: ISidebarPosition) => {
 		const amount =
-			quoteCurrency === Currency.cad
-				? (valueCad - costCad) / costCad
-				: (valueUsd - costUsd) / costUsd;
+			currency === Currency.cad
+				? (currentMarketValueCad - totalCostCad) / totalCostCad
+				: (currentMarketValueUsd - totalCostUsd) / totalCostUsd;
 
 		if (Math.abs(amount) < 0.0001) {
 			return 0;
@@ -68,10 +82,10 @@ const SidebarRight: React.FC<
 	};
 
 	const quotePercentage = ({
-		price,
+		quotePrice,
 		previousClosePrice,
-	}: IPositionStateProps) => {
-		return (price - previousClosePrice) / price;
+	}: ISidebarPosition) => {
+		return (quotePrice - previousClosePrice) / quotePrice;
 	};
 
 	return (
@@ -105,9 +119,11 @@ const SidebarRight: React.FC<
 							case PositionOrderBy.symbol:
 								return position.symbol;
 							case PositionOrderBy.profits:
-								return position.quoteCurrency === Currency.cad
-									? (position.valueCad - position.costCad) / position.costCad
-									: (position.valueUsd - position.costUsd) / position.costUsd;
+								return position.currency === Currency.cad
+									? (position.currentMarketValueCad - position.totalCostCad) /
+											position.totalCostCad
+									: (position.currentMarketValueUsd - position.totalCostUsd) /
+											position.totalCostUsd;
 							case PositionOrderBy.quote:
 								return quotePercentage(position);
 						}
@@ -117,7 +133,7 @@ const SidebarRight: React.FC<
 					<div className='row position' key={position.symbol}>
 						<div className='col-4 pr-0'>
 							<div className='d-inline-block'>
-								<StockHover {...position} />
+								<StockHover symbol={position.symbol} />
 							</div>
 						</div>
 						<div

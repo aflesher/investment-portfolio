@@ -346,31 +346,21 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 						{positions.map((position, index) => (
 							<Position
 								key={position.symbol}
-								{...position}
 								symbol={position.symbol}
 								index={index + 1}
 								valueCad={getCurrentValueCad(position)}
 								valueUsd={getCurrentValueUsd(position)}
 								costCad={getTotalCostCad(position)}
 								costUsd={getTotalCostUsd(position)}
-								previousClosePrice={position.company.prevDayClosePrice}
-								price={position.quote.price}
-								name={position.company.name}
-								assetCurrency={position.currency}
-								marketCap={position.company.marketCap}
 								percentageOfPortfolio={
 									getCurrentValueCad(position) / totalPositionValue
 								}
-								shareProgress={position.assessment?.targetInvestmentProgress || 0}
-								priceProgress={position.assessment?.targetPriceProgress}
-								activeCurrency={currency}
-								quoteCurrency={position.quote.currency}
-								symbolCharacter={''}
 								positionsOrderBy={orderBy}
 								rating={position.assessment?.rating}
 								ratingPercent={getRatingPercent(position)}
 								buyOrderPercent={getBuyOrderPercent(position)}
 								sellOrderPercent={getSellOrderPercent(position)}
+								assetCurrency={position.currency}
 							/>
 						))}
 						<tr>

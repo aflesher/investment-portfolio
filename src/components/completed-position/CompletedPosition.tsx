@@ -2,11 +2,11 @@ import React from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
 
-import StockHover, { IStockQuoteStateProps } from '../stock-hover/StockHover';
+import StockHover, { IAssetHoverProps } from '../stock-hover/StockHover';
 import { Currency } from '../../utils/enum';
 import { formatDateShort } from '../../utils/util';
 
-export interface ICompletePositionStateProps extends IStockQuoteStateProps {
+export interface ICompletePositionStateProps extends IAssetHoverProps {
 	quantityBought: number;
 	avgPricePaid: number;
 	avgPriceSold: number;
