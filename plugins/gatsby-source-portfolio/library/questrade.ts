@@ -13,10 +13,19 @@ import { ICash } from '../../../declarations';
 const loginUrl = 'https://login.questrade.com/oauth2/token';
 const accountsRoute = 'v1/accounts';
 
+interface IQuestradeAccount {
+	type: 'Margin' | 'TFSA' | 'RRSP';
+	number: string;
+	status: string;
+	isPrimary: boolean;
+	isBilling: boolean;
+	clientAccountType: string;
+}
+
 let apiUrl = '';
 let accessToken = '';
 let cryptr: Cryptr;
-let accounts: string[] = [];
+let accounts: IQuestradeAccount[] = [];
 
 let endTime: Date | null = null;
 
@@ -102,7 +111,7 @@ const authRequest = async (
 		.catch(console.log);
 };
 
-const getAccounts = async (): Promise<string[]> => {
+const getAccounts = async (): Promise<IQuestradeAccount[]> => {
 	const resp = await authRequest(accountsRoute);
 	if (!resp) {
 		return [];
@@ -225,7 +234,7 @@ export const getActivities = async (): Promise<{
 
 	// console.log('times', startTime, endTime);
 
-	const accountIds = _.map(accounts, 'number');
+	const accountIds = accounts.map(({ number }) => number);
 	const resps = await Promise.all(
 		accountIds.map(
 			async (accountId) =>
@@ -244,7 +253,7 @@ export const getActivities = async (): Promise<{
 		const activities = activitiesByAcount[i];
 		const accountId = accountIds[i];
 		activities.forEach((activity) => {
-			activity.accountId = accountId;
+			activity.accountId = Number(accountId);
 		});
 	}
 	const activities = _.flatten(activitiesByAcount);
@@ -330,7 +339,7 @@ interface IBalance {
 }
 
 export const getBalances = async (): Promise<IBalance[]> => {
-	const accountIds = _.map(accounts, 'number');
+	const accountIds = accounts.map(({ number }) => number);
 	const resps = await Promise.all(
 		accountIds.map(
 			async (accountId) =>
@@ -391,7 +400,7 @@ const getCashForAccount = async (accountId): Promise<ICashQuestrade[]> => {
 };
 
 export const getCash = async (): Promise<ICashQuestrade[]> => {
-	const accountIds = _.map(accounts, 'number');
+	const accountIds = accounts.map(({ number }) => number);
 	const cash = await Promise.all(
 		accountIds.map((accountId) => getCashForAccount(accountId))
 	);
@@ -445,7 +454,7 @@ const getActiveOrdersForMonth = async (
 ): Promise<IQuestradeOrder[]> => {
 	await initDeferredPromise.promise;
 
-	const accountIds = _.map(accounts, 'number');
+	const accountIds = accounts.map(({ number }) => number);
 	const resps = await Promise.all(
 		accountIds.map(
 			async (accountId) =>

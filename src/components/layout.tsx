@@ -321,9 +321,9 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 			const usdCad = _.first(queryData.allExchangeRate.nodes)?.rate || 1;
 			const cadUsd = 1 / usdCad;
 
-			const portfolioValue: number = _.sumBy(
-				queryData.allPosition.nodes,
-				(q) => q.currentMarketValueCad
+			const portfolioValue: number = queryData.allPosition.nodes.reduce(
+				(sum, { currentMarketValueCad }) => sum + currentMarketValueCad,
+				0
 			);
 
 			const portfolioCost: number = _.sumBy(

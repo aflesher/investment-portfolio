@@ -8,7 +8,7 @@ import CompanyBanner, {
 	ICompanyBannerStateProps,
 } from '../company-banner/CompanyBanner';
 import { IAssessment } from '../../../declarations/assessment';
-import CustomText from '../customText/CustomText';
+import CustomText from '../custom-text/CustomText';
 import { IStoreState } from '../../store/store';
 
 interface IAssessmentStateProps

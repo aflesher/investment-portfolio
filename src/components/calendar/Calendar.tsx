@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { IEarningsDate } from '../../../declarations/earnings-date';
 import { times, flatMap, chunk } from 'lodash';
 import CompanyBanner from '../company-banner/CompanyBanner';
@@ -39,7 +39,8 @@ const Calendar: React.FC<ICalendarStateProps> = ({ months }) => {
 	const noPreviousMonth = currentMonth === 0;
 	const noNextMonth = currentMonth === months.length - 1;
 
-	const replaceSymbol = (symbol: string): string => {
+	// American to Canadian ticker replacement
+	const replaceSymbol = useCallback((symbol: string): string => {
 		if (symbol === 'cgc') {
 			return 'weed.to';
 		}
@@ -49,7 +50,7 @@ const Calendar: React.FC<ICalendarStateProps> = ({ months }) => {
 		}
 
 		return symbol;
-	};
+	}, []);
 
 	return (
 		<div className='ml-auto mr-auto pt-4 calendar'>

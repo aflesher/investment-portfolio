@@ -6,7 +6,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 
 import Trade from '../components/trade/Trade';
 import Layout from '../components/layout';
-import DateRange from '../components/dateRange/DateRange';
+import DateRange from '../components/date-range/DateRange';
 import { IStoreState } from '../store/store';
 import { Currency, AssetType } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';

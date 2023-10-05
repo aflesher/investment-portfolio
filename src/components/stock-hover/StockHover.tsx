@@ -1,7 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
-import _ from 'lodash';
 // @ts-ignore
 import { componentWillAppendToBody } from 'react-append-to-body';
 // @ts-ignore
@@ -94,8 +93,7 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 	};
 
 	const onMouseLeave = (): void => {
-		const styles = _.assign({}, hoverStyles, { display: 'none' });
-		setHoverStyles(styles);
+		setHoverStyles({ ...hoverStyles, display: 'none' });
 	};
 
 	const profitsLosses = price - previousClosePrice;
@@ -114,12 +112,12 @@ const StockHover: React.FC<IStockQuoteStateProps> = ({
 		<div ref={stockQuoteRef}>
 			<Link
 				to={`/stock/${symbol}`}
-				className={classNames(
-					_.extend(
-						{ hoverable: true, 'text-uppercase': true, crypto: type == 'crypto' },
-						css
-					)
-				)}
+				className={classNames({
+					hoverable: true,
+					'text-uppercase': true,
+					crypto: type == 'crypto',
+					...css,
+				})}
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
 			>

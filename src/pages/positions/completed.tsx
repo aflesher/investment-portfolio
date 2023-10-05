@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 
 import CompletedPosition, {
 	ICompletePositionStateProps,
-} from '../../components/completedPosition/CompletedPosition';
+} from '../../components/completed-position/CompletedPosition';
 import { IStoreState } from '../../store/store';
 import { Currency, AssetType } from '../../utils/enum';
 import Layout from '../../components/layout';

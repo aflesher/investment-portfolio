@@ -24,7 +24,7 @@ import {
 	getTimeHeld,
 } from '../utils/util';
 import { IStockSplit } from '../../declarations/stock-split';
-import StockSplits from '../components/stockSplits/StockSplits';
+import StockSplits from '../components/stock-splits/StockSplits';
 import { ICompany } from '../../declarations/company';
 import { IPosition } from '../../declarations/position';
 import { IQuote } from '../../declarations/quote';
@@ -33,7 +33,7 @@ import { IAssessment } from '../../declarations/assessment';
 import { IDividend } from '../../declarations/dividend';
 import { IOrder } from '../../declarations/order';
 import { IEarningsDate } from '../../declarations/earnings-date';
-import FirebaseImage from '../components/firebaseImage/FirebaseImage';
+import FirebaseImage from '../components/firebase-image/FirebaseImage';
 
 interface IStockTemplateStateProps
 	extends Pick<IStoreState, 'currency' | 'storage'> {}
