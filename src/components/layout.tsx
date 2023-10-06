@@ -21,6 +21,8 @@ import { ICompany } from '../../declarations/company';
 import { IPosition } from '../../declarations/position';
 import { IAssessment } from '../../declarations/assessment';
 import { CurrencyContext } from '../context/currency.context';
+import { IDividend } from '../../declarations/dividend';
+import { ITrade } from '../../declarations/trade';
 
 interface ILayoutStateProps {
 	user: firebase.User | null | undefined;
@@ -117,89 +119,22 @@ interface ILayoutGraphQL {
 		}[];
 	};
 	allTrade: {
-		nodes: {
-			accountId: number;
-			quantity: number;
-			price: number;
-			action: string;
-			symbol: string;
-			timestamp: number;
-			pnl: number;
-			pnlCad: number;
-			pnlUsd: number;
-			currency: Currency;
-			type: AssetType;
-			priceCad: number;
-			priceUsd: number;
-			company: {
-				name: string;
-				marketCap: number;
-				prevDayClosePrice: number;
-				symbol: string;
-				yield?: number;
-			};
-			quote: {
-				price: number;
-				priceUsd: number;
-				priceCad: number;
-				currency: Currency;
-			};
-			assessment?: {
-				targetInvestmentProgress: number;
-				targetPriceProgress: number;
-				type: AssetType;
-			};
-			position?: {
-				quantity: number;
-				totalCost: number;
-				totalCostUsd: number;
-				totalCostCad: number;
-				currentMarketValueCad: number;
-				currentMarketValueUsd: number;
-				averageEntryPrice: number;
-				openPnl: number;
-				openPnlCad: number;
-				openPnlUsd: number;
-			};
-		}[];
+		nodes: Pick<
+			ITrade,
+			| 'isSell'
+			| 'quantity'
+			| 'timestamp'
+			| 'pnlCad'
+			| 'pnlUsd'
+			| 'currency'
+			| 'accountName'
+			| 'type'
+			| 'symbol'
+			| 'price'
+		>[];
 	};
 	allDividend: {
-		nodes: {
-			amountCad: number;
-			amountUsd: number;
-			currency: Currency;
-			timestamp: number;
-			company: {
-				name: string;
-				marketCap: number;
-				prevDayClosePrice: number;
-				symbol: string;
-				yield?: number;
-			};
-			quote: {
-				price: number;
-				priceUsd: number;
-				priceCad: number;
-				currency: Currency;
-			};
-			assessment?: {
-				targetInvestmentProgress: number;
-				targetPriceProgress: number;
-				type: AssetType;
-			};
-			position?: {
-				quantity: number;
-				totalCost: number;
-				totalCostUsd: number;
-				totalCostCad: number;
-				currentMarketValueCad: number;
-				currentMarketValueUsd: number;
-				averageEntryPrice: number;
-				openPnl: number;
-				openPnlCad: number;
-				openPnlUsd: number;
-			};
-		}[];
+		nodes: Pick<IDividend, 'timestamp' | 'amountCad' | 'amountUsd' | 'symbol'>[];
 	};
 	allQuote: {
 		nodes: IQuoteNode[];
@@ -267,74 +202,14 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						type
 						priceCad
 						priceUsd
-						assessment {
-							targetInvestmentProgress
-							targetPriceProgress
-							type
-						}
-						company {
-							name
-							marketCap
-							prevDayClosePrice
-							symbol
-							yield
-						}
-						quote {
-							price
-							priceUsd
-							priceCad
-							currency
-						}
-						position {
-							quantity
-							totalCost
-							totalCostUsd
-							totalCostCad
-							currentMarketValueCad
-							currentMarketValueUsd
-							averageEntryPrice
-							openPnl
-							openPnlCad
-							openPnlUsd
-						}
 					}
 				}
 				allDividend(limit: 7, sort: { fields: timestamp, order: DESC }) {
 					nodes {
 						amountCad
 						amountUsd
-						currency
 						timestamp
-						assessment {
-							targetInvestmentProgress
-							targetPriceProgress
-							type
-						}
-						company {
-							name
-							marketCap
-							prevDayClosePrice
-							symbol
-							yield
-						}
-						quote {
-							price
-							priceUsd
-							priceCad
-							currency
-						}
-						position {
-							quantity
-							totalCost
-							totalCostUsd
-							totalCostCad
-							currentMarketValueCad
-							currentMarketValueUsd
-							averageEntryPrice
-							openPnl
-							openPnlCad
-							openPnlUsd
-						}
+						symbol
 					}
 				}
 				allQuote {
@@ -391,55 +266,9 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 				})
 			);
 
-			const trades: ITradeStateProps[] = queryData.allTrade.nodes.map((trade) => ({
-				...trade,
-				previousClosePrice: trade.company.prevDayClosePrice,
-				name: trade.company.name,
-				price: trade.quote.price,
-				assetCurrency: trade.currency,
-				marketCap: trade.company.marketCap,
-				percentageOfInvestment: (trade.position?.totalCostCad || 0) / portfolioCost,
-				percentageOfPortfolio:
-					(trade.position?.currentMarketValueCad || 0) / portfolioValue,
-				activeCurrency: currency,
-				shareProgress: trade.assessment?.targetInvestmentProgress || 0,
-				priceProgress: trade.assessment?.targetPriceProgress || 0,
-				tradePrice: trade.price,
-				valueCad: trade.position?.currentMarketValueCad || 0,
-				valueUsd: trade.position?.currentMarketValueUsd || 0,
-				costCad: trade.position?.totalCostCad || 0,
-				costUsd: trade.position?.totalCostUsd || 0,
-				isSell: trade.action === 'sell',
-				type: trade.type,
-				quoteCurrency: trade.quote.currency,
-				accountName: '',
-			}));
+			const trades: ITradeStateProps[] = queryData.allTrade.nodes;
 
-			const dividends: IDividendStateProps[] = queryData.allDividend.nodes.map(
-				(dividend) => ({
-					...dividend,
-					previousClosePrice: dividend.company.prevDayClosePrice,
-					name: dividend.company.name,
-					price: dividend.quote.price,
-					assetCurrency: dividend.currency,
-					marketCap: dividend.company.marketCap,
-					percentageOfInvestment:
-						(dividend.position?.totalCostCad || 0) / portfolioCost,
-					percentageOfPortfolio:
-						(dividend.position?.currentMarketValueCad || 0) / portfolioValue,
-					activeCurrency: currency,
-					shareProgress: dividend.assessment?.targetInvestmentProgress || 0,
-					priceProgress: dividend.assessment?.targetPriceProgress || 0,
-					valueCad: dividend.position?.currentMarketValueCad || 0,
-					valueUsd: dividend.position?.currentMarketValueUsd || 0,
-					costCad: dividend.position?.totalCostCad || 0,
-					costUsd: dividend.position?.totalCostUsd || 0,
-					symbol: dividend.company.symbol,
-					type: AssetType.stock,
-					quantity: dividend.position?.quantity || 0,
-					quoteCurrency: dividend.quote.currency,
-				})
-			);
+			const dividends: IDividendStateProps[] = queryData.allDividend.nodes;
 
 			const assetHovers = queryData.allQuote.nodes.map((quote) => ({
 				symbol: quote.symbol,

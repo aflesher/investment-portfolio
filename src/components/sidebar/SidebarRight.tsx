@@ -168,7 +168,7 @@ const SidebarRight: React.FC<
 					</div>
 					<div style={{ fontSize: '80%' }}>
 						{dividendsAndTrades.map((dividendOrTrade, index) =>
-							'tradePrice' in dividendOrTrade ? (
+							'isSell' in dividendOrTrade ? (
 								<Trade
 									key={`${dividendOrTrade.symbol}${dividendOrTrade.timestamp}${index}`}
 									{...dividendOrTrade}

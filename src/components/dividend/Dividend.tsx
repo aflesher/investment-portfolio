@@ -1,30 +1,28 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
-import StockHover, { IAssetHoverProps } from '../stock-hover/StockHover';
+import StockHover from '../stock-hover/StockHover';
 import { IDividend } from '../../../declarations/dividend';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
-import { Currency } from '../../utils/enum';
+import { CurrencyContext } from '../../context/currency.context';
 
 export interface IDividendStateProps
-	extends IAssetHoverProps,
-		Pick<IDividend, 'timestamp' | 'amountCad' | 'amountUsd' | 'currency'> {
-	activeCurrency: Currency;
-}
+	extends Pick<IDividend, 'timestamp' | 'amountCad' | 'amountUsd' | 'symbol'> {}
 
 const Dividend: React.FC<IDividendStateProps> = (props) => {
-	const { timestamp, amountCad, amountUsd, activeCurrency } = props;
+	const { timestamp, amountCad, amountUsd, symbol } = props;
+	const currency = useContext(CurrencyContext);
 	return (
 		<div className='d-flex py-2 border-b'>
 			<div>
 				<StockHover
-					{...props}
+					symbol={symbol}
 					css={{ 'text-emphasis': true, 'font-weight-bold': true }}
 				/>
 			</div>
 			<div className='ml-2 mr-auto'>
 				(D)&nbsp;
-				<XE cad={amountCad} usd={amountUsd} currency={activeCurrency} />
+				<XE cad={amountCad} usd={amountUsd} currency={currency} />
 			</div>
 			<div className='text-right text-sub'>{formatDateShort(timestamp)}</div>
 		</div>

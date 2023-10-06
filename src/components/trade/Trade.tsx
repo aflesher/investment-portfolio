@@ -2,26 +2,25 @@ import React from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
 
-import StockHover, { IAssetHoverProps } from '../stock-hover/StockHover';
+import StockHover from '../stock-hover/StockHover';
 import { ITrade } from '../../../declarations/trade';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
 
 export interface ITradeStateProps
-	extends Omit<IAssetHoverProps, 'quantity'>,
-		Pick<
-			ITrade,
-			| 'isSell'
-			| 'quantity'
-			| 'timestamp'
-			| 'pnlCad'
-			| 'pnlUsd'
-			| 'currency'
-			| 'accountName'
-			| 'type'
-		> {
-	tradePrice: number;
-}
+	extends Pick<
+		ITrade,
+		| 'isSell'
+		| 'quantity'
+		| 'timestamp'
+		| 'pnlCad'
+		| 'pnlUsd'
+		| 'currency'
+		| 'accountName'
+		| 'type'
+		| 'symbol'
+		| 'price'
+	> {}
 
 const Trade: React.FC<ITradeStateProps> = (props) => {
 	const {
@@ -32,7 +31,7 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 		pnlCad,
 		pnlUsd,
 		currency,
-		tradePrice,
+		price,
 		accountName,
 		type,
 	} = props;
@@ -43,7 +42,7 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 					{symbol && (
 						<div className='d-inline-block'>
 							<StockHover
-								{...props}
+								symbol={symbol}
 								css={{ 'text-emphasis': true, 'font-weight-bold': true }}
 							/>
 						</div>
@@ -63,11 +62,11 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 							? numeral(quantity).format('1,000.0000')
 							: numeral(quantity).format('1,000')}
 						{type === 'crypto' ? ' coins @' : ' shares @'}
-						{numeral(tradePrice).format('$1,000.00')}
+						{numeral(price).format('$1,000.00')}
 					</span>
 					&nbsp;
 					<span className='text-subtle'>
-						({numeral(tradePrice * quantity).format('$1,000.00')})
+						({numeral(price * quantity).format('$1,000.00')})
 					</span>
 				</div>
 				<div className='col-4 text-sub text-right'>

@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { graphql } from 'gatsby';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import { connect } from 'react-redux';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 import Trade from '../components/trade/Trade';
@@ -9,10 +8,6 @@ import Layout from '../components/layout';
 import DateRange from '../components/date-range/DateRange';
 import { dateInputFormat } from '../utils/util';
 import { ITrade } from '../../declarations/trade';
-import { ICompany } from '../../declarations/company';
-import { IQuote } from '../../declarations/quote';
-import { IAssessment } from '../../declarations/assessment';
-import { IPosition } from '../../declarations/position';
 
 interface ITradeNode
 	extends Pick<
@@ -29,30 +24,7 @@ interface ITradeNode
 		| 'currency'
 		| 'symbol'
 		| 'type'
-	> {
-	company: Pick<
-		ICompany,
-		'name' | 'marketCap' | 'prevDayClosePrice' | 'symbol' | 'yield'
-	>;
-	quote: Pick<IQuote, 'price' | 'priceUsd' | 'priceCad' | 'currency'>;
-	assessment?: Pick<
-		IAssessment,
-		'targetInvestmentProgress' | 'targetPriceProgress' | 'type'
-	>;
-	position?: Pick<
-		IPosition,
-		| 'quantity'
-		| 'totalCost'
-		| 'totalCostUsd'
-		| 'totalCostCad'
-		| 'currentMarketValueCad'
-		| 'currentMarketValueUsd'
-		| 'averageEntryPrice'
-		| 'openPnl'
-		| 'openPnlCad'
-		| 'openPnlUsd'
-	>;
-}
+	> {}
 
 interface ITradeQuery {
 	data: {
@@ -196,7 +168,7 @@ const Trades: React.FC<ITradeQuery> = ({ data }) => {
 								timestamp={trade.timestamp}
 								pnlCad={trade.pnlCad}
 								pnlUsd={trade.pnlUsd}
-								tradePrice={trade.price}
+								price={trade.price}
 								isSell={trade.action === 'sell'}
 								currency={trade.currency}
 								accountName={trade.accountName}
@@ -228,36 +200,6 @@ export const pageQuery = graphql`
 				pnlUsd
 				currency
 				type
-				assessment {
-					targetInvestmentProgress
-					targetPriceProgress
-					type
-				}
-				company {
-					name
-					marketCap
-					prevDayClosePrice
-					symbol
-					yield
-				}
-				quote {
-					price
-					priceUsd
-					priceCad
-					currency
-				}
-				position {
-					quantity
-					totalCost
-					totalCostUsd
-					totalCostCad
-					currentMarketValueCad
-					currentMarketValueUsd
-					averageEntryPrice
-					openPnl
-					openPnlCad
-					openPnlUsd
-				}
 			}
 		}
 	}
