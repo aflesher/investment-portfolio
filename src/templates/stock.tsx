@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 import numeral from 'numeral';
@@ -34,9 +34,9 @@ import { IDividend } from '../../declarations/dividend';
 import { IOrder } from '../../declarations/order';
 import { IEarningsDate } from '../../declarations/earnings-date';
 import FirebaseImage from '../components/firebase-image/FirebaseImage';
+import { CurrencyContext } from '../context/currency.context';
 
-interface IStockTemplateStateProps
-	extends Pick<IStoreState, 'currency' | 'storage'> {}
+interface IStockTemplateStateProps extends Pick<IStoreState, 'storage'> {}
 
 const estimatedManaLandValue = 5000;
 
@@ -126,21 +126,17 @@ interface IStockTemplateQuery {
 }
 
 const mapStateToProps = ({
-	currency,
 	storage,
 }: IStoreState): IStockTemplateStateProps => ({
-	currency,
 	storage,
 });
 
 const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	data,
-	currency,
 	storage,
 }) => {
-	const [toggleIncomeStatement, setToggleIncomeStatement] = React.useState(
-		false
-	);
+	const [toggleIncomeStatement, setToggleIncomeStatement] = useState(false);
+	const currency = useContext(CurrencyContext);
 	const company = data.allCompany.nodes[0];
 	const cryptoQuotes = data.allQuote.nodes;
 	const btcQuote = _.find(cryptoQuotes, (q) => q.symbol === 'btc');

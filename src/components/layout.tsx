@@ -7,7 +7,6 @@ import firebase from 'firebase/compat/app';
 import {
 	IStoreState,
 	IStoreAction,
-	SET_CURRENCY_ACTION,
 	SET_USER_ACTION,
 	SET_SHOW_SIDEBAR,
 } from '../store/store';
@@ -24,34 +23,26 @@ import { IAssessment } from '../../declarations/assessment';
 import { CurrencyContext } from '../context/currency.context';
 
 interface ILayoutStateProps {
-	currency: Currency;
 	user: firebase.User | null | undefined;
 	showSidebar: boolean;
 }
 
 interface ILayoutDispatchProps {
-	setCurrency: (currency: Currency) => void;
 	setAuthenticated: (authenticated: boolean) => void;
 	setShowSidebar: (showSidebar: boolean) => void;
 }
 
 const mapStateToProps = ({
-	currency,
 	user,
 	showSidebar,
 }: IStoreState): ILayoutStateProps => {
-	return { currency, user, showSidebar };
+	return { user, showSidebar };
 };
 
 const mapDispatchToProps = (
 	dispatch: (action: IStoreAction) => void
 ): ILayoutDispatchProps => {
 	return {
-		setCurrency: (currency: Currency): void =>
-			dispatch({
-				type: SET_CURRENCY_ACTION,
-				payload: currency,
-			}),
 		setAuthenticated: (authenticated: boolean): void =>
 			dispatch({
 				type: SET_USER_ACTION,
@@ -217,10 +208,8 @@ interface ILayoutGraphQL {
 
 const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 	children,
-	currency,
 	user,
 	showSidebar,
-	setCurrency,
 	setShowSidebar,
 }) => (
 	<StaticQuery
@@ -380,6 +369,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 		`}
 		render={(queryData: ILayoutGraphQL): JSX.Element => {
 			const [isCollapsed, setIsCollapsed] = React.useState(true);
+			const [currency, setCurrency] = React.useState(Currency.cad);
 			const usdCad = _.first(queryData.allExchangeRate.nodes)?.rate || 1;
 			const cadUsd = 1 / usdCad;
 

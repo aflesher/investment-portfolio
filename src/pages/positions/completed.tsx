@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useContext, useState, FC } from 'react';
 import Paginate from 'react-paginate';
 import _ from 'lodash';
 import { graphql } from 'gatsby';
 import Octicon, { TriangleDown, TriangleUp } from '@primer/octicons-react';
-import { connect } from 'react-redux';
 
 import CompletedPosition, {
 	ICompletePositionStateProps,
@@ -12,10 +11,7 @@ import { IStoreState } from '../../store/store';
 import { Currency, AssetType } from '../../utils/enum';
 import Layout from '../../components/layout';
 import { dateInputFormat } from '../../utils/util';
-
-interface ICompletedPositionsStateProps {
-	currency: Currency;
-}
+import { CurrencyContext } from '../../context/currency.context';
 
 interface ICompletedPositionsQuery {
 	data: {
@@ -65,12 +61,6 @@ interface ICompletedPositionsQuery {
 
 const TRADE_SUMMARIES_PER_PAGE = 20;
 
-const mapStateToProps = ({
-	currency,
-}: IStoreState): ICompletedPositionsStateProps => ({
-	currency,
-});
-
 enum OrderBy {
 	symbol,
 	shares,
@@ -86,20 +76,17 @@ interface ICompletedPosition extends ICompletePositionStateProps {
 	quantitySold: number;
 }
 
-const CompletedPositions: React.FC<
-	ICompletedPositionsStateProps & ICompletedPositionsQuery
-> = ({ data }) => {
+const CompletedPositions: FC<ICompletedPositionsQuery> = ({ data }) => {
 	let completedPositions: ICompletedPosition[] = [];
 	const runningCompletedPositions: ICompletedPosition[] = [];
 
-	const [filterSymbol, setFilterSymbol] = React.useState('');
-	const [filterStartDate, setFilterStartDate] = React.useState(
-		new Date('2011-01-01')
-	);
-	const [filterEndDate, setFilterEndDate] = React.useState(new Date());
-	const [page, setPage] = React.useState(0);
-	const [orderBy, setOrderBy] = React.useState(OrderBy.closedDate);
-	const [orderAscending, setOrderAscending] = React.useState(false);
+	const [filterSymbol, setFilterSymbol] = useState('');
+	const [filterStartDate, setFilterStartDate] = useState(new Date('2011-01-01'));
+	const [filterEndDate, setFilterEndDate] = useState(new Date());
+	const [page, setPage] = useState(0);
+	const [orderBy, setOrderBy] = useState(OrderBy.closedDate);
+	const [orderAscending, setOrderAscending] = useState(false);
+	const currency = useContext(CurrencyContext);
 
 	data.allTrade.nodes.forEach((trade) => {
 		let completedPosition: ICompletedPosition | undefined = _.find(
@@ -351,7 +338,7 @@ const CompletedPositions: React.FC<
 	);
 };
 
-export default connect(mapStateToProps, null)(CompletedPositions);
+export default CompletedPositions;
 
 export const pageQuery = graphql`
 	query {

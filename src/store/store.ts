@@ -2,7 +2,6 @@ import { createStore as reduxCreateStore, Store } from 'redux';
 import { Currency } from '../utils/enum';
 import firebase from 'firebase/compat/app';
 
-export const SET_CURRENCY_ACTION = 'SET_CURRENCY_ACTION';
 export const SET_USER_ACTION = 'SET_USER_ACTION';
 export const SET_SHOW_SIDEBAR = 'SET_SHOW_SIDEBAR';
 export const SET_FIREBASE = 'SET_FIREBASE';
@@ -27,7 +26,6 @@ export interface IGoalStatus {
 }
 
 export interface IStoreState {
-	currency: Currency;
 	user: firebase.User | null | undefined;
 	showSidebar: boolean;
 	firebase: firebase.app.App | undefined;
@@ -37,7 +35,6 @@ export interface IStoreState {
 }
 
 const initialState: IStoreState = {
-	currency: Currency.cad,
 	user: undefined,
 	showSidebar: true,
 	firebase: undefined,
@@ -55,9 +52,6 @@ const reducer = (
 	}
 
 	switch (action.type) {
-		case SET_CURRENCY_ACTION:
-			const currency = action.payload as Currency;
-			return { ...state, currency };
 		case SET_USER_ACTION:
 			const user = action.payload as firebase.User | null;
 			return { ...state, user };
