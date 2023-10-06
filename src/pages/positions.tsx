@@ -1,13 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
-import { connect } from 'react-redux';
 import numeral from 'numeral';
 
 import Position from '../components/position/Position';
 import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
-import { IStoreState } from '../store/store';
 import XE from '../components/xe/XE';
 import { ICash } from '../../declarations/cash';
 import { ITrade } from '../../declarations/trade';
@@ -17,6 +15,7 @@ import { IPosition } from '../../declarations/position';
 import { IQuote } from '../../declarations/quote';
 import { ICompany } from '../../declarations/company';
 import { IAssessment } from '../../declarations/assessment';
+import { CurrencyContext } from '../context/currency.context';
 
 export enum PositionsOrderBy {
 	symbol,
@@ -72,14 +71,6 @@ interface IPositionsQuery {
 	};
 }
 
-interface IPositionStateProps {
-	currency: Currency;
-}
-
-const mapStateToProps = ({ currency }: IStoreState): IPositionStateProps => ({
-	currency,
-});
-
 const addCurrencyToPositions = (
 	usdCash: number,
 	cadCash: number
@@ -113,15 +104,14 @@ const addCurrencyToPositions = (
 	return position;
 };
 
-const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
-	currency,
-	data,
-}) => {
+const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 	const [orderBy, setOrderBy] = React.useState(PositionsOrderBy.position);
 	const [combined, setCombined] = React.useState(true);
 	const [typeFilter, setTypeFilter] = React.useState<'all' | 'crypto' | 'stock'>(
 		'all'
 	);
+
+	const currency = useContext(CurrencyContext);
 
 	let usdCash = data.allCash.nodes.reduce(
 		(sum, { amountUsd }) => sum + amountUsd,
@@ -411,7 +401,7 @@ const Positions: React.FC<IPositionsQuery & IPositionStateProps> = ({
 	);
 };
 
-export default connect(mapStateToProps)(Positions);
+export default Positions;
 
 export const pageQuery = graphql`
 	query {

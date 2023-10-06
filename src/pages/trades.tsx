@@ -7,18 +7,12 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import Trade from '../components/trade/Trade';
 import Layout from '../components/layout';
 import DateRange from '../components/date-range/DateRange';
-import { IStoreState } from '../store/store';
-import { Currency } from '../utils/enum';
 import { dateInputFormat } from '../utils/util';
 import { ITrade } from '../../declarations/trade';
 import { ICompany } from '../../declarations/company';
 import { IQuote } from '../../declarations/quote';
 import { IAssessment } from '../../declarations/assessment';
 import { IPosition } from '../../declarations/position';
-
-interface ITradeProps {
-	currency: Currency;
-}
 
 interface ITradeNode
 	extends Pick<
@@ -68,13 +62,9 @@ interface ITradeQuery {
 	};
 }
 
-const mapStateToProps = ({ currency }: IStoreState): ITradeProps => ({
-	currency,
-});
-
 const PAGE_SIZE = 50;
 
-const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
+const Trades: React.FC<ITradeQuery> = ({ data }) => {
 	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
@@ -220,7 +210,7 @@ const Trades: React.FC<ITradeProps & ITradeQuery> = ({ data }) => {
 	);
 };
 
-export default connect(mapStateToProps, null)(Trades);
+export default Trades;
 
 export const pageQuery = graphql`
 	query {

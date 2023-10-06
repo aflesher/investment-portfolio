@@ -1,20 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
-import { connect } from 'react-redux';
 
 import Order from '../components/order/Order';
-import { IStoreState } from '../store/store';
-import { Currency } from '../utils/enum';
 import Layout from '../components/layout';
 import { IOrder } from '../../declarations/order';
 import { IQuote } from '../../declarations/quote';
 import { ICompany } from '../../declarations/company';
 import { IPosition } from '../../declarations/position';
-
-interface IOrdersStateProps {
-	currency: Currency;
-}
+import { CurrencyContext } from '../context/currency.context';
 
 interface IOrderNode
 	extends Pick<
@@ -43,14 +37,7 @@ interface IOrdersQueryProps {
 	};
 }
 
-const mapStateToProps = ({ currency }: IStoreState): IOrdersStateProps => ({
-	currency,
-});
-
-const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({
-	currency,
-	data,
-}) => {
+const Orders: React.FC<IOrdersQueryProps> = ({ data }) => {
 	const orders = _.orderBy(
 		data.allOrder.nodes,
 		({ action, quote, limitPrice }) =>
@@ -59,6 +46,7 @@ const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({
 				: (limitPrice - quote.price) / quote.price
 	);
 	const positions = data.allPosition.nodes;
+	const currency = useContext(CurrencyContext);
 	return (
 		<Layout>
 			<div className='p-4'>
@@ -81,7 +69,7 @@ const Orders: React.FC<IOrdersStateProps & IOrdersQueryProps> = ({
 	);
 };
 
-export default connect(mapStateToProps, null)(Orders);
+export default Orders;
 
 export const pageQuery = graphql`
 	query {

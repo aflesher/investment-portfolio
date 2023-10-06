@@ -3,14 +3,12 @@ import * as React from 'react';
 import _ from 'lodash';
 
 import Layout from '../components/layout';
-import { connect } from 'react-redux';
-import { IStoreState } from '../store/store';
-import { Currency } from '../utils/enum';
 import CompanyBanner from '../components/company-banner/CompanyBanner';
 import { compareNumber } from '../utils/util';
 import moment from 'moment-timezone';
 import Order from '../components/order/Order';
 import { IPosition } from '../../declarations/position';
+import { CurrencyContext } from '../context/currency.context';
 
 interface IIndexQueryProps extends PageProps {
 	data: {
@@ -67,18 +65,8 @@ interface IIndexQueryProps extends PageProps {
 	};
 }
 
-interface IIndexStateProps {
-	currency: Currency;
-}
-
-const mapStateToProps = ({ currency }: IStoreState): IIndexStateProps => ({
-	currency,
-});
-
-const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
-	data,
-	currency,
-}) => {
+const IndexPage: React.FC<IIndexQueryProps> = ({ data }) => {
+	const currency = React.useContext(CurrencyContext);
 	const notes = _.sampleSize(data.allNote.nodes, data.allNote.nodes.length);
 	const review = _.first(data.allReview.nodes);
 	const random = _.random(1, 3);
@@ -184,7 +172,7 @@ const IndexPage: React.FC<IIndexQueryProps & IIndexStateProps> = ({
 	);
 };
 
-export default connect(mapStateToProps)(IndexPage);
+export default IndexPage;
 
 export const pageQuery = graphql`
 	query {

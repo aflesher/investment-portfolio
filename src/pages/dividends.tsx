@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 import { Typeahead } from 'react-bootstrap-typeahead';
@@ -10,42 +10,18 @@ import { Currency, AssetType } from '../utils/enum';
 import Layout from '../components/layout';
 import XE from '../components/xe/XE';
 import StockHover from '../components/stock-hover/StockHover';
-import { IStoreState } from '../store/store';
-import { connect } from 'react-redux';
 import * as util from '../utils/util';
 import { dateInputFormat } from '../utils/util';
 import Percent from '../components/percent/Percent';
 import { IDividend } from '../../declarations/dividend';
-import { IAssessment } from '../../declarations/assessment';
-import { ICompany } from '../../declarations/company';
 import { IPosition } from '../../declarations/position';
-import { IQuote } from '../../declarations/quote';
-
-interface IDividendsStateProps {
-	currency: Currency;
-}
+import { CurrencyContext } from '../context/currency.context';
 
 interface IDividendsQueryNode
 	extends Pick<
 		IDividend,
 		'symbol' | 'timestamp' | 'amount' | 'currency' | 'amountUsd' | 'amountCad'
-	> {
-	assessment?: Pick<
-		IAssessment,
-		'targetInvestmentProgress' | 'targetPriceProgress'
-	>;
-	company?: Pick<ICompany, 'name' | 'marketCap' | 'prevDayClosePrice' | 'type'>;
-	position?: Pick<
-		IPosition,
-		| 'quantity'
-		| 'totalCost'
-		| 'totalCostUsd'
-		| 'totalCostCad'
-		| 'currentMarketValueCad'
-		| 'currentMarketValueUsd'
-	>;
-	quote?: Pick<IQuote, 'price' | 'currency'>;
-}
+	> {}
 
 interface IDividendsQueryProps {
 	data: {
@@ -63,10 +39,6 @@ interface IDividendsQueryProps {
 
 const PAGE_SIZE = 60;
 
-const mapStateToProps = ({ currency }: IStoreState): IDividendsStateProps => ({
-	currency,
-});
-
 const DIVIDEND_POSITIONS_YEAR_END: {
 	year: number;
 	symbol: string;
@@ -75,10 +47,8 @@ const DIVIDEND_POSITIONS_YEAR_END: {
 	currency: Currency;
 }[] = [];
 
-const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
-	data,
-	currency,
-}) => {
+const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
+	const currency = useContext(CurrencyContext);
 	const [startDate, setStartDate] = React.useState(
 		moment().startOf('year').toDate()
 	);
@@ -302,24 +272,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 							key={`${dividend.symbol}${dividend.timestamp}${index}`}
 						>
 							<div className='col-3'>
-								<StockHover
-									symbol={dividend.symbol}
-									assetCurrency={dividend.currency}
-									activeCurrency={currency}
-									priceProgress={dividend.assessment?.targetPriceProgress || 0}
-									shareProgress={dividend.assessment?.targetInvestmentProgress || 0}
-									name={dividend.company?.name || ''}
-									marketCap={dividend.company?.marketCap || 0}
-									previousClosePrice={dividend.company?.prevDayClosePrice || 0}
-									quantity={dividend.position?.quantity || 0}
-									costUsd={dividend.position?.totalCostUsd || 0}
-									costCad={dividend.position?.totalCostCad || 0}
-									valueCad={dividend.position?.currentMarketValueCad || 0}
-									valueUsd={dividend.position?.currentMarketValueUsd || 0}
-									price={dividend.quote?.price || 0}
-									type={dividend?.company?.type || AssetType.stock}
-									quoteCurrency={dividend?.quote?.currency || Currency.cad}
-								/>
+								<StockHover symbol={dividend.symbol} />
 							</div>
 							<div className='col-3 text-right'>
 								{util.formatDate(dividend.timestamp)}
@@ -358,7 +311,7 @@ const Dividends: React.FC<IDividendsStateProps & IDividendsQueryProps> = ({
 	);
 };
 
-export default connect(mapStateToProps)(Dividends);
+export default Dividends;
 
 export const pageQuery = graphql`
 	query {
@@ -370,28 +323,6 @@ export const pageQuery = graphql`
 				currency
 				symbol
 				timestamp
-				assessment {
-					targetInvestmentProgress
-					targetPriceProgress
-				}
-				company {
-					name
-					marketCap
-					prevDayClosePrice
-					type
-				}
-				quote {
-					price
-					currency
-				}
-				position {
-					quantity
-					totalCost
-					totalCostUsd
-					totalCostCad
-					currentMarketValueCad
-					currentMarketValueUsd
-				}
 			}
 		}
 		allPosition(filter: { symbol: { eq: "hsuv.u.to" } }) {
