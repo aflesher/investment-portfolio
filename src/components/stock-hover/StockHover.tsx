@@ -124,7 +124,6 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 								'hover-positive': isProfit,
 								'hover-negative': !isProfit,
 								'stock-hover': true,
-								...css,
 							})}
 						>
 							<div className='p-2'>

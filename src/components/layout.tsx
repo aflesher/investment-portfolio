@@ -202,6 +202,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						type
 						priceCad
 						priceUsd
+						isSell
 					}
 				}
 				allDividend(limit: 7, sort: { fields: timestamp, order: DESC }) {

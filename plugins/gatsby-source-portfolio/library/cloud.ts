@@ -286,6 +286,7 @@ export const getDividends = async (): Promise<void> => {
 	// }
 	dividends.forEach((dividend) => {
 		dividendsMap[dividend.hash] = true;
+		dividend.accountId = Number(dividend.accountId);
 	});
 };
 
@@ -310,7 +311,7 @@ export const addDividend = (dividend: IQuestradeActivity): void => {
 		amount: dividend.netAmount,
 		symbolId: dividend.symbolId,
 		currency: dividend.currency === 'CAD' ? Currency.cad : Currency.usd,
-		accountId: dividend.accountId,
+		accountId: Number(dividend.accountId),
 		hash,
 	});
 
