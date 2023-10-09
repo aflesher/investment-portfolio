@@ -2,6 +2,7 @@ import admin from 'firebase-admin';
 import _ from 'lodash';
 import firebase from 'firebase/compat/app';
 import NP from 'number-precision';
+import 'colors';
 
 import { deferredPromise } from './util';
 import {
@@ -17,6 +18,8 @@ import { Currency, AssetType } from '../../../src/utils/enum';
 import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
 import { ICrypto52Weeks } from './crypto';
+
+const DEBUG_CRYPTO_POSITIONS: string[] = [];
 
 const serviceAccount = require('../json/firebase.json');
 let firestore: FirebaseFirestore.Firestore;
@@ -228,6 +231,20 @@ interface ICryptoTradeDoc {
 	};
 }
 
+const debugCryptoPosition = (
+	trade: ICryptoTrade,
+	position: ICryptoPosition
+) => {
+	if (!DEBUG_CRYPTO_POSITIONS.includes(trade.symbol)) {
+		return;
+	}
+
+	console.log('<<<<<<<<<<<<'.yellow);
+	console.log(trade);
+	console.log(position);
+	console.log('>>>>>>>>>>>>'.yellow);
+};
+
 export const calculateCryptoPositions = (
 	trades: ICryptoTrade[],
 	rates: IExchangeRate[]
@@ -262,6 +279,7 @@ export const calculateCryptoPositions = (
 				totalCostCad: t.price * t.quantity * rate.rate,
 			};
 			positions.push(position);
+			debugCryptoPosition(t, position);
 			return;
 		}
 
@@ -272,6 +290,7 @@ export const calculateCryptoPositions = (
 			position.quantity += t.quantity;
 			position.averageEntryPrice = position.totalCostUsd / position.quantity;
 			position.averageEntryPriceCad = position.totalCostCad / position.quantity;
+			debugCryptoPosition(t, position);
 			return;
 		}
 
@@ -288,6 +307,7 @@ export const calculateCryptoPositions = (
 			position.quantity * position.averageEntryPrice,
 			0
 		);
+		debugCryptoPosition(t, position);
 	});
 
 	return _.filter(positions, (p) => p.quantity > 0 && p.totalCostCad > 0);
