@@ -1,5 +1,4 @@
 import React from 'react';
-import classNames from 'classnames';
 import _ from 'lodash';
 import { Link } from 'gatsby';
 import numeral from 'numeral';
@@ -10,6 +9,7 @@ import { Currency } from '../../utils/enum';
 import StockHover from '../stock-hover/StockHover';
 import Percent from '../percent/Percent';
 import { IPosition } from '../../../declarations/position';
+import ColoredNumbers from '../colored-numbers/ColoredNumbers';
 
 export interface ISidebarPosition
 	extends Pick<
@@ -136,16 +136,8 @@ const SidebarRight: React.FC<
 								<StockHover symbol={position.symbol} />
 							</div>
 						</div>
-						<div
-							className={classNames({
-								'text-rtl': pnl(position) >= 0,
-								'col-4': true,
-								'text-right': true,
-								'text-positive': pnl(position) >= 0,
-								'text-negative': pnl(position) < 0,
-							})}
-						>
-							{numeral(pnl(position)).format('0,0.00%')}
+						<div className='col-4 text-right'>
+							<ColoredNumbers value={pnl(position)} type='percent' hidePlus />
 						</div>
 						<div className='col-4 text-right'>
 							<Percent percent={quotePercentage(position)} />

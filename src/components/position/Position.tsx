@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import classNames from 'classnames';
 import numeral from 'numeral';
 
 import StockHover from '../stock-hover/StockHover';
@@ -7,6 +6,7 @@ import { Currency, RatingType } from '../../utils/enum';
 import XE from '../xe/XE';
 import { PositionsOrderBy } from '../../pages/positions';
 import { CurrencyContext } from '../../context/currency.context';
+import ColoredNumbers from '../colored-numbers/ColoredNumbers';
 
 export interface IPositionStateProps {
 	index: number;
@@ -58,13 +58,8 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 					<StockHover symbol={symbol} />
 				</div>
 			</td>
-			<td
-				className={classNames({
-					'text-positive': pnl >= 0,
-					'text-negative': pnl < 0,
-				})}
-			>
-				{numeral(pnl).format('0,0.00%')}
+			<td>
+				<ColoredNumbers value={pnl} type='percent' hidePlus={true} />
 			</td>
 			<td className='text-center px-4' style={{ minWidth: 120 }}>
 				{rating === 'sell' && (
@@ -115,17 +110,12 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 					)}
 			</td>
 			<td>{numeral(percentageOfPortfolio).format('0.0%')}</td>
-			<td
-				className={classNames({
-					'text-right': true,
-					'text-positive': pnl >= 0,
-					'text-negative': pnl < 0,
-				})}
-			>
-				<XE
-					cad={valueCad - costCad}
-					usd={valueUsd - costUsd}
-					currency={activeCurrency}
+			<td className='text-right'>
+				<ColoredNumbers
+					value={
+						activeCurrency === Currency.cad ? valueCad - costCad : valueUsd - costUsd
+					}
+					type='dollar'
 				/>
 			</td>
 		</tr>
