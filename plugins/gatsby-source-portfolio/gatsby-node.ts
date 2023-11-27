@@ -31,6 +31,7 @@ import { AssetType, Currency } from '../../src/utils/enum';
 import { replaceSymbol } from './library/util';
 import { getEarningsDates } from './library/earnings-calendar';
 import { ICrypto52Weeks, getCrypto52Weeks } from './library/crypto';
+import * as kraken from './library/kraken';
 
 const assessmentsPromise = firebase.getAssessments();
 const stockSplitsPromise = firebase.getStockSplits();
@@ -42,6 +43,7 @@ const binanceOrdersPromise = binance.getOpenOrders();
 const cryptoMetaDataPromise = firebase.getCryptoMetaData();
 const ratesPromise = firebase.getExchangeRates();
 const hisaStocksPromise = firebase.getHisaStocks();
+const krakenOrdersPromise = kraken.getOpenOrders();
 
 const MARGIN_ACCOUNT_ID = 26418215;
 
@@ -314,6 +316,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		configOptions.binance.secretKey
 	);
 
+	kraken.init(configOptions.kraken.key, configOptions.kraken.secret);
+
 	const getExchange = getTodaysRate();
 	const getNotes = firebase.getNotes();
 	const getReviewsPromise = firebase.getReviews();
@@ -400,6 +404,15 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const binanceOrders = await binanceOrdersPromise;
 	_.forEach(binanceOrders, (order, index) => {
 		const symbol = order.symbol.replace('USDT', '').toLocaleLowerCase();
+		const nodeId = getOrderNodeId(symbol, index + orders.length);
+		orderNodeIdsMap[symbol] = orderNodeIdsMap[symbol] || [];
+		orderNodeIdsMap[symbol].push(nodeId);
+	});
+
+	const krakenOrders = await krakenOrdersPromise;
+	_.forEach(krakenOrders, (order, index) => {
+		const symbol =
+			order.pair?.toLocaleLowerCase().replace('usd', '').replace('cad', '') || '';
 		const nodeId = getOrderNodeId(symbol, index + orders.length);
 		orderNodeIdsMap[symbol] = orderNodeIdsMap[symbol] || [];
 		orderNodeIdsMap[symbol].push(nodeId);
@@ -552,14 +565,56 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return orders;
 	};
 
+	const mapKrakenOrders = async (
+		krakenOrders: kraken.KrakenOpenOrder[]
+	): Promise<IOrder[]> => {
+		const usdToCadRate = await getExchange;
+		const cadToUsdRate = 1 / usdToCadRate;
+
+		const orders: IOrder[] = krakenOrders.map((order) => {
+			const currency: Currency = order.pair?.match(/usd/gi)
+				? Currency.usd
+				: Currency.cad;
+			const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
+			const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
+			return {
+				symbol:
+					order.pair?.toLocaleLowerCase().replace('usd', '').replace('cad', '') ||
+					'',
+				limitPrice: Number(order.price),
+				limitPriceUsd: Number(order.price) * usdRate,
+				limitPriceCad: Number(order.price) * cadRate,
+				openQuantity: Number(order.vol),
+				filledQuantity: 0,
+				totalQuantity: Number(order.vol),
+				orderType: order.ordertype || 'buy',
+				stopPrice: 0,
+				avgExecPrice: 0,
+				side: order.type || 'buy',
+				accountId: 0,
+				action: order.type === 'buy' ? 'buy' : 'sell',
+				type: order.ordertype || 'buy',
+				accountName: 'kraken',
+				currency,
+			};
+		});
+		return orders;
+	};
+
 	const getOrderNodes = async (): Promise<IOrderNode[]> => {
 		const questradeOrders = await ordersPromise;
 		const binanceOrders = await binanceOrdersPromise;
+		const krakenOrders = await krakenOrdersPromise;
 
 		const mappedQuestradeOrders = await mapQuestradeOrders(questradeOrders);
 		const mappedBinanceOrders = await mapBinanceOrders(binanceOrders);
+		const mappedKrakenOrders = await mapKrakenOrders(krakenOrders);
 
-		const orders = _.concat(mappedQuestradeOrders, mappedBinanceOrders);
+		const orders = _.concat(
+			mappedQuestradeOrders,
+			mappedBinanceOrders,
+			mappedKrakenOrders
+		);
 
 		const orderNodes = _.map(orders, (order, index) => {
 			const orderNode: IOrderNode = {
@@ -732,9 +787,11 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		// quote in usd, position in cad
 		const quote = _.find(cryptoQuotes, { symbol: position.symbol });
 		const price = quote?.price || 0;
-		const totalCostUsd = position.totalCostUsd;
+		const { totalCostUsd, totalCostCad } = position;
 		const currentMarketValueUsd = price * position.quantity;
+		const currentMarketValueCad = currentMarketValueUsd * usdToCadRate;
 		const openPnlUsd = currentMarketValueUsd - totalCostUsd;
+		const openPnlCad = currentMarketValueCad - totalCostCad;
 
 		return {
 			symbol: position.symbol,
@@ -742,15 +799,15 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			currentMarketValue: currentMarketValueUsd,
 			totalCost: totalCostUsd,
 			totalCostUsd: totalCostUsd,
-			totalCostCad: position.totalCostCad,
-			currentMarketValueCad: currentMarketValueUsd * usdToCadRate,
+			totalCostCad: totalCostCad,
+			currentMarketValueCad,
 			currentMarketValueUsd,
 			quantity: position.quantity,
 			averageEntryPrice: position.averageEntryPrice,
 			type: AssetType.crypto,
 			openPnl: openPnlUsd,
-			openPnlCad: openPnlUsd * usdToCadRate,
-			openPnlUsd: openPnlUsd,
+			openPnlCad,
+			openPnlUsd,
 		};
 	};
 
@@ -1176,6 +1233,9 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const getCashNodes = async (): Promise<ICashNode[]> => {
 		const questradeCash = await questrade.getCash();
 		const firebaseCash = await firebase.getCash();
+		// a little bit hackish but we need to fire requests sync for the nonce
+		await krakenOrdersPromise;
+		const krakenCash = await kraken.getBalances();
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
 
@@ -1195,7 +1255,30 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				cash.currency === Currency.usd ? cash.amount : cash.amount * cadToUsdRate,
 		}));
 
-		const cash = [...questradeCashWithExchange, ...firebaseCashWithExchange];
+		const krakenCashWithExchange = [
+			{
+				amountCad: krakenCash.cad,
+				amountUsd: krakenCash.cad * cadToUsdRate,
+				currency: Currency.cad,
+				amount: krakenCash.cad,
+				accountName: 'Kraken CAD',
+				accountId: 0,
+			},
+			{
+				amountCad: krakenCash.usd * usdToCadRate,
+				amountUsd: krakenCash.usd,
+				currency: Currency.usd,
+				amount: krakenCash.usd,
+				accountName: 'Kraken USD',
+				accountId: 0,
+			},
+		];
+
+		const cash = [
+			...questradeCashWithExchange,
+			...firebaseCashWithExchange,
+			...krakenCashWithExchange,
+		];
 
 		return cash.map((cash) => {
 			const cashNode = cash;
