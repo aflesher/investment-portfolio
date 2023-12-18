@@ -35,4 +35,9 @@ config.openexchangerates = {
 	appId: process.env.OPEN_EXCHANGE_RATES_APP_ID,
 };
 
+config.kraken = {
+	key: process.env.KRAKEN_API_KEY,
+	secret: process.env.KRAKEN_API_SECRET,
+};
+
 module.exports = config;

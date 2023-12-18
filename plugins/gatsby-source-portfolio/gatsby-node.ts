@@ -4,10 +4,11 @@ import crypto from 'crypto';
 import path from 'path';
 import moment from 'moment';
 import 'colors';
+import { Kraken } from 'node-kraken-api';
 
 import * as exchange from './library/exchange';
 import * as firebase from './library/firebase';
-import * as questrade from './library/questrade';
+import * as questrade from './library/questrade-old';
 import * as questradeCloud from './library/questrade-cloud';
 import * as cloud from './library/cloud';
 import * as coinmarketcap from './library/coinmarketcap';
@@ -31,7 +32,7 @@ import { AssetType, Currency } from '../../src/utils/enum';
 import { replaceSymbol } from './library/util';
 import { getEarningsDates } from './library/earnings-calendar';
 import { ICrypto52Weeks, getCrypto52Weeks } from './library/crypto';
-import * as kraken from './library/kraken';
+import * as kraken from './library/kraken/api';
 
 const assessmentsPromise = firebase.getAssessments();
 const stockSplitsPromise = firebase.getStockSplits();
@@ -44,6 +45,7 @@ const cryptoMetaDataPromise = firebase.getCryptoMetaData();
 const ratesPromise = firebase.getExchangeRates();
 const hisaStocksPromise = firebase.getHisaStocks();
 const krakenOrdersPromise = kraken.getOpenOrders();
+const krakenTradesPromise = kraken.getTrades();
 
 const MARGIN_ACCOUNT_ID = 26418215;
 
@@ -351,6 +353,14 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		tradeNodeIdsMap[trade.symbol].push(nodeId);
 	});
 
+	// const krakenTrades = await krakenTradesPromise;
+	// _.forEach(krakenTrades, (trade, index) => {
+	// 	const { symbol } = kraken.getCurrencyAndSymbolFromPair(trade.pair || '');
+	// 	const nodeId = getTradeNodeId(symbol, index + cryptoTrades.length);
+	// 	tradeNodeIdsMap[symbol] = tradeNodeIdsMap[symbol] || [];
+	// 	tradeNodeIdsMap[symbol].push(nodeId);
+	// });
+
 	const assessments = await assessmentsPromise;
 	const assessmentNodeIdsMap = {};
 	_.forEach(assessments, (assessment) => {
@@ -411,8 +421,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 
 	const krakenOrders = await krakenOrdersPromise;
 	_.forEach(krakenOrders, (order, index) => {
-		const symbol =
-			order.pair?.toLocaleLowerCase().replace('usd', '').replace('cad', '') || '';
+		const { symbol } = kraken.getCurrencyAndSymbolFromPair(order.pair || '');
 		const nodeId = getOrderNodeId(symbol, index + orders.length);
 		orderNodeIdsMap[symbol] = orderNodeIdsMap[symbol] || [];
 		orderNodeIdsMap[symbol].push(nodeId);
@@ -926,6 +935,40 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		accountName: 'binance',
 	});
 
+	const mapKrakenTradesToTrade = (
+		trade: kraken.KrakenTrade,
+		usdToCadRate: number
+	): ITrade => {
+		const { symbol, currency } = kraken.getCurrencyAndSymbolFromPair(
+			trade.pair || ''
+		);
+		const price = Number(trade.price);
+		const cadToUsdRate = 1 / usdToCadRate;
+		const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
+		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
+		const quantity = Number(trade.vol);
+		const timestamp = Number(trade.time) * 1000;
+		return {
+			isSell: trade.type === 'sell',
+			symbol,
+			accountId: 0,
+			priceCad: price * cadRate,
+			priceUsd: price * usdRate,
+			timestamp,
+			pnl: 0,
+			pnlCad: 0,
+			pnlUsd: 0,
+			currency,
+			price,
+			quantity,
+			action: trade.type === 'buy' ? 'buy' : 'sell',
+			type: AssetType.crypto,
+			isOpeningPositionTrade: false,
+			taxable: true,
+			accountName: 'kraken',
+		};
+	};
+
 	const setOpeningTrade = (trades: ITrade[]): void => {
 		let quantity = 0;
 		let openingTrade: ITrade | null = null;
@@ -950,9 +993,14 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		await questradeSync;
 
 		const cryptoTrades = await cryptoTradesPromise;
+		const krakenTrades = await krakenTradesPromise;
 		const cloudTrades = cloud.readTrades();
 		const usdToCadRate = await getExchange;
 		const cadToUsdRate = 1 / usdToCadRate;
+
+		console.log(
+			krakenTrades.map((trade) => mapKrakenTradesToTrade(trade, usdToCadRate))
+		);
 
 		const trades = _.concat(
 			_.map(cloudTrades, (t) =>

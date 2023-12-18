@@ -2,9 +2,13 @@ import axios from 'axios';
 import moment from 'moment-timezone';
 
 import { setExchangeRate } from './firebase';
+import { IExchangeRate } from '../../../declarations';
+import { deferredPromise } from './util';
 
 let api = '';
 let appId = '';
+
+const lookupDeferredPromise = deferredPromise<{ [key: string]: number }>();
 
 export const init = (_api: string, _appId: string): void => {
 	api = _api;
@@ -31,3 +35,15 @@ export const getTodaysRate = async (): Promise<number | null> => {
 
 	return resp.data.rates.CAD;
 };
+
+export const setExchangeRates = (exchangeRates: IExchangeRate[]) => {
+	const lookup: { [key: string]: number } = {};
+	exchangeRates.forEach(({ rate, date }) => {
+		lookup[date] = rate;
+	});
+
+	lookupDeferredPromise.resolve(lookup);
+};
+
+export const getExchangeRates = async (): Promise<{ [key: string]: number }> =>
+	lookupDeferredPromise.promise;

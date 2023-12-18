@@ -1,5 +1,6 @@
 import { Kraken } from 'node-kraken-api';
-import { deferredPromise } from './util';
+import { deferredPromise } from '../util';
+import { Currency } from '../../../../src/utils/enum';
 
 const initDeferredPromise = deferredPromise();
 
@@ -16,6 +17,27 @@ export interface KrakenOpenOrder {
 	order?: string | null;
 	close?: string | null;
 	vol?: string | null;
+}
+export interface KrakenTrade {
+	ordertxid?: string | null;
+	pair?: string | null;
+	time?: number | null;
+	type?: string | null;
+	ordertype?: string | null;
+	price?: string | null;
+	cost?: string | null;
+	fee?: string | null;
+	vol?: string | null;
+	margin?: string | null;
+	misc?: string | null;
+	posstatus?: string | null;
+	cprice?: string | null;
+	ccost?: string | null;
+	cfee?: string | null;
+	cvol?: string | null;
+	cmargin?: string | null;
+	net?: string | null;
+	trades?: Array<string> | null;
 }
 
 export const init = (_key: string, _secret: string) => {
@@ -66,4 +88,33 @@ export const getBalances = async () => {
 		usd: Number(balance.ZUSD || 0),
 		cad: Number(balance.ZCAD || 0),
 	};
+};
+
+export const getTrades = async () => {
+	const kraken = await krakenPromise;
+	const now = Date.now();
+	const start = now - 1000 * 60 * 60 * 24 * 30 * 2;
+	const response = await kraken
+		.tradesHistory({ start, end: now, trades: true })
+		.catch((e) => console.error(e));
+	console.log(response);
+	if (!response?.trades) return [];
+	const { trades } = response;
+	return Object.keys(trades)
+		.map((key) => ({
+			...trades[key],
+		}))
+		.filter((q) => !q.pair?.match(/(usdc|usdt)/i));
+};
+
+export const getCurrencyAndSymbolFromPair = (pair: string) => {
+	pair = pair.toLowerCase();
+	let symbol = pair.replace(/(cad|usd)/, '');
+	const currency = pair.replace(symbol, '') as Currency;
+
+	symbol = symbol.replace(/(xxbtz)/, 'btc').replace(/(xethz)/, 'eth');
+
+	console.log(pair, symbol, currency);
+
+	return { symbol, currency };
 };

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import _ from 'lodash';
 import { Currency } from '../../../src/utils/enum';
 import { IStockSplit } from '../../../declarations';
-import { IQuestradeActivity } from './questrade';
+import { IQuestradeActivity } from './questrade-old';
 import { replaceSymbol } from './util';
 import numeral from 'numeral';
 
