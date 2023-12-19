@@ -559,11 +559,11 @@ export const getHisaStocks = async (): Promise<{ symbol: string }[]> => {
 
 	const querySnapshot = await firestore.collection('stockHisa').get();
 
-	const dates = await Promise.all(
+	const hisas = await Promise.all(
 		querySnapshot.docs.map(async (documentSnapshot) => {
 			return { symbol: documentSnapshot.id };
 		})
 	);
 
-	return dates;
+	return hisas;
 };

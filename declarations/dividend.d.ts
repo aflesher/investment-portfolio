@@ -3,6 +3,7 @@ import { ICompany } from './company';
 import { IPosition } from './position';
 import { IQuote } from './quote';
 import { IAssessment } from './assessment';
+import { IAccount } from './account';
 
 export interface IDividend {
 	symbol: string;
@@ -16,4 +17,19 @@ export interface IDividend {
 	position?: IPosition;
 	quote?: IQuote;
 	assessment?: IAssessment;
+}
+
+export interface IDividendV2 {
+	symbol: string;
+	timestamp: number;
+	amount: number;
+	currency: Currency;
+	account: IAccount;
+	amountUsd: number;
+	amountCad: number;
+	company?: ICompany;
+	position?: IPosition;
+	quote?: IQuote;
+	assessment?: IAssessment;
+	symbolId?: number;
 }

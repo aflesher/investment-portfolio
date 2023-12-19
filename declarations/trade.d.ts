@@ -49,4 +49,5 @@ export interface ITradeV2 {
 	accountId: number;
 	type: AssetType;
 	account: IAccount;
+	symbolId?: number;
 }

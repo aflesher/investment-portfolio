@@ -1,8 +1,13 @@
-import { IQuote, ITradeV2 } from '../../../../declarations';
+import { IDividendV2, IQuote, ITradeV2 } from '../../../../declarations';
 import { IOrderV2 } from '../../../../declarations/order';
 import { AssetType, Currency } from '../../../../src/utils/enum';
-import { IQuestradeOrder, IQuestradeQuote, getAccounts } from './api';
-import { ICloudTrade } from './cloud';
+import {
+	IQuestradeOrder,
+	IQuestradeQuote,
+	getAccounts,
+	IQuestradeCompany,
+} from './api';
+import { ICloudDividend, ICloudTrade } from './cloud';
 
 enum QuestradeOrderSide {
 	Buy = 'Buy',
@@ -49,6 +54,7 @@ export const mapTrade = (
 		action: trade.action,
 		type: AssetType.stock,
 		account: account,
+		symbolId: trade.symbolId,
 	};
 };
 
@@ -87,6 +93,7 @@ export const mapOrder = (
 		type: order.orderType,
 		account,
 		currency,
+		symbolId: order.symbolId,
 	};
 };
 
@@ -108,5 +115,53 @@ export const mapQuote = (
 		type: AssetType.stock,
 		afterHoursPrice: quote.lastTradePrice,
 		symbolId: quote.symbolId,
+	};
+};
+
+export const mapCompany = (
+	company: IQuestradeCompany,
+	hisaSymbols: string[]
+) => {
+	return {
+		symbol: company.symbol,
+		name: company.description,
+		prevDayClosePrice: company.prevDayClosePrice,
+		pe: company.pe,
+		yield: company.yield,
+		type: AssetType.stock,
+		marketCap: company.marketCap,
+		exchange: company.exchange,
+		highPrice52: company.highPrice52,
+		lowPrice52: company.lowPrice52,
+		hisa: hisaSymbols.includes(company.symbol),
+	};
+};
+
+export const mapDividend = (
+	dividend: ICloudDividend,
+	usdToCadRate: number
+): IDividendV2 => {
+	const account = getAccounts().find(
+		({ id }) => id === dividend.accountId.toString()
+	);
+	if (!account) {
+		console.error('account not found', dividend.accountId);
+		throw new Error('account not found');
+	}
+	const currency: Currency =
+		dividend.currency === 'usd' ? Currency.usd : Currency.cad;
+	const cadToUsdRate = 1 / usdToCadRate;
+	const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
+	const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
+
+	return {
+		symbol: dividend.symbol,
+		timestamp: new Date(dividend.date).getTime(),
+		amount: dividend.amount,
+		symbolId: dividend.symbolId,
+		currency,
+		account,
+		amountCad: dividend.amount * cadRate,
+		amountUsd: dividend.amount * usdRate,
 	};
 };

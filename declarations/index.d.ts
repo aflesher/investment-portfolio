@@ -1,7 +1,7 @@
 export { ICompany } from './company';
 export { IPosition, ICryptoPosition, IPositionV2 } from './position';
 export { ITrade, ITradeV2 } from './trade';
-export { IDividend } from './dividend';
+export { IDividend, IDividendV2 } from './dividend';
 export { IEarningsDate } from './earnings-date';
 export { IQuote } from './quote';
 export { IAssessment } from './assessment';

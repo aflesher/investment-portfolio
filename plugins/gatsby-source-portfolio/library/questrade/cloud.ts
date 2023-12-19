@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import * as api from './api';
 import { Currency } from '../../../../src/utils/enum';
 import { getStockSplits, updateStockSplit } from 'library/firebase';
+import { getCustomTrades, getFilteredSymbols } from './data';
 
 export interface ICloudTrade {
 	symbol: string;
@@ -192,14 +193,6 @@ const updateTrades = async (): Promise<void> => {
 	await tradesFile.save(JSON.stringify(trades));
 };
 
-// get all trades and dividends stored in the cloud in ITradeCloud and IDividendCloud
-// fetch all new trades and dividends
-// map to ITradeCloud and IDividendCloud
-// store in memory
-// I think apply stock splits here
-// write back to the cloud
-// map to ITrade and IDividend
-
 export const sync = async (): Promise<void> => {
 	console.log('questrade.sync (start)'.gray);
 
@@ -214,6 +207,10 @@ export const sync = async (): Promise<void> => {
 	}
 
 	// apply any custom trades
+	trades = trades.concat(getCustomTrades());
+
+	const filteredTrades = getFilteredSymbols();
+	trades = trades.filter((t) => !filteredTrades.includes(t.symbol));
 
 	// apply stock splits
 	await applyStockSplits();

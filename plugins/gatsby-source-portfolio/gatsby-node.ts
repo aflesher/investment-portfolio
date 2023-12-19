@@ -4,22 +4,19 @@ import crypto from 'crypto';
 import path from 'path';
 import moment from 'moment';
 import 'colors';
-import { Kraken } from 'node-kraken-api';
 
 import * as exchange from './library/exchange';
 import * as firebase from './library/firebase';
-import * as questrade from './library/questrade-old';
-import * as questradeCloud from './library/questrade-cloud';
-import * as cloud from './library/cloud';
+import * as questrade from './library/questrade';
 import * as coinmarketcap from './library/coinmarketcap';
-import * as binance from './library/binanace';
+import * as kraken from './library/kraken';
 import {
 	IAssessment,
 	IQuote,
-	IOrder,
+	IOrderV2,
 	IReview,
-	IPosition,
-	ITrade,
+	IPositionV2,
+	ITradeV2,
 	IDividend,
 	ICompany,
 	IEarningsDate,
@@ -29,151 +26,32 @@ import {
 	ICryptoPosition,
 } from '../../declarations';
 import { AssetType, Currency } from '../../src/utils/enum';
-import { replaceSymbol } from './library/util';
 import { getEarningsDates } from './library/earnings-calendar';
 import { ICrypto52Weeks, getCrypto52Weeks } from './library/crypto';
-import * as kraken from './library/kraken/api';
+import { getTrades } from 'library/trades';
+import { getDividends } from 'library/dividends';
+import { getQuotes } from 'library/quotes';
+import { getOrders } from 'library/orders';
+import { getPositions } from 'library/positions';
 
 const assessmentsPromise = firebase.getAssessments();
-const stockSplitsPromise = firebase.getStockSplits();
-const questradeSync = questradeCloud.sync(stockSplitsPromise);
-const positionsPromise = questrade.getPositions();
-const ordersPromise = questrade.getActiveOrders();
-const cryptoTradesPromise = firebase.getCryptoTrades();
-const binanceOrdersPromise = binance.getOpenOrders();
-const cryptoMetaDataPromise = firebase.getCryptoMetaData();
-const ratesPromise = firebase.getExchangeRates();
-const hisaStocksPromise = firebase.getHisaStocks();
-const krakenOrdersPromise = kraken.getOpenOrders();
-const krakenTradesPromise = kraken.getTrades();
-
-const MARGIN_ACCOUNT_ID = 26418215;
-
-const FILTER_SYMBOLS = [
-	'ausa.cn',
-	'dlr.to',
-	'dlr.u.to',
-	'glh.cn.11480862',
-	'pins20jan23c55.00',
-	'chal.cn',
-	'gme',
-];
-
-const OVERRIDE_POSITIONS = ['urnm'];
-const SYMBOLS_TO_VIEW_IDS: string[] = [];
-
-const SYMBOL_ID_REPLACEMENTS = [
-	{ original: 20682, replacement: 11419766 },
-	{ original: 28114781, replacement: 41822360 },
-];
-
-const INVALID_QUOTE_IDS = [17488686];
-
-const checkEnvExchangeRate = async () => {
-	const rate = process.env.USD_CAD;
-	if (!rate) {
-		return;
-	}
-
-	return firebase.setExchangeRate(
-		'USD_CAD',
-		moment().format('YYYY-MM-DD'),
-		Number(rate)
-	);
-};
-
-const cryptoPositionsPromise = (async () => {
-	const trades = await cryptoTradesPromise;
-	const rates = await ratesPromise;
-	return firebase.calculateCryptoPositions(trades, rates);
-})();
-
-const applyStockSplits = async () => {
-	const stockSplits = await stockSplitsPromise;
-	const appliedStockSplits = stockSplits.filter(({ isApplied }) => !isApplied);
-	await Promise.all(
-		appliedStockSplits.map((split) => {
-			split.isApplied = true;
-			return firebase.updateStockSplit(split);
-		})
-	);
-};
-
-const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
-	const assessments = await assessmentsPromise;
-	await questradeSync;
-
-	const missingSymbolIds: IAssessment[] = [];
-	assessments.forEach((assessment) => {
-		if (!assessment.symbolId) {
-			missingSymbolIds.push(assessment);
-		}
-	});
-
-	await Promise.all(
-		missingSymbolIds.map(async (assessment) => {
-			const symbolId = await questrade.findSymbolId(assessment.symbol);
-			if (symbolId) {
-				assessment.symbolId = symbolId;
-				await firebase.setAssessment(assessment);
-			}
-		})
-	);
-	console.log('assessments Promise.all() finished'.magenta);
-
-	return assessments;
-})();
-
-const symbolIdsPromise = (async (): Promise<number[]> => {
-	const positions = await positionsPromise;
-	await questradeSync;
-	const trades = cloud.readTrades();
-	const assessments = await assessmentsFillPromise;
-	const orders = await ordersPromise;
-
-	let allSymbols = _.concat(
-		_(positions)
-			.map((q) => q.symbolId)
-			.value(),
-		_(trades)
-			.filter({ type: AssetType.stock })
-			.map((q) => q.symbolId)
-			.value(),
-		_(assessments)
-			.filter({ type: AssetType.stock })
-			.map((q) => q.symbolId)
-			.value(),
-		_(orders)
-			.map((q) => q.symbolId)
-			.value()
-	);
-
-	allSymbols = _(allSymbols)
-		.map(
-			(symbolId) =>
-				SYMBOL_ID_REPLACEMENTS.find((s) => s.original === symbolId)?.replacement ||
-				symbolId
-		)
-		.uniq()
-		.filter()
-		.value();
-
-	return allSymbols;
-})();
+const tradesPromise = getTrades();
+const dividendsPromise = getDividends();
+const ordersPromise = getOrders();
+const quotesPromise = Promise.all([
+	tradesPromise,
+	ordersPromise,
+]).then(([trades, orders]) => getQuotes(trades, orders));
+const positionsPromise = Promise.all([
+	tradesPromise,
+	quotesPromise,
+]).then(([trades, quotes]) => getPositions(trades, quotes));
+const companiesPromise = Promise.all([tradesPromise, ordersPromise]);
 
 const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	const positions = await positionsPromise;
 	const symbols = positions.map((p) => p.symbol);
 	return getEarningsDates(symbols);
-})();
-
-const quotesPromise = (async (): Promise<questrade.IQuestradeQuote[]> => {
-	const symbols = (await symbolIdsPromise).filter(
-		(q) => !INVALID_QUOTE_IDS.includes(q)
-	);
-
-	const quotes = await questrade.getQuotes(symbols);
-	return quotes;
 })();
 
 const companiesPromise = (async (): Promise<questrade.IQuestradeSymbol[]> => {
@@ -223,7 +101,7 @@ const hash = (content: string): string => {
 const getTodaysRate = async (): Promise<number> => {
 	await checkEnvExchangeRate();
 	const date = moment().format('YYYY-MM-DD');
-	let rate = await exchange.getTodaysRate();
+	let rate = await exchange.loadTodaysRate();
 	if (rate) {
 		return rate;
 	}
@@ -312,11 +190,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	);
 
 	questrade.init(configOptions.questrade.cryptSecret);
-	binance.init(
-		configOptions.binance.api,
-		configOptions.binance.apiKey,
-		configOptions.binance.secretKey
-	);
 
 	kraken.init(configOptions.kraken.key, configOptions.kraken.secret);
 

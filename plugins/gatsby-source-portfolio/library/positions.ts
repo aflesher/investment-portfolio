@@ -54,6 +54,7 @@ export const getPositions = (
 				openPnlCad: 0,
 				openPnlUsd: 0,
 				account: { ...t.account },
+				symbolId: t.symbolId,
 			};
 			positions.push(position);
 		}

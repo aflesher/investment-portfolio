@@ -1,6 +1,6 @@
 import { ITradeV2 } from '../../../declarations';
-import { getTrades as getKrakenTrades } from './kraken/kraken';
-import { getTrades as getQuestradeTrades } from './questrade/questrade';
+import { getTrades as getKrakenTrades } from './kraken';
+import { getTrades as getQuestradeTrades } from './questrade';
 
 export const getTrades = async (): Promise<ITradeV2[]> => {
 	const [krakenTrades, questradeTrades] = await Promise.all([

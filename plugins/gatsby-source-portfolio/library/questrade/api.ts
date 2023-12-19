@@ -256,7 +256,7 @@ export const getQuotes = async (
 	return quotes;
 };
 
-export interface IQuestradeSymbol {
+export interface IQuestradeCompany {
 	symbol: string;
 	symbolId: number;
 	currency: 'CAD' | 'USD';
@@ -272,9 +272,9 @@ export interface IQuestradeSymbol {
 	listingExchange;
 }
 
-export const getSymbols = async (
+export const getCompanies = async (
 	symbolIds: number[]
-): Promise<IQuestradeSymbol[]> => {
+): Promise<IQuestradeCompany[]> => {
 	await initDeferredPromise.promise;
 
 	const resp = await authRequest(`v1/symbols?ids=${symbolIds.join(',')}`);
@@ -282,7 +282,7 @@ export const getSymbols = async (
 		return [];
 	}
 
-	const symbols: IQuestradeSymbol[] = resp.data.symbols;
+	const symbols: IQuestradeCompany[] = resp.data.symbols;
 	symbols.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
 	return symbols;
@@ -370,7 +370,7 @@ export const findSymbolId = async (symbol: string): Promise<number> => {
 	if (!resp) {
 		return 0;
 	}
-	const symbols: IQuestradeSymbol[] = resp.data.symbols;
+	const symbols: IQuestradeCompany[] = resp.data.symbols;
 	const stock = _.first(symbols);
 	return (stock && stock.symbolId) || 0;
 };

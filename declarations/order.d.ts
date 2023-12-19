@@ -37,4 +37,5 @@ export interface IOrderV2 {
 	currency: Currency;
 	limitPriceUsd: number;
 	limitPriceCad: number;
+	symbolId?: number;
 }
