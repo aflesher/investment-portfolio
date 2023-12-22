@@ -1,9 +1,9 @@
-import { IPosition, IQuote, ITradeV2 } from '../../../declarations';
+import { IQuote, ITradeV2 } from '../../../declarations';
 import { IPositionV2 } from '../../../declarations/position';
 
 const DEBUG_POSITIONS: string[] = [];
 
-const debug = (trade: ITradeV2, position: IPosition) => {
+const debug = (trade: ITradeV2, position: IPositionV2) => {
 	if (!DEBUG_POSITIONS.includes(trade.symbol)) {
 		return;
 	}
@@ -17,7 +17,7 @@ const debug = (trade: ITradeV2, position: IPosition) => {
 export const getPositions = (
 	trades: ITradeV2[],
 	quotes: IQuote[]
-): IPosition[] => {
+): IPositionV2[] => {
 	const positions: IPositionV2[] = [];
 	trades.forEach((t) => {
 		let position = positions.find((p) => p.symbol === t.symbol);

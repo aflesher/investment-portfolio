@@ -18,6 +18,7 @@ import {
 import moment from 'moment-timezone';
 import { deferredPromise } from 'library/util';
 import * as firebase from 'library/firebase';
+export { init } from './api';
 
 const initDeferredPromise = deferredPromise();
 

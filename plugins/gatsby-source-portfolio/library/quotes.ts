@@ -1,5 +1,8 @@
 import { getQuotes as getStockQuotes } from './questrade';
-import { getQuotes as getCryptoQuotes } from './coinmarketcap';
+import {
+	getQuotes as getCryptoQuotes,
+	setSymbols as setCryptoSymbols,
+} from './coinmarketcap';
 import { IOrderV2, IQuote, ITradeV2 } from '../../../declarations';
 
 export const getQuotes = async (
@@ -27,7 +30,8 @@ export const getQuotes = async (
 		.sort()
 		.filter((s, i, a) => !i || s !== a[i - 1]);
 
-	const cryptoQuotes = await getCryptoQuotes(cryptoSymbols);
+	setCryptoSymbols(cryptoSymbols);
+	const cryptoQuotes = await getCryptoQuotes();
 	const stockQuotes = await getStockQuotes(stockSymbolIds);
 
 	return [...cryptoQuotes, ...stockQuotes];

@@ -33,6 +33,7 @@ import { getDividends } from 'library/dividends';
 import { getQuotes } from 'library/quotes';
 import { getOrders } from 'library/orders';
 import { getPositions } from 'library/positions';
+import { getCompanies } from 'library/companies';
 
 const assessmentsPromise = firebase.getAssessments();
 const tradesPromise = getTrades();
@@ -46,7 +47,9 @@ const positionsPromise = Promise.all([
 	tradesPromise,
 	quotesPromise,
 ]).then(([trades, quotes]) => getPositions(trades, quotes));
-const companiesPromise = Promise.all([tradesPromise, ordersPromise]);
+
+// TODO, also need assessments
+const companiesPromise = quotesPromise.then((quotes) => getCompanies(quotes));
 
 const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	const positions = await positionsPromise;
@@ -54,69 +57,16 @@ const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	return getEarningsDates(symbols);
 })();
 
-const companiesPromise = (async (): Promise<questrade.IQuestradeSymbol[]> => {
-	const symbols = await symbolIdsPromise;
-
-	const companies = await questrade.getSymbols(symbols);
-	return companies;
-})();
-
-const cryptoSlugsPromise = (async (): Promise<string[]> => {
-	const positions = await cryptoPositionsPromise;
-	const assessments = await assessmentsFillPromise;
-	const trades = await cryptoTradesPromise;
-	const orders = await binanceOrdersPromise;
-
-	const allSlugs: string[] = _.concat(
-		positions.map(({ symbol }) => coinmarketcap.symbolToSlug(symbol)),
-		assessments
-			.filter(({ type }) => type === AssetType.crypto)
-			.map(({ symbol }) => coinmarketcap.symbolToSlug(symbol)),
-		trades.map(({ symbol }) => coinmarketcap.symbolToSlug(symbol)),
-		orders.map(({ symbol }) =>
-			coinmarketcap.symbolToSlug(symbol.replace('USDT', '').toLocaleLowerCase())
-		)
-	);
-
-	return _.uniq(allSlugs.filter((q) => !!q));
-})();
-
-const cryptoQuotesPromise = (async (): Promise<
-	coinmarketcap.ICoinMarketCapQuote[]
-> => {
-	const slugs = await cryptoSlugsPromise;
-
-	return await coinmarketcap.quote(slugs);
-})();
-
 const crypto52WeeksPromise = (async (): Promise<ICrypto52Weeks[]> => {
-	const positions = await cryptoPositionsPromise;
-	return await getCrypto52Weeks(positions.map((q) => q.symbol));
+	const positions = await positionsPromise;
+	return await getCrypto52Weeks(
+		positions.filter((q) => q.type === AssetType.crypto).map((q) => q.symbol)
+	);
 })();
 
 const hash = (content: string): string => {
 	return crypto.createHash('md5').update(content).digest('hex');
 };
-
-const getTodaysRate = async (): Promise<number> => {
-	await checkEnvExchangeRate();
-	const date = moment().format('YYYY-MM-DD');
-	let rate = await exchange.loadTodaysRate();
-	if (rate) {
-		return rate;
-	}
-
-	const rates = await ratesPromise;
-	rate = _.find(rates, (r) => r.date === date)?.rate || null;
-	if (rate) {
-		return rate;
-	}
-
-	return 1;
-};
-
-const isUsd = (symbol: string): boolean =>
-	symbol.indexOf('.') === -1 || symbol.indexOf('.u.') !== -1;
 
 exports.createSchemaCustomization = ({ actions }) => {
 	const { createTypes } = actions;
@@ -188,51 +138,25 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		configOptions.coinmarketcap.api,
 		configOptions.coinmarketcap.apiKey
 	);
-
 	questrade.init(configOptions.questrade.cryptSecret);
-
 	kraken.init(configOptions.kraken.key, configOptions.kraken.secret);
 
-	const getExchange = getTodaysRate();
 	const getNotes = firebase.getNotes();
 	const getReviewsPromise = firebase.getReviews();
 
 	const positions = await positionsPromise;
 	const positionNodeIdsMap = {};
 	_.forEach(positions, (position) => {
-		position.symbol = replaceSymbol(position.symbol);
 		positionNodeIdsMap[position.symbol] = getPositionNodeId(position.symbol);
 	});
 
-	const cryptoPositions = await cryptoPositionsPromise;
-	_.forEach(cryptoPositions, (position) => {
-		positionNodeIdsMap[position.symbol] = getPositionNodeId(position.symbol);
-	});
-
-	await questradeSync;
-	const trades = cloud.readTrades();
+	const trades = await tradesPromise;
 	const tradeNodeIdsMap = {};
 	_.forEach(trades, (trade, index) => {
-		trade.symbol = replaceSymbol(trade.symbol);
 		const nodeId = getTradeNodeId(trade.symbol, index);
 		tradeNodeIdsMap[trade.symbol] = tradeNodeIdsMap[trade.symbol] || [];
 		tradeNodeIdsMap[trade.symbol].push(nodeId);
 	});
-
-	const cryptoTrades = await cryptoTradesPromise;
-	_.forEach(cryptoTrades, (trade, index) => {
-		const nodeId = getTradeNodeId(trade.symbol, index);
-		tradeNodeIdsMap[trade.symbol] = tradeNodeIdsMap[trade.symbol] || [];
-		tradeNodeIdsMap[trade.symbol].push(nodeId);
-	});
-
-	// const krakenTrades = await krakenTradesPromise;
-	// _.forEach(krakenTrades, (trade, index) => {
-	// 	const { symbol } = kraken.getCurrencyAndSymbolFromPair(trade.pair || '');
-	// 	const nodeId = getTradeNodeId(symbol, index + cryptoTrades.length);
-	// 	tradeNodeIdsMap[symbol] = tradeNodeIdsMap[symbol] || [];
-	// 	tradeNodeIdsMap[symbol].push(nodeId);
-	// });
 
 	const assessments = await assessmentsPromise;
 	const assessmentNodeIdsMap = {};
@@ -248,7 +172,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		earningsDatesNodeIdsMap[symbol] = getEarningsDateNodeId(symbol);
 	});
 
-	const dividends = cloud.readDividends();
+	const dividends = await dividendsPromise;
 	const dividendNodeIdsMap = {};
 	_.forEach(dividends, (dividend, index) => {
 		const nodeId = getDividendNodeId(dividend.symbol, index);
@@ -260,19 +184,12 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const quotes = await quotesPromise;
 	const quoteNodeIdsMap = {};
 	_.forEach(quotes, (quote) => {
-		quote.symbol = replaceSymbol(quote.symbol);
-		quoteNodeIdsMap[quote.symbol] = getQuoteNodeId(quote.symbol);
-	});
-
-	const cryptoQuotes = await cryptoQuotesPromise;
-	_.forEach(cryptoQuotes, (quote) => {
 		quoteNodeIdsMap[quote.symbol] = getQuoteNodeId(quote.symbol);
 	});
 
 	const companies = await companiesPromise;
 	const companyNodeIdsMap = {};
 	_.forEach(companies, (company) => {
-		company.symbol = replaceSymbol(company.symbol);
 		companyNodeIdsMap[company.symbol] = getCompanyNodeId(company.symbol);
 	});
 
@@ -282,22 +199,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const nodeId = getOrderNodeId(order.symbol, index);
 		orderNodeIdsMap[order.symbol] = orderNodeIdsMap[order.symbol] || [];
 		orderNodeIdsMap[order.symbol].push(nodeId);
-	});
-
-	const binanceOrders = await binanceOrdersPromise;
-	_.forEach(binanceOrders, (order, index) => {
-		const symbol = order.symbol.replace('USDT', '').toLocaleLowerCase();
-		const nodeId = getOrderNodeId(symbol, index + orders.length);
-		orderNodeIdsMap[symbol] = orderNodeIdsMap[symbol] || [];
-		orderNodeIdsMap[symbol].push(nodeId);
-	});
-
-	const krakenOrders = await krakenOrdersPromise;
-	_.forEach(krakenOrders, (order, index) => {
-		const { symbol } = kraken.getCurrencyAndSymbolFromPair(order.pair || '');
-		const nodeId = getOrderNodeId(symbol, index + orders.length);
-		orderNodeIdsMap[symbol] = orderNodeIdsMap[symbol] || [];
-		orderNodeIdsMap[symbol].push(nodeId);
 	});
 
 	// use crypto quotes to build company list
