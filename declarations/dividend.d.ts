@@ -1,6 +1,6 @@
 import { Currency } from '../src/utils/enum';
 import { ICompany } from './company';
-import { IPosition } from './position';
+import { IPosition, IPositionV2 } from './position';
 import { IQuote } from './quote';
 import { IAssessment } from './assessment';
 import { IAccount } from './account';
@@ -28,7 +28,7 @@ export interface IDividendV2 {
 	amountUsd: number;
 	amountCad: number;
 	company?: ICompany;
-	position?: IPosition;
+	position?: IPositionV2;
 	quote?: IQuote;
 	assessment?: IAssessment;
 	symbolId?: number;

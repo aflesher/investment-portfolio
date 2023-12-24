@@ -8,11 +8,3 @@ export interface ICash {
 	amountCad: number;
 	amountUsd: number;
 }
-
-export interface ICashV2 {
-	currency: Currency;
-	amount: number;
-	amountCad: number;
-	amountUsd: number;
-	account: IAccount;
-}

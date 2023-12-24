@@ -18,6 +18,8 @@ import {
 import moment from 'moment-timezone';
 import { deferredPromise } from 'library/util';
 import * as firebase from 'library/firebase';
+import { Currency } from '../../../../src/utils/enum';
+import { IAccount } from '../../../../declarations/account';
 export { init } from './api';
 
 const initDeferredPromise = deferredPromise();
@@ -92,4 +94,33 @@ export const getCompanies = async (
 			hisaStocks.map((s) => s.symbol)
 		)
 	);
+};
+
+export const getAccounts = async (): Promise<IAccount[]> => {
+	const [accounts, balances, usdToCadRate] = await Promise.all([
+		api.getAccounts(),
+		api.getCash(),
+		getTodaysRate(),
+	]);
+	const cadToUsdRate = 1 / usdToCadRate;
+	balances.forEach((balance) => {
+		const account = accounts.find(
+			(a) => Number(a.accountId) === balance.accountId
+		);
+		if (!account) {
+			console.error('account not found', balance.accountId);
+			return;
+		}
+
+		const usdRate = balance.currency === Currency.cad ? 1 : cadToUsdRate;
+		const cadRate = balance.currency === Currency.usd ? 1 : usdToCadRate;
+		account.balances.push({
+			currency: balance.currency,
+			amount: balance.amount,
+			amountUsd: balance.amount * usdRate,
+			amountCad: balance.amount * cadRate,
+		});
+	});
+
+	return accounts;
 };

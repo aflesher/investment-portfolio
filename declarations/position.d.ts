@@ -62,6 +62,9 @@ export interface IPositionV2 {
 	openPnlUsd: number;
 	openPnlCad: number;
 	openingTrade?: ITradeV2;
-	account: IAccount;
+	accounts: {
+		account: IAccount;
+		quantity: number;
+	}[];
 	symbolId?: number;
 }

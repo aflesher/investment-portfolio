@@ -25,8 +25,6 @@ const initDeferredPromise = util.deferredPromise();
 // use this to replace refresh token
 const overrideLoginToken = ''; // 'Xe43mfqe5YDXwLuAliYDv2WF84juOMl60';
 
-const filteredPositions = ['ele.vn', 'trst.to'];
-
 export interface IQuestradeOrder {
 	id: number;
 	symbol: string;
@@ -44,25 +42,28 @@ export interface IQuestradeOrder {
 
 export const getAccounts = (): IAccount[] => [
 	{
-		id: '26418215',
+		accountId: '26418215',
 		name: 'questrade-margin',
 		type: 'margin',
 		isTaxable: true,
 		displayName: 'Questrade Margin',
+		balances: [],
 	},
 	{
-		id: '51443858',
+		accountId: '51443858',
 		name: 'questrade-tfsa',
 		type: 'tfsa',
 		isTaxable: false,
 		displayName: 'Questrade TFSA',
+		balances: [],
 	},
 	{
-		id: '51637118',
+		accountId: '51637118',
 		name: 'questrade-rrsp',
 		type: 'rrsp',
 		isTaxable: false,
 		displayName: 'Questrade RRSP',
+		balances: [],
 	},
 ];
 
@@ -190,7 +191,7 @@ export const getActivities = async (): Promise<{
 	// console.log('times', startTime, endTime);
 	const accounts = getAccounts();
 
-	const accountIds = accounts.map(({ id }) => id);
+	const accountIds = accounts.map(({ accountId: id }) => id);
 	const resps = await Promise.all(
 		accountIds.map(
 			async (accountId) =>
@@ -294,35 +295,6 @@ interface IBalance {
 	combined: boolean;
 }
 
-export const getBalances = async (): Promise<IBalance[]> => {
-	const accountIds = getAccounts().map(({ id }) => id);
-	const resps = await Promise.all(
-		accountIds.map(
-			async (accountId) =>
-				await authRequest(`${accountsRoute}/${accountId}/balances`)
-		)
-	);
-
-	const datas = _.map(resps, 'data');
-	const balancesPerCurrency = _(datas)
-		.map('perCurrencyBalances')
-		.flatten()
-		.value();
-
-	const cad = {
-		currency: Currency.cad,
-		cash: _(balancesPerCurrency).filter({ currency: 'CAD' }).sumBy('cash'),
-		combined: false,
-	};
-	const usd = {
-		currency: Currency.usd,
-		cash: _(balancesPerCurrency).filter({ currency: 'USD' }).sumBy('cash'),
-		combined: false,
-	};
-
-	return [cad, usd];
-};
-
 export interface ICashQuestrade
 	extends Omit<ICash, 'amountCad' | 'amountUsd'> {}
 
@@ -352,12 +324,13 @@ const getCashForAccount = async (accountId): Promise<ICashQuestrade[]> => {
 		currency: currency === 'USD' ? Currency.usd : Currency.cad,
 		amount: cash,
 		accountId: Number(accountId),
-		accountName: accounts.find(({ id }) => id === accountId)?.name || '',
+		accountName:
+			accounts.find(({ accountId: id }) => id === accountId)?.name || '',
 	}));
 };
 
 export const getCash = async (): Promise<ICashQuestrade[]> => {
-	const accountIds = getAccounts().map(({ id }) => id);
+	const accountIds = getAccounts().map(({ accountId: id }) => id);
 	const cash = await Promise.all(
 		accountIds.map((accountId) => getCashForAccount(accountId))
 	);
@@ -397,7 +370,7 @@ const getActiveOrdersForMonth = async (
 	await initDeferredPromise.promise;
 	const accounts = getAccounts();
 
-	const accountIds = accounts.map(({ id }) => id);
+	const accountIds = accounts.map(({ accountId: id }) => id);
 	const resps = await Promise.all(
 		accountIds.map(
 			async (accountId) =>

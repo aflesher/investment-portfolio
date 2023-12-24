@@ -4,7 +4,7 @@ import { AssetType, Currency } from '../../../../src/utils/enum';
 import { KrakenOpenOrder, KrakenTrade } from './api';
 
 const account: IAccount = {
-	id: 'kraken',
+	accountId: 'kraken',
 	name: 'kraken',
 	displayName: 'Kraken',
 	type: 'crypto',

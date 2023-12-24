@@ -1,5 +1,12 @@
+export interface IBalance {
+	currency: Currency;
+	amount: number;
+	amountCad: number;
+	amountUsd: number;
+}
+
 export interface IAccount {
-	id: string;
+	accountId: string;
 	name: string;
 	isTaxable: boolean;
 	type:
@@ -12,4 +19,5 @@ export interface IAccount {
 		| 'crypto'
 		| 'non-registered';
 	displayName: string;
+	balances: IBalance[];
 }

@@ -31,7 +31,7 @@ export const mapTrade = (
 	trade.pnl = trade.pnl || 0;
 
 	const account = getAccounts().find(
-		({ id }) => id === trade.accountId.toString()
+		({ accountId: id }) => id === trade.accountId.toString()
 	);
 	if (!account) {
 		console.error('account not found', trade.accountId);
@@ -68,7 +68,7 @@ export const mapOrder = (
 	const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
 
 	const account = getAccounts().find(
-		({ id }) => id === order.accountId.toString()
+		({ accountId: id }) => id === order.accountId.toString()
 	);
 	if (!account) {
 		console.error('account not found', order.accountId);
@@ -142,7 +142,7 @@ export const mapDividend = (
 	usdToCadRate: number
 ): IDividendV2 => {
 	const account = getAccounts().find(
-		({ id }) => id === dividend.accountId.toString()
+		({ accountId: id }) => id === dividend.accountId.toString()
 	);
 	if (!account) {
 		console.error('account not found', dividend.accountId);

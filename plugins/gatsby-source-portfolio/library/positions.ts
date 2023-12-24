@@ -53,7 +53,7 @@ export const getPositions = (
 				openPnl: 0,
 				openPnlCad: 0,
 				openPnlUsd: 0,
-				account: { ...t.account },
+				accounts: [{ account: { ...t.account }, quantity: 0 }], // wrong, this can multiple accounts
 				symbolId: t.symbolId,
 			};
 			positions.push(position);

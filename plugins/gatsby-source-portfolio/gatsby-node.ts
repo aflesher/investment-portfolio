@@ -17,32 +17,35 @@ import {
 	IReview,
 	IPositionV2,
 	ITradeV2,
-	IDividend,
 	ICompany,
 	IEarningsDate,
-	ICash,
 	IStockSplit,
 	IExchangeRate,
-	ICryptoPosition,
+	IDividendV2,
 } from '../../declarations';
-import { AssetType, Currency } from '../../src/utils/enum';
 import { getEarningsDates } from './library/earnings-calendar';
-import { ICrypto52Weeks, getCrypto52Weeks } from './library/crypto';
 import { getTrades } from 'library/trades';
 import { getDividends } from 'library/dividends';
 import { getQuotes } from 'library/quotes';
 import { getOrders } from 'library/orders';
 import { getPositions } from 'library/positions';
 import { getCompanies } from 'library/companies';
+import { IAccount } from '../../declarations/account';
+import { getAccounts } from 'library/accounts';
 
 const assessmentsPromise = firebase.getAssessments();
+const stockSplitsPromise = firebase.getStockSplits();
 const tradesPromise = getTrades();
 const dividendsPromise = getDividends();
 const ordersPromise = getOrders();
+const accountsPromise = getAccounts();
 const quotesPromise = Promise.all([
 	tradesPromise,
 	ordersPromise,
-]).then(([trades, orders]) => getQuotes(trades, orders));
+	assessmentsPromise,
+]).then(([trades, orders, assessments]) =>
+	getQuotes(trades, orders, assessments)
+);
 const positionsPromise = Promise.all([
 	tradesPromise,
 	quotesPromise,
@@ -55,13 +58,6 @@ const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	const positions = await positionsPromise;
 	const symbols = positions.map((p) => p.symbol);
 	return getEarningsDates(symbols);
-})();
-
-const crypto52WeeksPromise = (async (): Promise<ICrypto52Weeks[]> => {
-	const positions = await positionsPromise;
-	return await getCrypto52Weeks(
-		positions.filter((q) => q.type === AssetType.crypto).map((q) => q.symbol)
-	);
 })();
 
 const hash = (content: string): string => {
@@ -121,8 +117,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return createNodeId(hash(`earningsDate${symbol}`));
 	};
 
-	const getCashNodeId = (accountName: string, currency: Currency): string => {
-		return createNodeId(hash(`cash${accountName}${currency}`));
+	const getAccountNodeId = (accountName: string): string => {
+		return createNodeId(hash(`cash${accountName}`));
 	};
 
 	const getStockSplitNodeId = (symbol: string, index: number): string => {
@@ -201,11 +197,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		orderNodeIdsMap[order.symbol].push(nodeId);
 	});
 
-	// use crypto quotes to build company list
-	_.forEach(cryptoQuotes, (quote) => {
-		companyNodeIdsMap[quote.symbol] = getCompanyNodeId(quote.symbol);
-	});
-
 	interface INode {
 		id?: string;
 		parent?: null;
@@ -222,24 +213,14 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	}
 
 	const getAssessmentNodes = async (): Promise<IAssessmentNode[]> => {
-		const assessments = await assessmentsFillPromise;
+		const assessments = await assessmentsPromise;
 		const quotes = await quotesPromise;
-		const cryptoQuotes = await cryptoQuotesPromise;
 		const positions = await positionsPromise;
-		const cryptoPositions = await cryptoPositionsPromise;
 
 		const assessmentNodes = _.map(assessments, (assessment) => {
-			const price =
-				assessment.type === AssetType.stock
-					? _.find(quotes, (q) => q.symbol === assessment.symbol)
-							?.lastTradePriceTrHrs
-					: _.find(cryptoQuotes, (q) => q.symbol === assessment.symbol)?.price;
-
-			const totalCost =
-				assessment.type === AssetType.stock
-					? _.find(positions, (q) => q.symbol === assessment.symbol)?.totalCost
-					: _.find(cryptoPositions, (q) => q.symbol === assessment.symbol)
-							?.totalCostCad;
+			const price = quotes.find((q) => q.symbol === assessment.symbol)?.price;
+			const totalCost = positions.find((q) => q.symbol === assessment.symbol)
+				?.totalCost;
 
 			const assessmentNode: IAssessmentNode = {
 				...assessment,
@@ -276,128 +257,18 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return assessmentNodes;
 	};
 
-	interface IOrderNode extends IOrder, INode {
+	interface IOrderNode extends IOrderV2, INode {
 		trades___NODE: string;
 		dividends___NODE: string;
 		company___NODE: string;
 		quote___NODE: string;
 		position___NODE: string;
 		assessment___NODE: string;
+		account___NODE: string;
 	}
 
-	const mapBinanceOrders = async (
-		binanceOrders: binance.IBinanceOrder[]
-	): Promise<IOrder[]> => {
-		const usdToCadRate = await getExchange;
-
-		const orders: IOrder[] = binanceOrders.map((order) => ({
-			symbol: order.symbol.replace('USDT', '').toLocaleLowerCase(),
-			limitPrice: Number(order.price),
-			limitPriceCad: Number(order.price) * Number(usdToCadRate),
-			limitPriceUsd: Number(order.price),
-			openQuantity: Number(order.origQty) - Number(order.executedQty),
-			filledQuantity: Number(order.executedQty),
-			totalQuantity: Number(order.origQty),
-			stopPrice: Number(order.stopPrice),
-			avgExecPrice: 0,
-			side: order.side,
-			accountId: 0,
-			action: order.side === 'BUY' ? 'buy' : 'sell',
-			type: order.type,
-			currency: Currency.usd,
-			orderType: order.type,
-			accountName: 'binance',
-		}));
-		return orders;
-	};
-
-	const mapQuestradeOrders = async (
-		questradeOrders: questrade.IQuestradeOrder[]
-	): Promise<IOrder[]> => {
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
-
-		const orders: IOrder[] = questradeOrders.map((order) => {
-			const currency: Currency = isUsd(order.symbol) ? Currency.usd : Currency.cad;
-			const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
-			const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
-			return {
-				symbol: order.symbol,
-				limitPrice: order.limitPrice,
-				limitPriceUsd: order.limitPrice * usdRate,
-				limitPriceCad: order.limitPrice * cadRate,
-				openQuantity: order.openQuantity,
-				filledQuantity: order.filledQuantity,
-				totalQuantity: order.totalQuantity,
-				orderType: order.orderType,
-				stopPrice: order.stopPrice,
-				avgExecPrice: order.avgExecPrice,
-				side: order.side,
-				accountId: Number(order.accountId),
-				action: [
-					questrade.QuestradeOrderSide.Buy,
-					questrade.QuestradeOrderSide.BTO,
-				].includes(order.side)
-					? 'buy'
-					: 'sell',
-				type: order.orderType,
-				accountName: questrade.getAccountName(order.accountId),
-				currency,
-			};
-		});
-		return orders;
-	};
-
-	const mapKrakenOrders = async (
-		krakenOrders: kraken.KrakenOpenOrder[]
-	): Promise<IOrder[]> => {
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
-
-		const orders: IOrder[] = krakenOrders.map((order) => {
-			const currency: Currency = order.pair?.match(/usd/gi)
-				? Currency.usd
-				: Currency.cad;
-			const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
-			const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
-			return {
-				symbol:
-					order.pair?.toLocaleLowerCase().replace('usd', '').replace('cad', '') ||
-					'',
-				limitPrice: Number(order.price),
-				limitPriceUsd: Number(order.price) * usdRate,
-				limitPriceCad: Number(order.price) * cadRate,
-				openQuantity: Number(order.vol),
-				filledQuantity: 0,
-				totalQuantity: Number(order.vol),
-				orderType: order.ordertype || 'buy',
-				stopPrice: 0,
-				avgExecPrice: 0,
-				side: order.type || 'buy',
-				accountId: 0,
-				action: order.type === 'buy' ? 'buy' : 'sell',
-				type: order.ordertype || 'buy',
-				accountName: 'kraken',
-				currency,
-			};
-		});
-		return orders;
-	};
-
 	const getOrderNodes = async (): Promise<IOrderNode[]> => {
-		const questradeOrders = await ordersPromise;
-		const binanceOrders = await binanceOrdersPromise;
-		const krakenOrders = await krakenOrdersPromise;
-
-		const mappedQuestradeOrders = await mapQuestradeOrders(questradeOrders);
-		const mappedBinanceOrders = await mapBinanceOrders(binanceOrders);
-		const mappedKrakenOrders = await mapKrakenOrders(krakenOrders);
-
-		const orders = _.concat(
-			mappedQuestradeOrders,
-			mappedBinanceOrders,
-			mappedKrakenOrders
-		);
+		const orders = await ordersPromise;
 
 		const orderNodes = _.map(orders, (order, index) => {
 			const orderNode: IOrderNode = {
@@ -408,6 +279,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				quote___NODE: quoteNodeIdsMap[order.symbol] || null,
 				position___NODE: positionNodeIdsMap[order.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[order.symbol] || null,
+				account___NODE: getAccountNodeId(order.account.name),
 			};
 
 			const content = JSON.stringify(orderNode);
@@ -486,7 +358,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return reviewNodes;
 	};
 
-	interface IPositionNode extends INode, IPosition {
+	interface IPositionNode extends INode, IPositionV2 {
 		trades___NODE: string;
 		dividends___NODE: string;
 		company___NODE: string;
@@ -495,124 +367,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		earnings___NODE: string;
 	}
 
-	const overridePosition = (
-		position: questrade.IQuestradePosition,
-		trades: cloud.ICloudTrade[]
-	) => {
-		let totalCost = 0;
-		let averageEntryPrice = 0;
-		let quantity = 0;
-		console.log(`[override ${position.symbol.toLowerCase()} position]`.yellow);
-		trades
-			.filter((q) => q.symbol === position.symbol)
-			.forEach((trade) => {
-				if (trade.action === 'buy') {
-					totalCost += trade.price * trade.quantity;
-					quantity += trade.quantity;
-					averageEntryPrice = totalCost / quantity;
-					//console.log('buy', totalCost, quantity, averageEntryPrice);
-				} else {
-					totalCost -= trade.quantity * averageEntryPrice;
-					quantity -= trade.quantity;
-					//console.log('sell', totalCost, quantity, averageEntryPrice);
-				}
-			});
-
-		position.totalCost = totalCost;
-		position.averageEntryPrice = averageEntryPrice;
-		position.openPnl = position.currentMarketValue - position.totalCost;
-	};
-
-	const mapQuestradePositionToPosition = (
-		position: questrade.IQuestradePosition,
-		usdToCadRate: number,
-		cadToUsdRate: number,
-		trades: cloud.ICloudTrade[]
-	): IPosition => {
-		const currency: Currency = isUsd(position.symbol)
-			? Currency.usd
-			: Currency.cad;
-		const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
-		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
-
-		if (SYMBOLS_TO_VIEW_IDS.includes(position.symbol)) {
-			console.log(`${position.symbol} : ${position.symbolId}`);
-		}
-
-		if (OVERRIDE_POSITIONS.includes(position.symbol)) {
-			overridePosition(position, trades);
-		}
-
-		return {
-			symbol: position.symbol,
-			currency,
-			currentMarketValue: position.currentMarketValue,
-			totalCost: position.totalCost,
-			totalCostUsd: position.totalCost * usdRate,
-			totalCostCad: position.totalCost * cadRate,
-			currentMarketValueCad: position.currentMarketValue * cadRate,
-			currentMarketValueUsd: position.currentMarketValue * usdRate,
-			quantity: position.openQuantity,
-			averageEntryPrice: position.averageEntryPrice,
-			type: AssetType.stock,
-			openPnl: position.openPnl,
-			openPnlCad: position.openPnl * cadRate,
-			openPnlUsd: position.openPnl * usdRate,
-		};
-	};
-
-	const mapCryptoPositionToPosition = (
-		position: ICryptoPosition,
-		usdToCadRate: number,
-		cadToUsdRate: number,
-		cryptoQuotes: coinmarketcap.ICoinMarketCapQuote[]
-	): IPosition => {
-		// quote in usd, position in cad
-		const quote = _.find(cryptoQuotes, { symbol: position.symbol });
-		const price = quote?.price || 0;
-		const { totalCostUsd, totalCostCad } = position;
-		const currentMarketValueUsd = price * position.quantity;
-		const currentMarketValueCad = currentMarketValueUsd * usdToCadRate;
-		const openPnlUsd = currentMarketValueUsd - totalCostUsd;
-		const openPnlCad = currentMarketValueCad - totalCostCad;
-
-		return {
-			symbol: position.symbol,
-			currency: position.currency,
-			currentMarketValue: currentMarketValueUsd,
-			totalCost: totalCostUsd,
-			totalCostUsd: totalCostUsd,
-			totalCostCad: totalCostCad,
-			currentMarketValueCad,
-			currentMarketValueUsd,
-			quantity: position.quantity,
-			averageEntryPrice: position.averageEntryPrice,
-			type: AssetType.crypto,
-			openPnl: openPnlUsd,
-			openPnlCad,
-			openPnlUsd,
-		};
-	};
-
 	const getPositionsNodes = async (): Promise<IPositionNode[]> => {
-		const stockPositions = await positionsPromise;
-		const cryptoPositions = await cryptoPositionsPromise;
-		const cryptoQuotes = await cryptoQuotesPromise;
-		const usdToCadRate = await getExchange;
-		const stockTrades = cloud.readTrades();
-		const cadToUsdRate = 1 / usdToCadRate;
-
-		const positions: IPosition[] = _.concat(
-			_(stockPositions)
-				.filter((q) => !FILTER_SYMBOLS.includes(q.symbol))
-				.map((p) =>
-					mapQuestradePositionToPosition(p, usdToCadRate, cadToUsdRate, stockTrades)
-				)
-				.value(),
-			_.map(cryptoPositions, (p) =>
-				mapCryptoPositionToPosition(p, usdToCadRate, cadToUsdRate, cryptoQuotes)
-			)
-		);
+		const positions = await positionsPromise;
 
 		return positions.map((position) => {
 			const positionNode: IPositionNode = {
@@ -641,7 +397,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
-	interface ITradeNode extends INode, ITrade {
+	interface ITradeNode extends INode, ITradeV2 {
 		position___NODE: string;
 		company___NODE: string;
 		quote___NODE: string;
@@ -649,144 +405,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		exchange___NODE: string;
 	}
 
-	const mapQuestradeTradesToTrades = (
-		trade: cloud.ICloudTrade,
-		cadToUsdRate: number,
-		usdToCadRate: number
-	): ITrade => {
-		const currency: Currency =
-			trade.currency === 'usd' ? Currency.usd : Currency.cad;
-		const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
-		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
-
-		if (SYMBOLS_TO_VIEW_IDS.includes(trade.symbol)) {
-			console.log(`${trade.symbol} : ${trade.symbolId}`);
-		}
-
-		trade.pnl = trade.pnl || 0;
-
-		return {
-			isSell: trade.action === 'sell',
-			symbol: trade.symbol,
-			accountId: Number(trade.accountId),
-			priceCad: trade.price * cadRate,
-			priceUsd: trade.price * usdRate,
-			timestamp: new Date(trade.date).getTime(),
-			pnl: trade.pnl,
-			pnlCad: trade.pnl * cadRate,
-			pnlUsd: trade.pnl * usdRate,
-			currency,
-			price: trade.price,
-			quantity: trade.quantity,
-			action: trade.action,
-			type: AssetType.stock,
-			isOpeningPositionTrade: false,
-			taxable: trade.accountId === MARGIN_ACCOUNT_ID,
-			accountName: questrade.getAccountName(trade.accountId),
-		};
-	};
-
-	const mapCryptoTradeToTrade = (
-		trade: firebase.ICryptoTrade,
-		cadRate: number
-	): ITrade => ({
-		isSell: trade.isSell,
-		symbol: trade.symbol,
-		accountId: 0,
-		priceCad: trade.price,
-		priceUsd: trade.price * cadRate,
-		timestamp: trade.timestamp,
-		pnl: trade.pnl,
-		pnlCad: trade.pnl,
-		pnlUsd: trade.pnl * cadRate,
-		currency: Currency.cad,
-		price: trade.price,
-		quantity: trade.quantity,
-		action: trade.isSell ? 'sell' : 'buy',
-		type: AssetType.crypto,
-		isOpeningPositionTrade: false,
-		taxable: true,
-		accountName: 'binance',
-	});
-
-	const mapKrakenTradesToTrade = (
-		trade: kraken.KrakenTrade,
-		usdToCadRate: number
-	): ITrade => {
-		const { symbol, currency } = kraken.getCurrencyAndSymbolFromPair(
-			trade.pair || ''
-		);
-		const price = Number(trade.price);
-		const cadToUsdRate = 1 / usdToCadRate;
-		const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
-		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
-		const quantity = Number(trade.vol);
-		const timestamp = Number(trade.time) * 1000;
-		return {
-			isSell: trade.type === 'sell',
-			symbol,
-			accountId: 0,
-			priceCad: price * cadRate,
-			priceUsd: price * usdRate,
-			timestamp,
-			pnl: 0,
-			pnlCad: 0,
-			pnlUsd: 0,
-			currency,
-			price,
-			quantity,
-			action: trade.type === 'buy' ? 'buy' : 'sell',
-			type: AssetType.crypto,
-			isOpeningPositionTrade: false,
-			taxable: true,
-			accountName: 'kraken',
-		};
-	};
-
-	const setOpeningTrade = (trades: ITrade[]): void => {
-		let quantity = 0;
-		let openingTrade: ITrade | null = null;
-		const orderedTrades = _.orderBy(trades, (t) => t.timestamp, 'asc');
-		_.forEach(orderedTrades, (trade) => {
-			if (!quantity) {
-				openingTrade = trade;
-			}
-			const action = trade.action == 'sell' ? -1 : 1;
-			quantity += trade.quantity * action;
-			quantity = Math.max(quantity, 0);
-		});
-
-		if (!openingTrade) {
-			return;
-		}
-
-		(openingTrade as ITrade).isOpeningPositionTrade = true;
-	};
-
 	const getTradeNodes = async (): Promise<ITradeNode[]> => {
-		await questradeSync;
-
-		const cryptoTrades = await cryptoTradesPromise;
-		const krakenTrades = await krakenTradesPromise;
-		const cloudTrades = cloud.readTrades();
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
-
-		console.log(
-			krakenTrades.map((trade) => mapKrakenTradesToTrade(trade, usdToCadRate))
-		);
-
-		const trades = _.concat(
-			_.map(cloudTrades, (t) =>
-				mapQuestradeTradesToTrades(t, cadToUsdRate, usdToCadRate)
-			),
-			_.map(cryptoTrades, (t) => mapCryptoTradeToTrade(t, cadToUsdRate))
-		);
-
-		const groupedTradesDictionary = _.groupBy(trades, (t) => t.symbol);
-		_.forEach(groupedTradesDictionary, (groupedTrades) => {
-			setOpeningTrade(groupedTrades);
-		});
+		const trades = await tradesPromise;
 
 		let cryptoIndex = 0;
 		return trades.map((trade, index) => {
@@ -823,7 +443,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
-	interface IDividendNode extends INode, IDividend {
+	interface IDividendNode extends INode, IDividendV2 {
 		position___NODE: string;
 		company___NODE: string;
 		quote___NODE: string;
@@ -831,28 +451,15 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	}
 
 	const getDividendNodes = async (): Promise<IDividendNode[]> => {
-		await questradeSync;
-
-		const dividends = cloud.readDividends();
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
+		const dividends = await dividendsPromise;
 
 		return dividends.map((dividend, index) => {
-			const usdRate = dividend.currency === 'usd' ? 1 : cadToUsdRate;
-			const cadRate = dividend.currency === 'cad' ? 1 : usdToCadRate;
-
 			const dividendNode: IDividendNode = {
 				position___NODE: positionNodeIdsMap[dividend.symbol] || null,
 				company___NODE: companyNodeIdsMap[dividend.symbol] || null,
 				quote___NODE: quoteNodeIdsMap[dividend.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[dividend.symbol] || null,
-				symbol: dividend.symbol,
-				amount: dividend.amount,
-				currency: dividend.currency === 'usd' ? Currency.usd : Currency.cad,
-				accountId: dividend.accountId,
-				timestamp: new Date(dividend.date).getTime(),
-				amountUsd: dividend.amount * usdRate,
-				amountCad: dividend.amount * cadRate,
+				...dividend,
 			};
 
 			const content = JSON.stringify(dividendNode);
@@ -878,60 +485,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		assessment___NODE: string;
 	}
 
-	const mapQuestradeQuoteToQuote = (
-		quote: questrade.IQuestradeQuote,
-		usdToCadRate: number,
-		cadToUsdRate: number
-	): IQuote => {
-		const currency: Currency = isUsd(quote.symbol) ? Currency.usd : Currency.cad;
-		const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
-		const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
-
-		return {
-			symbol: quote.symbol,
-			price: quote.lastTradePriceTrHrs,
-			priceCad: quote.lastTradePriceTrHrs * cadRate,
-			priceUsd: quote.lastTradePriceTrHrs * usdRate,
-			currency,
-			type: AssetType.stock,
-			afterHoursPrice: quote.lastTradePrice,
-			symbolId: quote.symbolId,
-		};
-	};
-
-	const mapCryptoQuoteToQuote = (
-		quote: coinmarketcap.ICoinMarketCapQuote,
-		usdToCadRate: number
-	): IQuote => {
-		const currency: Currency = Currency.usd;
-		const usdRate = 1;
-		const cadRate = usdToCadRate;
-
-		return {
-			symbol: quote.symbol,
-			price: quote.price,
-			priceCad: quote.price * cadRate,
-			priceUsd: quote.price * usdRate,
-			currency,
-			type: AssetType.crypto,
-			afterHoursPrice: quote.price,
-			symbolId: undefined,
-		};
-	};
-
 	const getQuoteNodes = async (): Promise<IQuoteNode[]> => {
-		const stockQuotes = await quotesPromise;
-		const cryptoQuotes = await cryptoQuotesPromise;
-
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
-
-		const quotes = _.concat(
-			_.map(stockQuotes, (q) =>
-				mapQuestradeQuoteToQuote(q, usdToCadRate, cadToUsdRate)
-			),
-			_.map(cryptoQuotes, (q) => mapCryptoQuoteToQuote(q, usdToCadRate))
-		);
+		const quotes = await quotesPromise;
 
 		return quotes.map((quote) => {
 			const quoteNode: IQuoteNode = {
@@ -967,60 +522,8 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		orders___NODE: string[];
 	}
 
-	const mapQuestradeSymbolToCompany = (
-		s: questrade.IQuestradeSymbol,
-		hisaSymbols: string[]
-	): ICompany => {
-		return {
-			symbol: s.symbol,
-			name: s.description,
-			prevDayClosePrice: s.prevDayClosePrice,
-			pe: s.pe,
-			yield: s.yield,
-			type: AssetType.stock,
-			marketCap: s.marketCap,
-			exchange: s.exchange,
-			highPrice52: s.highPrice52,
-			lowPrice52: s.lowPrice52,
-			hisa: hisaSymbols.includes(s.symbol),
-		};
-	};
-
-	const mapCryptoQuoteToCompany = (
-		q: coinmarketcap.ICoinMarketCapQuote,
-		allMetaData: firebase.ICryptoMetaData[]
-	): ICompany => {
-		const metaData = _.find(allMetaData, (m) => m.symbol === q.symbol);
-		return {
-			marketCap: q.marketCap,
-			symbol: q.symbol,
-			name: q.name,
-			exchange: 'CMC',
-			pe: undefined,
-			yield: 0,
-			prevDayClosePrice: q.prevDayClosePrice,
-			type: AssetType.crypto,
-			highPrice52: metaData?.oneYearHighUsd || q.price,
-			lowPrice52: metaData?.oneYearLowUsd || q.price,
-			hisa: false,
-		};
-	};
-
 	const getCompanyNodes = async (): Promise<ICompanyNode[]> => {
-		const stockCompanies = await companiesPromise;
-		const cryptoQuotes = await cryptoQuotesPromise;
-		const cryptoMetaData = await cryptoMetaDataPromise;
-		const hisaStocks = await hisaStocksPromise;
-
-		const companies = _.concat(
-			stockCompanies.map((q) =>
-				mapQuestradeSymbolToCompany(
-					q,
-					hisaStocks.map((q) => q.symbol)
-				)
-			),
-			cryptoQuotes.map((q) => mapCryptoQuoteToCompany(q, cryptoMetaData))
-		);
+		const companies = await companiesPromise;
 
 		return companies.map((company) => {
 			const companyNode = {
@@ -1050,63 +553,16 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
-	interface ICashNode extends INode, ICash {}
+	interface IAccountNode extends INode, IAccount {}
 
-	const getCashNodes = async (): Promise<ICashNode[]> => {
-		const questradeCash = await questrade.getCash();
-		const firebaseCash = await firebase.getCash();
-		// a little bit hackish but we need to fire requests sync for the nonce
-		await krakenOrdersPromise;
-		const krakenCash = await kraken.getBalances();
-		const usdToCadRate = await getExchange;
-		const cadToUsdRate = 1 / usdToCadRate;
+	const getAccountNodes = async (): Promise<IAccountNode[]> => {
+		const accounts = await accountsPromise;
 
-		const questradeCashWithExchange = questradeCash.map((cash) => ({
-			...cash,
-			amountCad:
-				cash.currency === Currency.cad ? cash.amount : cash.amount * usdToCadRate,
-			amountUsd:
-				cash.currency === Currency.usd ? cash.amount : cash.amount * cadToUsdRate,
-		}));
-
-		const firebaseCashWithExchange = firebaseCash.map((cash) => ({
-			...cash,
-			amountCad:
-				cash.currency === Currency.cad ? cash.amount : cash.amount * usdToCadRate,
-			amountUsd:
-				cash.currency === Currency.usd ? cash.amount : cash.amount * cadToUsdRate,
-		}));
-
-		const krakenCashWithExchange = [
-			{
-				amountCad: krakenCash.cad,
-				amountUsd: krakenCash.cad * cadToUsdRate,
-				currency: Currency.cad,
-				amount: krakenCash.cad,
-				accountName: 'Kraken CAD',
-				accountId: 0,
-			},
-			{
-				amountCad: krakenCash.usd * usdToCadRate,
-				amountUsd: krakenCash.usd,
-				currency: Currency.usd,
-				amount: krakenCash.usd,
-				accountName: 'Kraken USD',
-				accountId: 0,
-			},
-		];
-
-		const cash = [
-			...questradeCashWithExchange,
-			...firebaseCashWithExchange,
-			...krakenCashWithExchange,
-		];
-
-		return cash.map((cash) => {
-			const cashNode = cash;
-			const content = JSON.stringify(cashNode);
-			_.defaults(cashNode, {
-				id: getCashNodeId(cashNode.accountName, cashNode.currency),
+		return accounts.map((account) => {
+			const accountNode = { ...account };
+			const content = JSON.stringify(accountNode);
+			_.defaults(accountNode, {
+				id: getAccountNodeId(accountNode.accountId),
 				parent: null,
 				children: [],
 				internal: {
@@ -1115,16 +571,21 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 					contentDigest: hash(content),
 				},
 			});
-			return cashNode;
+			return accountNode;
 		});
 	};
 
 	interface IRateNode extends IExchangeRate, INode {}
 
 	const getExchangeRateNodes = async (): Promise<IRateNode[]> => {
-		await questradeSync;
-
-		const rates: IExchangeRate[] = await ratesPromise;
+		const ratesLookup = await exchange.getExchangeRates();
+		const rates = Object.keys(ratesLookup).map((date) => {
+			return {
+				key: 'USD_CAD',
+				date,
+				rate: ratesLookup[date],
+			};
+		});
 
 		return rates.map((rate) => {
 			const rateNode = rate;
@@ -1221,12 +682,11 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const dividendNodesPromise = getDividendNodes();
 		const quoteNodesPromise = getQuoteNodes();
 		const companyNodesPromise = getCompanyNodes();
-		// const profitsAndLossesNodesPromise = getProfitsAndLossesNodes();
 		const exchangeRateNodesPromise = getExchangeRateNodes();
 		const orderNodesPromise = getOrderNodes();
 		const reviewNodesPromise = getReviewNodes();
 		const earningsNodesPromise = getEarningsNodes();
-		const cashNodesPromise = getCashNodes();
+		const accountNodesPromise = getAccountNodes();
 		const stockSplitNodesPromise = getStockSplitNodes();
 
 		const assessments = await assessmentsPromise;
@@ -1251,13 +711,10 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		outputCleared('reviews');
 		const earningsNodes = await earningsNodesPromise;
 		outputCleared('earnings nodes');
-		const cashNodes = await cashNodesPromise;
+		const accountNodes = await accountNodesPromise;
 		outputCleared('cash nodes');
 		const stockSplitNodes = await stockSplitNodesPromise;
 		outputCleared('stock split nodes');
-
-		await firebase.checkAndUpdateCryptoMetaData(crypto52WeeksPromise);
-		await applyStockSplits();
 
 		outputCleared('ALL!');
 		return [
@@ -1272,7 +729,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			...orderNodes,
 			...reviewNodes,
 			...earningsNodes,
-			...cashNodes,
+			...accountNodes,
 			...stockSplitNodes,
 		];
 	};
@@ -1288,13 +745,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 exports.createPages = async ({ actions }) => {
 	const { createPage } = actions;
 
-	const stockQuotes = await quotesPromise;
-	const cryptoQuotes = await cryptoQuotesPromise;
-
-	const quotes = _.concat(
-		stockQuotes.map((q) => q.symbol),
-		cryptoQuotes.map((q) => q.symbol)
-	);
+	const quotes = await quotesPromise;
 
 	quotes.forEach((symbol) => {
 		createPage({

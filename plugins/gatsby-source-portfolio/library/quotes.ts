@@ -3,11 +3,12 @@ import {
 	getQuotes as getCryptoQuotes,
 	setSymbols as setCryptoSymbols,
 } from './coinmarketcap';
-import { IOrderV2, IQuote, ITradeV2 } from '../../../declarations';
+import { IAssessment, IOrderV2, IQuote, ITradeV2 } from '../../../declarations';
 
 export const getQuotes = async (
 	trades: ITradeV2[],
-	orders: IOrderV2[]
+	orders: IOrderV2[],
+	assessments: IAssessment[]
 ): Promise<IQuote[]> => {
 	const cryptoTradeSymbols = trades
 		.filter((t) => t.type === 'crypto')
@@ -23,10 +24,21 @@ export const getQuotes = async (
 		.filter((o) => o.type === 'stock')
 		.map((o) => o.symbolId || 0);
 
-	const cryptoSymbols = [...cryptoTradeSymbols, ...cryptoOrderSymbols]
+	const stockAssessmentSymbolIds = assessments.map((a) => a.symbolId);
+	const cryptoAssessmentSymbols = assessments.map((a) => a.symbol);
+
+	const cryptoSymbols = [
+		...cryptoTradeSymbols,
+		...cryptoOrderSymbols,
+		...cryptoAssessmentSymbols,
+	]
 		.sort()
 		.filter((s, i, a) => !i || s !== a[i - 1]);
-	const stockSymbolIds = [...stockTradeSymbolIds, ...stockOrderSymbolIds]
+	const stockSymbolIds = [
+		...stockTradeSymbolIds,
+		...stockOrderSymbolIds,
+		...stockAssessmentSymbolIds,
+	]
 		.sort()
 		.filter((s, i, a) => !i || s !== a[i - 1]);
 

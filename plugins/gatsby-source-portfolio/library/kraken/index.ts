@@ -1,11 +1,13 @@
 import { deferredPromise } from 'library/util';
 import * as api from './api';
-import { getExchangeRates } from 'library/exchange';
+import { getExchangeRates, getTodaysRate } from 'library/exchange';
 import moment from 'moment-timezone';
 import { ITradeV2 } from '../../../../declarations/trade';
 import * as cloud from './cloud';
 import { mapOrder, mapTrade } from './mapping';
 import { IOrderV2 } from '../../../../declarations';
+import { IAccount } from '../../../../declarations/account';
+import { Currency } from '../../../../src/utils/enum';
 
 const initDeferredPromise = deferredPromise();
 
@@ -14,7 +16,7 @@ export const init = async (key: string, secret: string) => {
 	initDeferredPromise.resolve();
 };
 
-const data = (async () => {
+const dataPromise = (async () => {
 	await initDeferredPromise.promise;
 
 	const orders = await api.getOpenOrders();
@@ -27,7 +29,7 @@ const data = (async () => {
 })();
 
 export const getTrades = async (): Promise<ITradeV2[]> => {
-	const { trades } = await data;
+	const { trades } = await dataPromise;
 	const exchangeRates = await getExchangeRates();
 
 	return trades.map((trade) => {
@@ -39,7 +41,7 @@ export const getTrades = async (): Promise<ITradeV2[]> => {
 };
 
 export const getOrders = async (): Promise<IOrderV2[]> => {
-	const { orders } = await data;
+	const { orders } = await dataPromise;
 	const exchangeRates = await getExchangeRates();
 	const usdToCadRate = exchangeRates[moment().format('YYYY-MM-DD')];
 
@@ -48,11 +50,32 @@ export const getOrders = async (): Promise<IOrderV2[]> => {
 	});
 };
 
-export const getBalances = async () => {
-	const { balances } = await data;
+export const getAccount = async (): Promise<IAccount> => {
+	const { balances } = await dataPromise;
+	const usdToCadRate = await getTodaysRate();
+	const cadToUsdRate = 1 / usdToCadRate;
 
-	return {
-		usd: balances.usd,
-		cad: balances.cad,
+	const account: IAccount = {
+		accountId: 'kraken',
+		name: 'Kraken',
+		isTaxable: true,
+		type: 'crypto',
+		displayName: 'Kraken',
+		balances: [
+			{
+				currency: Currency.cad,
+				amount: balances.cad,
+				amountCad: balances.cad,
+				amountUsd: balances.cad * cadToUsdRate,
+			},
+			{
+				currency: Currency.usd,
+				amount: balances.usd,
+				amountCad: balances.usd * usdToCadRate,
+				amountUsd: balances.usd,
+			},
+		],
 	};
+
+	return account;
 };
