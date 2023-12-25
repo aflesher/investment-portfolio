@@ -1,4 +1,4 @@
-import { ICryptoMetaData } from 'library/firebase';
+import { ICryptoMetaData } from '../firebase';
 import { ICoinMarketCapQuote } from './api';
 import { ICompany } from '../../../../declarations';
 import { AssetType } from '../../../../src/utils/enum';

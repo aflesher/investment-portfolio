@@ -24,16 +24,17 @@ import {
 	IDividendV2,
 } from '../../declarations';
 import { getEarningsDates } from './library/earnings-calendar';
-import { getTrades } from 'library/trades';
-import { getDividends } from 'library/dividends';
-import { getQuotes } from 'library/quotes';
-import { getOrders } from 'library/orders';
-import { getPositions } from 'library/positions';
-import { getCompanies } from 'library/companies';
+import { getTrades } from './library/trades';
+import { getDividends } from './library/dividends';
+import { getQuotes } from './library/quotes';
+import { getOrders } from './library/orders';
+import { getPositions } from './library/positions';
+import { getCompanies } from './library/companies';
 import { IAccount } from '../../declarations/account';
-import { getAccounts } from 'library/accounts';
+import { getAccounts } from './library/accounts';
+import { getAssessments } from './library/assessment';
 
-const assessmentsPromise = firebase.getAssessments();
+const assessmentsPromise = getAssessments();
 const stockSplitsPromise = firebase.getStockSplits();
 const tradesPromise = getTrades();
 const dividendsPromise = getDividends();
@@ -51,7 +52,6 @@ const positionsPromise = Promise.all([
 	quotesPromise,
 ]).then(([trades, quotes]) => getPositions(trades, quotes));
 
-// TODO, also need assessments
 const companiesPromise = quotesPromise.then((quotes) => getCompanies(quotes));
 
 const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {

@@ -316,6 +316,7 @@ interface IQuestradeBalanceResponse {
 }
 
 const getCashForAccount = async (accountId): Promise<ICashQuestrade[]> => {
+	await initDeferredPromise.promise;
 	const response = ((await authRequest(
 		`${accountsRoute}/${accountId}/balances`
 	)) as unknown) as AxiosResponse<IQuestradeBalanceResponse>;
@@ -330,6 +331,7 @@ const getCashForAccount = async (accountId): Promise<ICashQuestrade[]> => {
 };
 
 export const getCash = async (): Promise<ICashQuestrade[]> => {
+	await initDeferredPromise.promise;
 	const accountIds = getAccounts().map(({ accountId: id }) => id);
 	const cash = await Promise.all(
 		accountIds.map((accountId) => getCashForAccount(accountId))
@@ -339,6 +341,7 @@ export const getCash = async (): Promise<ICashQuestrade[]> => {
 };
 
 export const findSymbolId = async (symbol: string): Promise<number> => {
+	await initDeferredPromise.promise;
 	const resp = await authRequest(`v1/symbols/search?prefix=${symbol}`);
 	if (!resp) {
 		return 0;
@@ -403,6 +406,7 @@ const getActiveOrdersForMonth = async (
 
 export const getOrders = async (): Promise<IQuestradeOrder[]> => {
 	console.log('questrade.getActiveOrders (start)'.grey);
+	await initDeferredPromise.promise;
 	const orders1 = await getActiveOrdersForMonth(
 		moment().subtract(1, 'month').toDate(),
 		new Date()

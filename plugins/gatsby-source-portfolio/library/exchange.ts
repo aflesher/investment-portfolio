@@ -1,7 +1,7 @@
 import axios from 'axios';
 import moment from 'moment-timezone';
 
-import { setExchangeRate } from './firebase';
+import * as firebase from './firebase';
 import { IExchangeRate } from '../../../declarations';
 import { deferredPromise } from './util';
 
@@ -14,19 +14,19 @@ const todaysPriceDeferredPromise = deferredPromise<number>();
 const checkEnvExchangeRate = async () => {
 	const rate = process.env.USD_CAD;
 	if (!rate) {
-		return;
+		return false;
 	}
 
-	return setExchangeRate('USD_CAD', moment().format('YYYY-MM-DD'), Number(rate));
+	await firebase.setExchangeRate(
+		'USD_CAD',
+		moment().format('YYYY-MM-DD'),
+		Number(rate)
+	);
+	todaysPriceDeferredPromise.resolve(Number(rate));
+	return true;
 };
 
-export const init = (_api: string, _appId: string): void => {
-	api = _api;
-	appId = _appId;
-	checkEnvExchangeRate();
-};
-
-export const loadTodaysRate = async (): Promise<number | null> => {
+const loadTodaysRate = async (): Promise<number | null> => {
 	const resp = await axios
 		.get(`${api}latest.json`, {
 			params: {
@@ -43,18 +43,36 @@ export const loadTodaysRate = async (): Promise<number | null> => {
 	const rate = resp.data.rates.CAD;
 	todaysPriceDeferredPromise.resolve(rate);
 
-	await setExchangeRate('USD_CAD', moment().format('YYYY-MM-DD'), Number(rate));
+	await firebase.setExchangeRate(
+		'USD_CAD',
+		moment().format('YYYY-MM-DD'),
+		Number(rate)
+	);
 
 	return resp.data.rates.CAD;
 };
 
-export const setExchangeRates = (exchangeRates: IExchangeRate[]) => {
+const createLookup = (exchangeRates: IExchangeRate[]) => {
 	const lookup: { [key: string]: number } = {};
 	exchangeRates.forEach(({ rate, date }) => {
 		lookup[date] = rate;
 	});
 
 	lookupDeferredPromise.resolve(lookup);
+};
+
+export const init = async (_api: string, _appId: string) => {
+	console.log('exchange.init (start)'.gray);
+	api = _api;
+	appId = _appId;
+	const todaysRateSet = await checkEnvExchangeRate();
+	if (!todaysRateSet) {
+		await loadTodaysRate();
+	}
+
+	const exchangeRates = await firebase.getExchangeRates();
+	createLookup(exchangeRates);
+	console.log('exchange.init (end)'.gray);
 };
 
 export const getExchangeRates = (): Promise<{ [key: string]: number }> =>

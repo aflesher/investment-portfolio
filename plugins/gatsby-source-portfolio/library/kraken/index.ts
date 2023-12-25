@@ -1,6 +1,6 @@
-import { deferredPromise } from 'library/util';
+import { deferredPromise } from '../util';
 import * as api from './api';
-import { getExchangeRates, getTodaysRate } from 'library/exchange';
+import { getExchangeRates, getTodaysRate } from '../exchange';
 import moment from 'moment-timezone';
 import { ITradeV2 } from '../../../../declarations/trade';
 import * as cloud from './cloud';
@@ -10,14 +10,15 @@ import { IAccount } from '../../../../declarations/account';
 import { Currency } from '../../../../src/utils/enum';
 
 const initDeferredPromise = deferredPromise();
+const dataDeferredPromise = deferredPromise<{
+	orders: api.KrakenOpenOrder[];
+	balances: { usd: number; cad: number };
+	trades: api.KrakenTrade[];
+}>();
 
 export const init = async (key: string, secret: string) => {
 	await api.init(key, secret);
 	initDeferredPromise.resolve();
-};
-
-const dataPromise = (async () => {
-	await initDeferredPromise.promise;
 
 	const orders = await api.getOpenOrders();
 	const balances = await api.getBalances();
@@ -25,11 +26,11 @@ const dataPromise = (async () => {
 	cloud.sync(fetchedTrades);
 	const trades = cloud.getTrades();
 
-	return { orders, balances, trades };
-})();
+	dataDeferredPromise.resolve({ orders, balances, trades });
+};
 
 export const getTrades = async (): Promise<ITradeV2[]> => {
-	const { trades } = await dataPromise;
+	const { trades } = await dataDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
 
 	return trades.map((trade) => {
@@ -41,7 +42,7 @@ export const getTrades = async (): Promise<ITradeV2[]> => {
 };
 
 export const getOrders = async (): Promise<IOrderV2[]> => {
-	const { orders } = await dataPromise;
+	const { orders } = await dataDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
 	const usdToCadRate = exchangeRates[moment().format('YYYY-MM-DD')];
 
@@ -51,7 +52,7 @@ export const getOrders = async (): Promise<IOrderV2[]> => {
 };
 
 export const getAccount = async (): Promise<IAccount> => {
-	const { balances } = await dataPromise;
+	const { balances } = await dataDeferredPromise.promise;
 	const usdToCadRate = await getTodaysRate();
 	const cadToUsdRate = 1 / usdToCadRate;
 

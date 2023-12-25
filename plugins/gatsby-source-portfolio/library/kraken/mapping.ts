@@ -9,6 +9,7 @@ const account: IAccount = {
 	displayName: 'Kraken',
 	type: 'crypto',
 	isTaxable: true,
+	balances: [],
 };
 
 const getCurrencyAndSymbolFromPair = (pair: string) => {

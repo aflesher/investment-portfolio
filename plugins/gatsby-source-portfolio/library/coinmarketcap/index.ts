@@ -1,8 +1,8 @@
-import { getTodaysRate } from 'library/exchange';
+import { getTodaysRate } from '../exchange';
 import { ICompany, IQuote } from '../../../../declarations';
 import { AssetType, Currency } from '../../../../src/utils/enum';
 import * as api from './api';
-import { deferredPromise } from 'library/util';
+import { deferredPromise } from '../util';
 export { init } from './api';
 
 const dataDeferredPromise = deferredPromise<api.ICoinMarketCapQuote[]>();

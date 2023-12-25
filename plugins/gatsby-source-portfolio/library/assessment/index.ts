@@ -1,13 +1,12 @@
-export const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
-	const assessments = await assessmentsPromise;
-	await questradeSync;
+import * as firebase from '../firebase';
+import * as questrade from '../questrade';
 
-	const missingSymbolIds: IAssessment[] = [];
-	assessments.forEach((assessment) => {
-		if (!assessment.symbolId) {
-			missingSymbolIds.push(assessment);
-		}
-	});
+export const getAssessments = async () => {
+	const assessments = await firebase.getAssessments();
+
+	const missingSymbolIds = assessments.filter(
+		(assessment) => !assessment.symbolId
+	);
 
 	await Promise.all(
 		missingSymbolIds.map(async (assessment) => {
@@ -21,4 +20,4 @@ export const assessmentsFillPromise = (async (): Promise<IAssessment[]> => {
 	console.log('assessments Promise.all() finished'.magenta);
 
 	return assessments;
-})();
+};

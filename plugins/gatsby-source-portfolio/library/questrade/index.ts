@@ -1,4 +1,4 @@
-import { getExchangeRates, getTodaysRate } from 'library/exchange';
+import { getExchangeRates, getTodaysRate } from '../exchange';
 import {
 	ITradeV2,
 	IOrderV2,
@@ -16,18 +16,21 @@ import {
 	mapCompany,
 } from './mapping';
 import moment from 'moment-timezone';
-import { deferredPromise } from 'library/util';
-import * as firebase from 'library/firebase';
+import { deferredPromise } from '../util';
+import * as firebase from '../firebase';
 import { Currency } from '../../../../src/utils/enum';
 import { IAccount } from '../../../../declarations/account';
-export { init } from './api';
+export { findSymbolId } from './api';
 
 const initDeferredPromise = deferredPromise();
 
-(async () => {
+export const init = async (cryptSecret: string) => {
+	console.log('questrade.init (start)'.gray);
+	await api.init(cryptSecret);
 	await cloud.sync();
 	initDeferredPromise.resolve();
-})();
+	console.log('questrade.init (end)'.gray);
+};
 
 export const getTrades = async (): Promise<ITradeV2[]> => {
 	await initDeferredPromise.promise;
@@ -36,7 +39,10 @@ export const getTrades = async (): Promise<ITradeV2[]> => {
 	const trades = cloud
 		.getTrades()
 		.map((trade) =>
-			mapTrade(trade, exchangeRates[moment(trade.date).format('YYYY-MM-DD')])
+			mapTrade(
+				trade,
+				exchangeRates[moment(trade.date).format('YYYY-MM-DD')] || 1.3
+			)
 		);
 
 	return trades;

@@ -42,16 +42,19 @@ const updateTrades = async (): Promise<void> => {
 
 export const sync = async (fetchedTrades: api.KrakenTrade[]): Promise<void> => {
 	console.log('kraken.sync (start)'.gray);
+	console.log('fetched kraken trades', fetchedTrades.length);
 
 	// load from the cloud
 	await loadTrades().catch(console.log);
+	console.log('cloud kraken trades', trades.length);
 
 	// fetch all new activities and add to memory
 	_.forEach(fetchedTrades, addTrade);
 
+	console.log('total kraken trades', trades.length);
 	// write back to the cloud
 	await updateTrades().catch(console.log);
-	console.log('questrade.sync (end)'.gray);
+	console.log('kraken.sync (end)'.gray);
 };
 
 export const getTrades = (): api.KrakenTrade[] => {

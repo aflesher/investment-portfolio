@@ -1,7 +1,7 @@
 import { IQuote, ITradeV2 } from '../../../declarations';
 import { IPositionV2 } from '../../../declarations/position';
 
-const DEBUG_POSITIONS: string[] = [];
+const DEBUG_POSITIONS: string[] = ['googl'];
 
 const debug = (trade: ITradeV2, position: IPositionV2) => {
 	if (!DEBUG_POSITIONS.includes(trade.symbol)) {
@@ -19,18 +19,19 @@ export const getPositions = (
 	quotes: IQuote[]
 ): IPositionV2[] => {
 	const positions: IPositionV2[] = [];
+	console.log('positions.getPositions (start)'.gray);
 	trades.forEach((t) => {
 		let position = positions.find((p) => p.symbol === t.symbol);
 
 		// if it's a sell and we don't have a position we can just return (bad state)
 		if (t.isSell && !position) {
-			console.log(`skipping ${t.symbol} ${new Date(t.timestamp)}`);
+			// console.log(`skipping ${t.symbol} ${new Date(t.timestamp)}`);
 			return;
 		}
 
 		const quote = quotes.find((q) => q.symbol === t.symbol);
 		if (!quote) {
-			console.log(`no quote for ${t.symbol}`);
+			// console.log(`no quote for ${t.symbol}`);
 			return;
 		}
 
@@ -97,8 +98,13 @@ export const getPositions = (
 		position.currentMarketValueCad = position.quantity * quote.priceCad;
 		position.currentMarketValueUsd = position.quantity * quote.priceUsd;
 
+		position.openPnl = position.currentMarketValue - position.totalCost;
+		position.openPnlCad = position.currentMarketValueCad - position.totalCostCad;
+		position.openPnlUsd = position.currentMarketValueUsd - position.totalCostUsd;
+
 		debug(t, position);
 	});
 
+	console.log('positions.getPositions (end)'.gray);
 	return positions.filter((p) => p.quantity > 0 && p.totalCostCad > 0);
 };

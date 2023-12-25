@@ -97,7 +97,6 @@ export const getTrades = async () => {
 	const response = await kraken
 		.tradesHistory({ start, end: now, trades: true })
 		.catch((e) => console.error(e));
-	console.log(response);
 	if (!response?.trades) return [];
 	const { trades } = response;
 	return Object.keys(trades)
@@ -113,8 +112,6 @@ export const getCurrencyAndSymbolFromPair = (pair: string) => {
 	const currency = pair.replace(symbol, '') as Currency;
 
 	symbol = symbol.replace(/(xxbtz)/, 'btc').replace(/(xethz)/, 'eth');
-
-	console.log(pair, symbol, currency);
 
 	return { symbol, currency };
 };

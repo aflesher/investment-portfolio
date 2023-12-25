@@ -4,7 +4,7 @@ import crypto from 'crypto';
 
 import * as api from './api';
 import { Currency } from '../../../../src/utils/enum';
-import { getStockSplits, updateStockSplit } from 'library/firebase';
+import { getStockSplits, updateStockSplit } from '../firebase';
 import { getCustomTrades, getFilteredSymbols } from './data';
 
 export interface ICloudTrade {
