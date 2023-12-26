@@ -13,11 +13,13 @@ import {
 	ICash,
 	IStockSplit,
 	ICryptoPosition,
+	ITradeV2,
 } from '../../../declarations';
 import { Currency, AssetType } from '../../../src/utils/enum';
 import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
 import { ICrypto52Weeks } from './crypto';
+import { getExchangeRates as getExchangeLookup } from './exchange';
 
 const DEBUG_CRYPTO_POSITIONS: string[] = [];
 
@@ -372,7 +374,55 @@ export const getCryptoTrades = async (): Promise<ICryptoTrade[]> => {
 		};
 	});
 
-	setCryptoTradeGainsAndLosses(trades);
+	return trades;
+};
+
+export const getTrades = async (): Promise<ITradeV2[]> => {
+	const cryptoTrades = await getCryptoTrades();
+
+	const ratesLookup = await getExchangeLookup();
+
+	const trades: ITradeV2[] = cryptoTrades.map((trade) => {
+		const cadRate = ratesLookup[moment(trade.timestamp).format('YYYY-MM-DD')];
+		return {
+			isSell: trade.isSell,
+			symbol: trade.symbol,
+			accountId: 0,
+			priceCad: trade.price,
+			priceUsd: trade.price * cadRate,
+			timestamp: trade.timestamp,
+			pnl: trade.pnl,
+			pnlCad: trade.pnl,
+			pnlUsd: trade.pnl * cadRate,
+			currency: Currency.cad,
+			price: trade.price,
+			quantity: trade.quantity,
+			action: trade.isSell ? 'sell' : 'buy',
+			type: AssetType.crypto,
+			taxable: true,
+			account: {
+				accountId: '0',
+				name: 'Binance',
+				isTaxable: true,
+				type: 'crypto',
+				displayName: 'Binance',
+				balances: [
+					{
+						currency: Currency.cad,
+						amount: 0,
+						amountCad: 0,
+						amountUsd: 0,
+					},
+					{
+						currency: Currency.usd,
+						amount: 0,
+						amountCad: 0,
+						amountUsd: 0,
+					},
+				],
+			},
+		};
+	});
 
 	return trades;
 };

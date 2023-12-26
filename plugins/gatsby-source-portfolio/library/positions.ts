@@ -1,7 +1,16 @@
 import { IQuote, ITradeV2 } from '../../../declarations';
 import { IPositionV2 } from '../../../declarations/position';
 
-const DEBUG_POSITIONS: string[] = ['googl'];
+const DEBUG_POSITIONS: string[] = [];
+const IGNORED_POSITIONS: string[] = [
+	'ry.to',
+	'cgc',
+	'glh.cn',
+	'trst.to',
+	'scr.to',
+	'spy31dec20p250.00',
+	'btcff',
+];
 
 const debug = (trade: ITradeV2, position: IPositionV2) => {
 	if (!DEBUG_POSITIONS.includes(trade.symbol)) {
@@ -11,6 +20,11 @@ const debug = (trade: ITradeV2, position: IPositionV2) => {
 	console.log('<<<<<<<<<<<<'.yellow);
 	console.log(trade);
 	console.log(position);
+	console.log(
+		`(${position.quantity}) ($${position.openPnl}) ${
+			trade.isSell ? 'sell' : 'buy'
+		}`.cyan
+	);
 	console.log('>>>>>>>>>>>>'.yellow);
 };
 
@@ -19,8 +33,13 @@ export const getPositions = (
 	quotes: IQuote[]
 ): IPositionV2[] => {
 	const positions: IPositionV2[] = [];
+	const debugSymbols = {};
 	console.log('positions.getPositions (start)'.gray);
 	trades.forEach((t) => {
+		if (IGNORED_POSITIONS.includes(t.symbol)) {
+			return;
+		}
+
 		let position = positions.find((p) => p.symbol === t.symbol);
 
 		// if it's a sell and we don't have a position we can just return (bad state)
@@ -31,7 +50,10 @@ export const getPositions = (
 
 		const quote = quotes.find((q) => q.symbol === t.symbol);
 		if (!quote) {
-			// console.log(`no quote for ${t.symbol}`);
+			if (!debugSymbols[t.symbol]) {
+				console.log(`no quote for ${t.symbol}`);
+				debugSymbols[t.symbol] = true;
+			}
 			return;
 		}
 

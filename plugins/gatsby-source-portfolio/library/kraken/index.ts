@@ -23,7 +23,7 @@ export const init = async (key: string, secret: string) => {
 	const orders = await api.getOpenOrders();
 	const balances = await api.getBalances();
 	const fetchedTrades = await api.getTrades();
-	cloud.sync(fetchedTrades);
+	await cloud.sync(fetchedTrades);
 	const trades = cloud.getTrades();
 
 	dataDeferredPromise.resolve({ orders, balances, trades });

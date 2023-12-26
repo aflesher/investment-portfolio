@@ -23,6 +23,7 @@ export interface ICoinMarketCapQuote {
 export const getQuotes = async (
 	slugs: string[]
 ): Promise<ICoinMarketCapQuote[]> => {
+	slugs = slugs.filter((slug) => slug);
 	const resp = await axios
 		.get(`${api}/v1/cryptocurrency/quotes/latest`, {
 			headers: {

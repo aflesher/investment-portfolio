@@ -105,6 +105,19 @@ export const getCustomTrades = (): ICloudTrade[] => [
 		hash: '',
 		pnl: -1197.7,
 	},
+	{
+		symbol: 'ry.to',
+		date: new Date('2019-07-11'),
+		accountId: 26418215,
+		action: 'sell',
+		symbolId: 34658,
+		currency: 'cad',
+		price: 105.25,
+		quantity: 100,
+		type: 'stock',
+		hash: '',
+		pnl: 2279,
+	},
 ];
 
 export const getFilteredSymbols = () => [
@@ -121,6 +134,10 @@ export const getFilteredSymbols = () => [
 export const getFilteredSymbolIds = () => [17488686];
 
 export const getMappedSymbolIds = () => [
-	{ original: 20682, replacement: 11419766 },
+	{ original: 20682, replacement: 11419766 }, // googl
 	{ original: 28114781, replacement: 41822360 },
 ];
+
+export const getMappedSymbols = () => ({
+	'bitf.vn': 'bitf.to',
+});

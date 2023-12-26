@@ -20,6 +20,7 @@ import { deferredPromise } from '../util';
 import * as firebase from '../firebase';
 import { Currency } from '../../../../src/utils/enum';
 import { IAccount } from '../../../../declarations/account';
+import { getMappedSymbolIds } from './data';
 export { findSymbolId } from './api';
 
 const initDeferredPromise = deferredPromise();
@@ -60,6 +61,11 @@ export const getOrders = async (): Promise<IOrderV2[]> => {
 
 export const getQuotes = async (symbolIds: number[]): Promise<IQuote[]> => {
 	await initDeferredPromise.promise;
+	const mappedSymbolIds = getMappedSymbolIds();
+	symbolIds = symbolIds.map(
+		(id) =>
+			mappedSymbolIds.find(({ original }) => original === id)?.replacement || id
+	);
 	const [quotes, usdToCadRate] = await Promise.all([
 		api.getQuotes(symbolIds),
 		getTodaysRate(),

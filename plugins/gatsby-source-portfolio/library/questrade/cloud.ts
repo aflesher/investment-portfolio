@@ -5,7 +5,12 @@ import crypto from 'crypto';
 import * as api from './api';
 import { Currency } from '../../../../src/utils/enum';
 import { getStockSplits, updateStockSplit } from '../firebase';
-import { getCustomTrades, getFilteredSymbols } from './data';
+import {
+	getCustomTrades,
+	getFilteredSymbols,
+	getMappedSymbolIds,
+	getMappedSymbols,
+} from './data';
 
 export interface ICloudTrade {
 	symbol: string;
@@ -193,6 +198,17 @@ const updateTrades = async (): Promise<void> => {
 	await tradesFile.save(JSON.stringify(trades));
 };
 
+const filterDuplicateTrades = () => {
+	const tradesMap = {};
+	trades = trades.filter((trade) => {
+		if (tradesMap[trade.hash]) {
+			return false;
+		}
+		tradesMap[trade.hash] = true;
+		return true;
+	});
+};
+
 export const sync = async (): Promise<void> => {
 	console.log('questrade.sync (start)'.gray);
 
@@ -207,13 +223,35 @@ export const sync = async (): Promise<void> => {
 	}
 
 	// apply any custom trades
-	trades = trades.concat(getCustomTrades());
+	getCustomTrades().forEach((trade) => {
+		if (!tradesMap[trade.hash]) {
+			trades.push(trade);
+			tradesMap[trade.hash] = true;
+		}
+	});
 
 	const filteredTrades = getFilteredSymbols();
 	trades = trades.filter((t) => !filteredTrades.includes(t.symbol));
 
+	const mappedSymbols = getMappedSymbols();
+	trades.forEach((trade) => {
+		if (mappedSymbols[trade.symbol]) {
+			trade.symbol = mappedSymbols[trade.symbol];
+		}
+	});
+
+	// map the any incorrect symbol ids
+	const mappedSymbolIds = getMappedSymbolIds();
+	trades.forEach((trade) => {
+		if (mappedSymbolIds[trade.symbol]) {
+			trade.symbolId = mappedSymbolIds[trade.symbol];
+		}
+	});
+
 	// apply stock splits
 	await applyStockSplits();
+
+	filterDuplicateTrades();
 
 	// write back to the cloud
 	await updateTrades().catch(console.log);
