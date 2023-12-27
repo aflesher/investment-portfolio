@@ -1,8 +1,8 @@
-import { ITradeV2 } from '../../../declarations';
+import { ITrade } from '../../../declarations';
 import { getTrades as getQuestradeTrades } from './questrade';
 import { getTrades as getFirebaseTrades } from './firebase';
 
-export const getTrades = async (): Promise<ITradeV2[]> => {
+export const getTrades = async (): Promise<ITrade[]> => {
 	console.log('trades.getTrades (start)'.gray);
 	const [firebaseTrades, questradeTrades] = await Promise.all([
 		getFirebaseTrades(),

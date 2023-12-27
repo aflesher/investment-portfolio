@@ -1,13 +1,12 @@
 export { ICompany } from './company';
-export { IPosition, ICryptoPosition, IPositionV2 } from './position';
-export { ITrade, ITradeV2 } from './trade';
-export { IDividend, IDividendV2 } from './dividend';
+export { IPosition } from './position';
+export { ITrade, ITrade } from './trade';
+export { IDividend } from './dividend';
 export { IEarningsDate } from './earnings-date';
 export { IQuote } from './quote';
 export { IAssessment } from './assessment';
 export { IReview } from './review';
 export { IStockSplit } from './stock-split';
-export { ICash } from './cash';
 export { IExchangeRate } from './exchange';
 export { IReview } from './review';
-export { IOrder, IOrderV2 } from './order';
+export { IOrder } from './order';

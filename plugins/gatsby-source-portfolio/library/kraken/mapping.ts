@@ -1,4 +1,4 @@
-import { IOrderV2, ITradeV2 } from '../../../../declarations';
+import { IOrder, ITrade } from '../../../../declarations';
 import { IAccount } from '../../../../declarations/account';
 import { AssetType, Currency } from '../../../../src/utils/enum';
 import { KrakenOpenOrder, KrakenTrade } from './api';
@@ -22,10 +22,7 @@ const getCurrencyAndSymbolFromPair = (pair: string) => {
 	return { symbol, currency };
 };
 
-export const mapTrade = (
-	trade: KrakenTrade,
-	usdToCadRate: number
-): ITradeV2 => {
+export const mapTrade = (trade: KrakenTrade, usdToCadRate: number): ITrade => {
 	const { symbol, currency } = getCurrencyAndSymbolFromPair(trade.pair || '');
 	const price = Number(trade.price);
 	const timestamp = Number(trade.time) * 1000;
@@ -56,7 +53,7 @@ export const mapTrade = (
 export const mapOrder = (
 	order: KrakenOpenOrder,
 	usdToCadRate: number
-): IOrderV2 => {
+): IOrder => {
 	const { symbol, currency } = getCurrencyAndSymbolFromPair(order.pair || '');
 	const cadToUsdRate = 1 / usdToCadRate;
 	const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;

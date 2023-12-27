@@ -8,7 +8,6 @@ import moment from 'moment';
 import * as util from '../util';
 import * as firebase from '../firebase';
 import { Currency } from '../../../../src/utils/enum';
-import { ICash } from '../../../../declarations';
 import { IAccount } from '../../../../declarations/account';
 
 const loginUrl = 'https://login.questrade.com/oauth2/token';
@@ -295,8 +294,12 @@ interface IBalance {
 	combined: boolean;
 }
 
-export interface ICashQuestrade
-	extends Omit<ICash, 'amountCad' | 'amountUsd'> {}
+export interface ICashQuestrade {
+	currency: Currency;
+	amount: number;
+	accountId: number;
+	accountName: string;
+}
 
 interface IQuestradeBalance {
 	buyingPower: number;

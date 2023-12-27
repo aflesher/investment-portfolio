@@ -13,15 +13,15 @@ import * as kraken from './library/kraken';
 import {
 	IAssessment,
 	IQuote,
-	IOrderV2,
+	IOrder,
 	IReview,
-	IPositionV2,
-	ITradeV2,
+	IPosition,
+	ITrade,
 	ICompany,
 	IEarningsDate,
 	IStockSplit,
 	IExchangeRate,
-	IDividendV2,
+	IDividend,
 } from '../../declarations';
 import { getEarningsDates } from './library/earnings-calendar';
 import { getTrades } from './library/trades';
@@ -257,7 +257,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return assessmentNodes;
 	};
 
-	interface IOrderNode extends IOrderV2, INode {
+	interface IOrderNode extends IOrder, INode {
 		trades___NODE: string;
 		dividends___NODE: string;
 		company___NODE: string;
@@ -358,7 +358,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		return reviewNodes;
 	};
 
-	interface IPositionNode extends INode, IPositionV2 {
+	interface IPositionNode extends INode, IPosition {
 		trades___NODE: string;
 		dividends___NODE: string;
 		company___NODE: string;
@@ -397,7 +397,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
-	interface ITradeNode extends INode, ITradeV2 {
+	interface ITradeNode extends INode, ITrade {
 		position___NODE: string;
 		company___NODE: string;
 		quote___NODE: string;
@@ -443,7 +443,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		});
 	};
 
-	interface IDividendNode extends INode, IDividendV2 {
+	interface IDividendNode extends INode, IDividend {
 		position___NODE: string;
 		company___NODE: string;
 		quote___NODE: string;
@@ -566,7 +566,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				parent: null,
 				children: [],
 				internal: {
-					type: 'Cash',
+					type: 'Account',
 					content,
 					contentDigest: hash(content),
 				},

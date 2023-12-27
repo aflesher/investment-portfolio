@@ -4,12 +4,12 @@ import {
 	getQuotes as getCryptoQuotes,
 	setSymbols as setCryptoSymbols,
 } from './coinmarketcap';
-import { IAssessment, IOrderV2, IQuote, ITradeV2 } from '../../../declarations';
+import { IAssessment, IOrder, IQuote, ITrade } from '../../../declarations';
 import { AssetType } from '../../../src/utils/enum';
 
 export const getQuotes = async (
-	trades: ITradeV2[],
-	orders: IOrderV2[],
+	trades: ITrade[],
+	orders: IOrder[],
 	assessments: IAssessment[]
 ): Promise<IQuote[]> => {
 	console.log('quotes.getQuotes (start)'.gray);

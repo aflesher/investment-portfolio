@@ -1,5 +1,5 @@
-import { IQuote, ITradeV2 } from '../../../declarations';
-import { IPositionV2 } from '../../../declarations/position';
+import { IQuote, ITrade } from '../../../declarations';
+import { IPosition } from '../../../declarations/position';
 
 const DEBUG_POSITIONS: string[] = [];
 const IGNORED_POSITIONS: string[] = [
@@ -12,7 +12,7 @@ const IGNORED_POSITIONS: string[] = [
 	'btcff',
 ];
 
-const debug = (trade: ITradeV2, position: IPositionV2) => {
+const debug = (trade: ITrade, position: IPosition) => {
 	if (!DEBUG_POSITIONS.includes(trade.symbol)) {
 		return;
 	}
@@ -29,10 +29,10 @@ const debug = (trade: ITradeV2, position: IPositionV2) => {
 };
 
 export const getPositions = (
-	trades: ITradeV2[],
+	trades: ITrade[],
 	quotes: IQuote[]
-): IPositionV2[] => {
-	const positions: IPositionV2[] = [];
+): IPosition[] => {
+	const positions: IPosition[] = [];
 	const debugSymbols = {};
 	console.log('positions.getPositions (start)'.gray);
 	trades.forEach((t) => {

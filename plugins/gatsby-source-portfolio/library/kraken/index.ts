@@ -2,10 +2,10 @@ import { deferredPromise } from '../util';
 import * as api from './api';
 import { getExchangeRates, getTodaysRate } from '../exchange';
 import moment from 'moment-timezone';
-import { ITradeV2 } from '../../../../declarations/trade';
+import { ITrade } from '../../../../declarations/trade';
 import * as cloud from './cloud';
 import { mapOrder, mapTrade } from './mapping';
-import { IOrderV2 } from '../../../../declarations';
+import { IOrder } from '../../../../declarations';
 import { IAccount } from '../../../../declarations/account';
 import { Currency } from '../../../../src/utils/enum';
 
@@ -29,7 +29,7 @@ export const init = async (key: string, secret: string) => {
 	dataDeferredPromise.resolve({ orders, balances, trades });
 };
 
-export const getTrades = async (): Promise<ITradeV2[]> => {
+export const getTrades = async (): Promise<ITrade[]> => {
 	const { trades } = await dataDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
 
@@ -41,7 +41,7 @@ export const getTrades = async (): Promise<ITradeV2[]> => {
 	});
 };
 
-export const getOrders = async (): Promise<IOrderV2[]> => {
+export const getOrders = async (): Promise<IOrder[]> => {
 	const { orders } = await dataDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
 	const usdToCadRate = exchangeRates[moment().format('YYYY-MM-DD')];

@@ -1,9 +1,9 @@
 import { getExchangeRates, getTodaysRate } from '../exchange';
 import {
-	ITradeV2,
-	IOrderV2,
+	ITrade,
+	IOrder,
 	IQuote,
-	IDividendV2,
+	IDividend,
 	ICompany,
 } from '../../../../declarations';
 import * as cloud from './cloud';
@@ -33,7 +33,7 @@ export const init = async (cryptSecret: string) => {
 	console.log('questrade.init (end)'.gray);
 };
 
-export const getTrades = async (): Promise<ITradeV2[]> => {
+export const getTrades = async (): Promise<ITrade[]> => {
 	await initDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
 
@@ -49,7 +49,7 @@ export const getTrades = async (): Promise<ITradeV2[]> => {
 	return trades;
 };
 
-export const getOrders = async (): Promise<IOrderV2[]> => {
+export const getOrders = async (): Promise<IOrder[]> => {
 	await initDeferredPromise.promise;
 	const [apiOrders, usdToCadRate] = await Promise.all([
 		api.getOrders(),
@@ -76,7 +76,7 @@ export const getQuotes = async (symbolIds: number[]): Promise<IQuote[]> => {
 	});
 };
 
-export const getDividends = async (): Promise<IDividendV2[]> => {
+export const getDividends = async (): Promise<IDividend[]> => {
 	await initDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
 

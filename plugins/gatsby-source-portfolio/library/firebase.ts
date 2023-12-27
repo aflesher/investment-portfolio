@@ -9,17 +9,29 @@ import {
 	IAssessment,
 	IExchangeRate,
 	IReview,
-	ITrade,
-	ICash,
 	IStockSplit,
-	ICryptoPosition,
-	ITradeV2,
+	ITrade,
+	IPosition,
 } from '../../../declarations';
 import { Currency, AssetType } from '../../../src/utils/enum';
 import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
 import { ICrypto52Weeks } from './crypto';
 import { getExchangeRates as getExchangeLookup } from './exchange';
+
+interface ICryptoPosition
+	extends Pick<
+		IPosition,
+		| 'currency'
+		| 'type'
+		| 'averageEntryPrice'
+		| 'quantity'
+		| 'symbol'
+		| 'totalCostCad'
+	> {
+	averageEntryPriceCad: number;
+	totalCostUsd: number;
+}
 
 const DEBUG_CRYPTO_POSITIONS: string[] = [];
 
@@ -377,12 +389,12 @@ export const getCryptoTrades = async (): Promise<ICryptoTrade[]> => {
 	return trades;
 };
 
-export const getTrades = async (): Promise<ITradeV2[]> => {
+export const getTrades = async (): Promise<ITrade[]> => {
 	const cryptoTrades = await getCryptoTrades();
 
 	const ratesLookup = await getExchangeLookup();
 
-	const trades: ITradeV2[] = cryptoTrades.map((trade) => {
+	const trades: ITrade[] = cryptoTrades.map((trade) => {
 		const cadRate = ratesLookup[moment(trade.timestamp).format('YYYY-MM-DD')];
 		return {
 			isSell: trade.isSell,
@@ -521,29 +533,6 @@ export const updateStockSplit = async (
 	const documentSnapshot = querySnapshot.docs[0];
 	await documentSnapshot.ref.set(stockSplit, { merge: true });
 	return true;
-};
-
-interface IFirebaseCash extends Omit<ICash, 'amountCad' | 'amountUsd'> {}
-
-export const getCash = async (): Promise<IFirebaseCash[]> => {
-	await initDeferredPromise.promise;
-
-	const querySnapshot = await firestore.collection('cash').get();
-
-	const data = await Promise.all(
-		querySnapshot.docs.map(async (documentSnapshot) => {
-			const {
-				currency,
-				amount,
-				accountId,
-				accountName,
-			}: IFirebaseCash = documentSnapshot.data() as IFirebaseCash;
-
-			return { currency, amount, accountId, accountName };
-		})
-	);
-
-	return data;
 };
 
 export const checkAndUpdateCryptoMetaData = async (

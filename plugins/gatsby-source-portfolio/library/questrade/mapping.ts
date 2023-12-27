@@ -1,5 +1,5 @@
-import { IDividendV2, IQuote, ITradeV2 } from '../../../../declarations';
-import { IOrderV2 } from '../../../../declarations/order';
+import { IDividend, IQuote, ITrade } from '../../../../declarations';
+import { IOrder } from '../../../../declarations/order';
 import { AssetType, Currency } from '../../../../src/utils/enum';
 import {
 	IQuestradeOrder,
@@ -18,10 +18,7 @@ enum QuestradeOrderSide {
 const isUsd = (symbol: string): boolean =>
 	symbol.indexOf('.') === -1 || symbol.indexOf('.u.') !== -1;
 
-export const mapTrade = (
-	trade: ICloudTrade,
-	usdToCadRate: number
-): ITradeV2 => {
+export const mapTrade = (trade: ICloudTrade, usdToCadRate: number): ITrade => {
 	const cadToUsdRate = 1 / usdToCadRate;
 	const currency: Currency =
 		trade.currency === 'usd' ? Currency.usd : Currency.cad;
@@ -61,7 +58,7 @@ export const mapTrade = (
 export const mapOrder = (
 	order: IQuestradeOrder,
 	usdToCadRate: number
-): IOrderV2 => {
+): IOrder => {
 	const currency: Currency = isUsd(order.symbol) ? Currency.usd : Currency.cad;
 	const cadToUsdRate = 1 / usdToCadRate;
 	const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
@@ -140,7 +137,7 @@ export const mapCompany = (
 export const mapDividend = (
 	dividend: ICloudDividend,
 	usdToCadRate: number
-): IDividendV2 => {
+): IDividend => {
 	const account = getAccounts().find(
 		({ accountId: id }) => id === dividend.accountId.toString()
 	);
