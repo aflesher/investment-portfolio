@@ -5,12 +5,7 @@ import crypto from 'crypto';
 import * as api from './api';
 import { Currency } from '../../../../src/utils/enum';
 import { getStockSplits, updateStockSplit } from '../firebase';
-import {
-	getCustomTrades,
-	getFilteredSymbols,
-	getMappedSymbolIds,
-	getMappedSymbols,
-} from './data';
+import { getCustomTrades, getMappedSymbolIds, getMappedSymbols } from './data';
 
 export interface ICloudTrade {
 	symbol: string;
@@ -229,9 +224,6 @@ export const sync = async (): Promise<void> => {
 			tradesMap[trade.hash] = true;
 		}
 	});
-
-	const filteredTrades = getFilteredSymbols();
-	trades = trades.filter((t) => !filteredTrades.includes(t.symbol));
 
 	const mappedSymbols = getMappedSymbols();
 	trades.forEach((trade) => {

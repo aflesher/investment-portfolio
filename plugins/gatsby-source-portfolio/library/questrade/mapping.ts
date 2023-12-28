@@ -38,7 +38,7 @@ export const mapTrade = (trade: ICloudTrade, usdToCadRate: number): ITrade => {
 	return {
 		isSell: trade.action === 'sell',
 		symbol: trade.symbol,
-		accountId: Number(trade.accountId),
+		accountId: trade.accountId.toString(),
 		priceCad: trade.price * cadRate,
 		priceUsd: trade.price * usdRate,
 		timestamp: new Date(trade.date).getTime(),
@@ -50,7 +50,6 @@ export const mapTrade = (trade: ICloudTrade, usdToCadRate: number): ITrade => {
 		quantity: trade.quantity,
 		action: trade.action,
 		type: AssetType.stock,
-		account: account,
 		symbolId: trade.symbolId,
 	};
 };
@@ -83,7 +82,6 @@ export const mapOrder = (
 		stopPrice: order.stopPrice,
 		avgExecPrice: order.avgExecPrice,
 		side: order.side,
-		accountId: Number(order.accountId),
 		action: [QuestradeOrderSide.Buy, QuestradeOrderSide.BTO].includes(order.side)
 			? 'buy'
 			: 'sell',

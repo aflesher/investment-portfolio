@@ -9,6 +9,7 @@ import { IQuote } from '../../declarations/quote';
 import { ICompany } from '../../declarations/company';
 import { IPosition } from '../../declarations/position';
 import { CurrencyContext } from '../context/currency.context';
+import { IAccount } from '../../declarations/account';
 
 interface IOrderNode
 	extends Pick<
@@ -19,11 +20,11 @@ interface IOrderNode
 		| 'limitPriceUsd'
 		| 'openQuantity'
 		| 'action'
-		| 'accountName'
 	> {
 	quote: Pick<IQuote, 'price' | 'afterHoursPrice'>;
 	company: Pick<ICompany, 'name' | 'marketCap'>;
 	position?: Pick<IPosition, 'quantity' | 'totalCost'>;
+	account: Pick<IAccount, 'displayName'>;
 }
 
 interface IOrdersQueryProps {
@@ -62,6 +63,7 @@ const Orders: React.FC<IOrdersQueryProps> = ({ data }) => {
 						}
 						quotePrice={order.quote.price}
 						currency={currency}
+						accountName={order.account.displayName}
 					/>
 				))}
 			</div>
@@ -81,7 +83,9 @@ export const pageQuery = graphql`
 				limitPriceUsd
 				openQuantity
 				action
-				accountName
+				account {
+					displayName
+				}
 				quote {
 					price
 					afterHoursPrice

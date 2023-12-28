@@ -3,7 +3,6 @@ import { IPosition } from './position';
 import { IQuote } from './quote';
 import { IAssessment } from './assessment';
 import { Currency, AssetType } from '../src/utils/enum';
-import { IAccount } from './account';
 
 export interface ITrade {
 	symbol: string;
@@ -22,8 +21,8 @@ export interface ITrade {
 	pnlCad: number;
 	quantity: number;
 	action: string;
-	accountId: number;
+	accountId: string;
 	type: AssetType;
-	account: IAccount;
+	accountId: string;
 	symbolId?: number;
 }

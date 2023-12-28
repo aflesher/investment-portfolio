@@ -11,7 +11,6 @@ export interface IOrder {
 	stopPrice: number;
 	avgExecPrice: number;
 	side: string;
-	accountId: number;
 	action: string;
 	type: string;
 	account: IAccount;

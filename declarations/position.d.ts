@@ -2,7 +2,6 @@ import { IAssessment } from './assessment';
 import { Currency, AssetType } from '../src/utils/enum';
 import { ICompany } from './company';
 import { IQuote } from './quote';
-import { IAccount } from './account';
 
 export interface IPosition {
 	currency: Currency;
@@ -26,7 +25,7 @@ export interface IPosition {
 	openPnlCad: number;
 	openingTrade?: ITrade;
 	accounts: {
-		account: IAccount;
+		accountId: string;
 		quantity: number;
 	}[];
 	symbolId?: number;

@@ -10,6 +10,14 @@ const IGNORED_POSITIONS: string[] = [
 	'scr.to',
 	'spy31dec20p250.00',
 	'btcff',
+	'ausa.cn',
+	'dlr.to',
+	'dlr.u.to',
+	'glh.cn.11480862',
+	'pins20jan23c55.00',
+	'chal.cn',
+	'gme',
+	'ele.vn',
 ];
 
 const debug = (trade: ITrade, position: IPosition) => {
@@ -76,10 +84,18 @@ export const getPositions = (
 				openPnl: 0,
 				openPnlCad: 0,
 				openPnlUsd: 0,
-				accounts: [{ account: { ...t.account }, quantity: 0 }], // wrong, this can multiple accounts
+				accounts: [{ accountId: t.accountId, quantity: 0 }],
 				symbolId: t.symbolId,
 			};
 			positions.push(position);
+		}
+
+		let accountPosition = position.accounts.find(
+			(p) => p.accountId === t.accountId
+		);
+		if (!accountPosition) {
+			accountPosition = { accountId: t.accountId, quantity: 0 };
+			position.accounts.push(accountPosition);
 		}
 
 		// buy
@@ -93,6 +109,7 @@ export const getPositions = (
 			position.totalCost += t.quantity * t.price;
 
 			position.quantity += t.quantity;
+			accountPosition.quantity += t.quantity;
 
 			position.averageEntryPrice = position.totalCost / position.quantity;
 			position.averageEntryPriceCad = position.totalCostCad / position.quantity;
@@ -102,6 +119,7 @@ export const getPositions = (
 		// sell
 		if (t.isSell) {
 			position.quantity -= t.quantity;
+			accountPosition.quantity -= t.quantity;
 
 			position.totalCost = position.quantity * position.averageEntryPrice;
 			position.totalCostCad = position.quantity * position.averageEntryPriceCad;

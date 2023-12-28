@@ -10,3 +10,4 @@ export { IStockSplit } from './stock-split';
 export { IExchangeRate } from './exchange';
 export { IReview } from './review';
 export { IOrder } from './order';
+export { IAccount } from './account';

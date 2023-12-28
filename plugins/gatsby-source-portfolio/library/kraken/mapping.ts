@@ -34,7 +34,7 @@ export const mapTrade = (trade: KrakenTrade, usdToCadRate: number): ITrade => {
 	return {
 		isSell: trade.type === 'sell',
 		symbol,
-		accountId: 0,
+		accountId: 'binance',
 		priceCad: price * cadRate,
 		priceUsd: price * usdRate,
 		timestamp,
@@ -70,7 +70,6 @@ export const mapOrder = (
 		stopPrice: 0,
 		avgExecPrice: 0,
 		side: order.type || 'buy',
-		accountId: 0,
 		action: order.type === 'buy' ? 'buy' : 'sell',
 		type: order.ordertype || 'buy',
 		account,

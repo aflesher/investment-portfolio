@@ -399,7 +399,6 @@ export const getTrades = async (): Promise<ITrade[]> => {
 		return {
 			isSell: trade.isSell,
 			symbol: trade.symbol,
-			accountId: 0,
 			priceCad: trade.price,
 			priceUsd: trade.price * cadRate,
 			timestamp: trade.timestamp,
@@ -412,27 +411,7 @@ export const getTrades = async (): Promise<ITrade[]> => {
 			action: trade.isSell ? 'sell' : 'buy',
 			type: AssetType.crypto,
 			taxable: true,
-			account: {
-				accountId: '0',
-				name: 'Binance',
-				isTaxable: true,
-				type: 'crypto',
-				displayName: 'Binance',
-				balances: [
-					{
-						currency: Currency.cad,
-						amount: 0,
-						amountCad: 0,
-						amountUsd: 0,
-					},
-					{
-						currency: Currency.usd,
-						amount: 0,
-						amountCad: 0,
-						amountUsd: 0,
-					},
-				],
-			},
+			accountId: 'binance',
 		};
 	});
 

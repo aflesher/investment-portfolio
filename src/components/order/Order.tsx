@@ -22,13 +22,14 @@ interface IOrderStateProps
 		| 'avgExecPrice'
 		| 'stopPrice'
 		| 'type'
-		| 'accountId'
 		| 'side'
 		| 'filledQuantity'
+		| 'account'
 	> {
 	positionQuantity: number;
 	quotePrice: number;
 	positionCost: number;
+	accountName: string;
 }
 
 const Order: React.FC<IOrderStateProps> = ({
