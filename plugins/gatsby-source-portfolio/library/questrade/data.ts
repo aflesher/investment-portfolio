@@ -120,17 +120,6 @@ export const getCustomTrades = (): ICloudTrade[] => [
 	},
 ];
 
-export const getFilteredSymbols = () => [
-	'ausa.cn',
-	'dlr.to',
-	'dlr.u.to',
-	'glh.cn.11480862',
-	'pins20jan23c55.00',
-	'chal.cn',
-	'gme',
-	'ele.vn',
-];
-
 export const getFilteredSymbolIds = () => [17488686];
 
 export const getMappedSymbolIds = () => [

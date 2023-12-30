@@ -1,5 +1,5 @@
 import { IQuote, ITrade } from '../../../declarations';
-import { IPosition } from '../../../declarations/position';
+import { IPosition, IPositionValues } from '../../../declarations/position';
 
 const DEBUG_POSITIONS: string[] = [];
 const IGNORED_POSITIONS: string[] = [
@@ -18,6 +18,7 @@ const IGNORED_POSITIONS: string[] = [
 	'chal.cn',
 	'gme',
 	'ele.vn',
+	'dsf.vn',
 ];
 
 const debug = (trade: ITrade, position: IPosition) => {
@@ -34,6 +35,65 @@ const debug = (trade: ITrade, position: IPosition) => {
 		}`.cyan
 	);
 	console.log('>>>>>>>>>>>>'.yellow);
+};
+
+const getDefaultPositionValues = (): IPositionValues => ({
+	averageEntryPrice: 0,
+	averageEntryPriceCad: 0,
+	averageEntryPriceUsd: 0,
+	quantity: 0,
+	totalCost: 0,
+	totalCostCad: 0,
+	totalCostUsd: 0,
+	currentMarketValue: 0,
+	currentMarketValueCad: 0,
+	currentMarketValueUsd: 0,
+	openPnl: 0,
+	openPnlCad: 0,
+	openPnlUsd: 0,
+});
+
+const calculate = (t: ITrade, position: IPositionValues, quote: IQuote) => {
+	// buy
+	if (!t.isSell) {
+		position.totalCostCad += t.quantity * t.priceCad;
+		position.totalCostUsd += t.quantity * t.priceUsd;
+		position.totalCost += t.quantity * t.price;
+
+		position.quantity += t.quantity;
+
+		position.averageEntryPrice = position.totalCost / position.quantity;
+		position.averageEntryPriceCad = position.totalCostCad / position.quantity;
+		position.averageEntryPriceUsd = position.totalCostUsd / position.quantity;
+	}
+
+	// sell
+	if (t.isSell) {
+		position.quantity -= t.quantity;
+		if (position.quantity < 0.001) {
+			position.quantity = 0;
+		}
+
+		position.totalCost = position.quantity * position.averageEntryPrice;
+		position.totalCostCad = position.quantity * position.averageEntryPriceCad;
+		position.totalCostUsd = position.quantity * position.averageEntryPriceUsd;
+
+		// set the pnl for each trade
+		t.pnl = t.quantity * t.price - t.quantity * position.averageEntryPrice;
+		t.pnlCad =
+			t.quantity * t.priceCad - t.quantity * position.averageEntryPriceCad;
+		t.pnlUsd =
+			t.quantity * t.priceUsd - t.quantity * position.averageEntryPriceUsd;
+	}
+
+	// always set the current market value
+	position.currentMarketValue = position.quantity * quote.price;
+	position.currentMarketValueCad = position.quantity * quote.priceCad;
+	position.currentMarketValueUsd = position.quantity * quote.priceUsd;
+
+	position.openPnl = position.currentMarketValue - position.totalCost;
+	position.openPnlCad = position.currentMarketValueCad - position.totalCostCad;
+	position.openPnlUsd = position.currentMarketValueUsd - position.totalCostUsd;
 };
 
 export const getPositions = (
@@ -71,20 +131,8 @@ export const getPositions = (
 				currency: t.currency,
 				type: t.type,
 				symbol: t.symbol,
-				averageEntryPrice: 0,
-				averageEntryPriceCad: 0,
-				averageEntryPriceUsd: 0,
-				quantity: 0,
-				totalCostUsd: 0,
-				totalCostCad: 0,
-				totalCost: 0,
-				currentMarketValue: 0,
-				currentMarketValueCad: 0,
-				currentMarketValueUsd: 0,
-				openPnl: 0,
-				openPnlCad: 0,
-				openPnlUsd: 0,
-				accounts: [{ accountId: t.accountId, quantity: 0 }],
+				...getDefaultPositionValues(),
+				accounts: [{ accountId: t.accountId, ...getDefaultPositionValues() }],
 				symbolId: t.symbolId,
 			};
 			positions.push(position);
@@ -94,53 +142,17 @@ export const getPositions = (
 			(p) => p.accountId === t.accountId
 		);
 		if (!accountPosition) {
-			accountPosition = { accountId: t.accountId, quantity: 0 };
+			accountPosition = { accountId: t.accountId, ...getDefaultPositionValues() };
 			position.accounts.push(accountPosition);
 		}
 
 		// buy
-		if (!t.isSell) {
-			// if we are buying and the position is 0, this is the opening trade
-			if (position.quantity === 0) {
-				position.openingTrade = t;
-			}
-			position.totalCostCad += t.quantity * t.priceCad;
-			position.totalCostUsd += t.quantity * t.priceUsd;
-			position.totalCost += t.quantity * t.price;
-
-			position.quantity += t.quantity;
-			accountPosition.quantity += t.quantity;
-
-			position.averageEntryPrice = position.totalCost / position.quantity;
-			position.averageEntryPriceCad = position.totalCostCad / position.quantity;
-			position.averageEntryPriceUsd = position.totalCostUsd / position.quantity;
+		if (!t.isSell && position.quantity === 0) {
+			position.openingTrade = t;
 		}
 
-		// sell
-		if (t.isSell) {
-			position.quantity -= t.quantity;
-			accountPosition.quantity -= t.quantity;
-
-			position.totalCost = position.quantity * position.averageEntryPrice;
-			position.totalCostCad = position.quantity * position.averageEntryPriceCad;
-			position.totalCostUsd = position.quantity * position.averageEntryPriceUsd;
-
-			// set the pnl for each trade
-			t.pnl = t.quantity * t.price - t.quantity * position.averageEntryPrice;
-			t.pnlCad =
-				t.quantity * t.priceCad - t.quantity * position.averageEntryPriceCad;
-			t.pnlUsd =
-				t.quantity * t.priceUsd - t.quantity * position.averageEntryPriceUsd;
-		}
-
-		// always set the current market value
-		position.currentMarketValue = position.quantity * quote.price;
-		position.currentMarketValueCad = position.quantity * quote.priceCad;
-		position.currentMarketValueUsd = position.quantity * quote.priceUsd;
-
-		position.openPnl = position.currentMarketValue - position.totalCost;
-		position.openPnlCad = position.currentMarketValueCad - position.totalCostCad;
-		position.openPnlUsd = position.currentMarketValueUsd - position.totalCostUsd;
+		calculate(t, position, quote);
+		calculate(t, accountPosition, quote);
 
 		debug(t, position);
 	});

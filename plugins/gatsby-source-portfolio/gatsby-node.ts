@@ -264,7 +264,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		quote___NODE: string;
 		position___NODE: string;
 		assessment___NODE: string;
-		account___NODE: string;
 	}
 
 	const getOrderNodes = async (): Promise<IOrderNode[]> => {
@@ -279,7 +278,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 				quote___NODE: quoteNodeIdsMap[order.symbol] || null,
 				position___NODE: positionNodeIdsMap[order.symbol] || null,
 				assessment___NODE: assessmentNodeIdsMap[order.symbol] || null,
-				account___NODE: getAccountNodeId(order.account.name),
 			};
 
 			const content = JSON.stringify(orderNode);
@@ -747,7 +745,7 @@ exports.createPages = async ({ actions }) => {
 
 	const quotes = await quotesPromise;
 
-	quotes.forEach((symbol) => {
+	quotes.forEach(({ symbol }) => {
 		createPage({
 			path: `stock/${symbol}`,
 			component: path.resolve('./src/templates/stock.tsx'),

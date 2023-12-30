@@ -1,5 +1,5 @@
 export { ICompany } from './company';
-export { IPosition } from './position';
+export { IPosition, IPositionValues } from './position';
 export { ITrade, ITrade } from './trade';
 export { IDividend } from './dividend';
 export { IEarningsDate } from './earnings-date';

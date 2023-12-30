@@ -3,8 +3,7 @@ import { Currency, AssetType } from '../src/utils/enum';
 import { ICompany } from './company';
 import { IQuote } from './quote';
 
-export interface IPosition {
-	currency: Currency;
+export interface IPositionValues {
 	totalCost: number;
 	totalCostCad: number;
 	totalCostUsd: number;
@@ -15,18 +14,23 @@ export interface IPosition {
 	averageEntryPrice: number;
 	averageEntryPriceCad: number;
 	averageEntryPriceUsd: number;
+	openPnl: number;
+	openPnlUsd: number;
+	openPnlCad: number;
+}
+
+interface IPositionAccount extends IPositionValues {
+	accountId: string;
+}
+
+export interface IPosition extends IPositionValues {
+	currency: Currency;
 	symbol: string;
 	type: AssetType;
 	assessment?: IAssessment;
 	company?: ICompany;
 	quote?: IQuote;
-	openPnl: number;
-	openPnlUsd: number;
-	openPnlCad: number;
 	openingTrade?: ITrade;
-	accounts: {
-		accountId: string;
-		quantity: number;
-	}[];
+	accounts: IPositionAccount[];
 	symbolId?: number;
 }

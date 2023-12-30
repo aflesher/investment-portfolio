@@ -17,7 +17,7 @@
 	"compilerOptions": {
 		"target": "esnext",
 		"module": "esnext",
-		"lib": ["dom", "es2017"],
+		"lib": ["dom", "es2019"],
 		// "allowJs": true,
 		// "checkJs": true,
 		"jsx": "react",

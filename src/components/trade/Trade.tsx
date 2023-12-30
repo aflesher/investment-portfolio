@@ -16,11 +16,12 @@ export interface ITradeStateProps
 		| 'pnlCad'
 		| 'pnlUsd'
 		| 'currency'
-		| 'accountName'
 		| 'type'
 		| 'symbol'
 		| 'price'
-	> {}
+	> {
+	accountName: string;
+}
 
 const Trade: React.FC<ITradeStateProps> = (props) => {
 	const {

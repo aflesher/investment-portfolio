@@ -43,7 +43,7 @@ const LINKS: ILink[] = [
 	},
 	{ text: 'Orders', icon: 'fa-book', route: '/orders' },
 	{ text: 'Calendar', icon: 'fa-calendar-alt', route: '/calendar' },
-	{ text: 'Cash', icon: 'fa-money-bill-alt', route: '/cash' },
+	{ text: 'Balances', icon: 'fa-money-bill-alt', route: '/balances' },
 	{ text: 'Reviews', icon: 'fa-tasks', route: '/reviews' },
 	{
 		text: 'Create Assessment',

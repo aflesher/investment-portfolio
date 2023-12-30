@@ -23,6 +23,5 @@ export interface ITrade {
 	action: string;
 	accountId: string;
 	type: AssetType;
-	accountId: string;
 	symbolId?: number;
 }

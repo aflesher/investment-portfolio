@@ -23,6 +23,7 @@ import { IAssessment } from '../../declarations/assessment';
 import { CurrencyContext } from '../context/currency.context';
 import { IDividend } from '../../declarations/dividend';
 import { ITrade } from '../../declarations/trade';
+import { IAccount } from '../../declarations';
 
 interface ILayoutStateProps {
 	user: firebase.User | null | undefined;
@@ -127,7 +128,7 @@ interface ILayoutGraphQL {
 			| 'pnlCad'
 			| 'pnlUsd'
 			| 'currency'
-			| 'accountName'
+			| 'accountId'
 			| 'type'
 			| 'symbol'
 			| 'price'
@@ -138,6 +139,9 @@ interface ILayoutGraphQL {
 	};
 	allQuote: {
 		nodes: IQuoteNode[];
+	};
+	allAccount: {
+		nodes: IAccount[];
 	};
 }
 
@@ -241,6 +245,20 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
+				allAccount {
+					nodes {
+						accountId
+						displayName
+						name
+						isTaxable
+						balances {
+							amount
+							amountCad
+							amountUsd
+							currency
+						}
+					}
+				}
 			}
 		`}
 		render={(queryData: ILayoutGraphQL): JSX.Element => {
@@ -248,16 +266,6 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 			const [currency, setCurrency] = React.useState(Currency.cad);
 			const usdCad = _.first(queryData.allExchangeRate.nodes)?.rate || 1;
 			const cadUsd = 1 / usdCad;
-
-			const portfolioValue: number = queryData.allPosition.nodes.reduce(
-				(sum, { currentMarketValueCad }) => sum + currentMarketValueCad,
-				0
-			);
-
-			const portfolioCost: number = _.sumBy(
-				queryData.allPosition.nodes,
-				(q) => q.totalCostCad
-			);
 
 			const positions: ISidebarPosition[] = queryData.allPosition.nodes.map(
 				(position) => ({
@@ -267,7 +275,11 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 				})
 			);
 
-			const trades: ITradeStateProps[] = queryData.allTrade.nodes;
+			const accountLookup = _.keyBy(queryData.allAccount.nodes, 'accountId');
+			const trades: ITradeStateProps[] = queryData.allTrade.nodes.map((trade) => ({
+				...trade,
+				accountName: accountLookup[trade.accountId]?.displayName,
+			}));
 
 			const dividends: IDividendStateProps[] = queryData.allDividend.nodes;
 

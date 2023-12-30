@@ -9,7 +9,7 @@ import { IQuote } from '../../declarations/quote';
 import { ICompany } from '../../declarations/company';
 import { IPosition } from '../../declarations/position';
 import { CurrencyContext } from '../context/currency.context';
-import { IAccount } from '../../declarations/account';
+import { IAccount } from '../../declarations';
 
 interface IOrderNode
 	extends Pick<
@@ -20,11 +20,11 @@ interface IOrderNode
 		| 'limitPriceUsd'
 		| 'openQuantity'
 		| 'action'
+		| 'accountId'
 	> {
 	quote: Pick<IQuote, 'price' | 'afterHoursPrice'>;
 	company: Pick<ICompany, 'name' | 'marketCap'>;
 	position?: Pick<IPosition, 'quantity' | 'totalCost'>;
-	account: Pick<IAccount, 'displayName'>;
 }
 
 interface IOrdersQueryProps {
@@ -34,6 +34,9 @@ interface IOrdersQueryProps {
 		};
 		allPosition: {
 			nodes: Pick<IPosition, 'quantity' | 'totalCost' | 'symbol'>[];
+		};
+		allAccount: {
+			nodes: Pick<IAccount, 'displayName' | 'accountId'>[];
 		};
 	};
 }
@@ -48,6 +51,7 @@ const Orders: React.FC<IOrdersQueryProps> = ({ data }) => {
 	);
 	const positions = data.allPosition.nodes;
 	const currency = useContext(CurrencyContext);
+	const accounts = data.allAccount.nodes;
 	return (
 		<Layout>
 			<div className='p-4'>
@@ -63,7 +67,10 @@ const Orders: React.FC<IOrdersQueryProps> = ({ data }) => {
 						}
 						quotePrice={order.quote.price}
 						currency={currency}
-						accountName={order.account.displayName}
+						accountName={
+							accounts.find(({ accountId }) => order.accountId === accountId)
+								?.displayName || ''
+						}
 					/>
 				))}
 			</div>
@@ -83,9 +90,7 @@ export const pageQuery = graphql`
 				limitPriceUsd
 				openQuantity
 				action
-				account {
-					displayName
-				}
+				accountId
 				quote {
 					price
 					afterHoursPrice
@@ -105,6 +110,12 @@ export const pageQuery = graphql`
 				symbol
 				quantity
 				totalCost
+			}
+		}
+		allAccount {
+			nodes {
+				displayName
+				accountId
 			}
 		}
 	}

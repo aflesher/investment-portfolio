@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
 import { Link } from 'gatsby';
-import numeral from 'numeral';
 
 import Trade, { ITradeStateProps } from '../trade/Trade';
 import Dividend, { IDividendStateProps } from '../dividend/Dividend';
@@ -20,6 +19,7 @@ export interface ISidebarPosition
 		| 'currentMarketValueUsd'
 		| 'totalCostCad'
 		| 'totalCostUsd'
+		| 'averageEntryPrice'
 	> {
 	quotePrice: number;
 	previousClosePrice: number;
@@ -62,17 +62,8 @@ const SidebarRight: React.FC<
 			return 0;
 		})
 		.slice(0, MAX_ACTIVITY);
-	const pnl = ({
-		currency,
-		totalCostCad,
-		totalCostUsd,
-		currentMarketValueCad,
-		currentMarketValueUsd,
-	}: ISidebarPosition) => {
-		const amount =
-			currency === Currency.cad
-				? (currentMarketValueCad - totalCostCad) / totalCostCad
-				: (currentMarketValueUsd - totalCostUsd) / totalCostUsd;
+	const pnl = ({ averageEntryPrice, quotePrice }: ISidebarPosition) => {
+		const amount = (quotePrice - averageEntryPrice) / averageEntryPrice;
 
 		if (Math.abs(amount) < 0.0001) {
 			return 0;

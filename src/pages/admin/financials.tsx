@@ -4,7 +4,8 @@ import _ from 'lodash';
 import numeral from 'numeral';
 
 import Layout from '../../components/layout';
-import { ICash } from '../../../declarations/cash';
+import { IAccount } from '../../../declarations';
+import { Currency } from '../../utils/enum';
 
 interface IFinancialsQuery {
 	data: {
@@ -36,8 +37,8 @@ interface IFinancialsQuery {
 				priceUsd: number;
 			}[];
 		};
-		allCash: {
-			nodes: ICash[];
+		allAccount: {
+			nodes: IAccount[];
 		};
 	};
 }
@@ -46,7 +47,7 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 	const positions = data.allPosition.nodes;
 	const trades = data.allTrade.nodes;
 	const dividends = data.allDividend.nodes;
-	const cash = data.allCash.nodes;
+	const accounts = data.allAccount.nodes;
 	const btcQuote = data.allQuote.nodes[0];
 	const usdToBtc = btcQuote.priceUsd;
 
@@ -62,8 +63,16 @@ const Financials: React.FC<IFinancialsQuery> = ({ data }) => {
 	const closedPnlUsd = _.sumBy(trades, (q) => q.pnlUsd);
 	const closedPnlCad = _.sumBy(trades, (q) => q.pnlCad);
 
-	const cashUsd = cash.reduce((sum, { amountUsd }) => sum + amountUsd, 0);
-	const cashCad = cash.reduce((sum, { amountCad }) => sum + amountCad, 0);
+	const cashUsd = accounts
+		.map((q) => q.balances)
+		.flat()
+		.filter((q) => q.currency === Currency.usd)
+		.reduce((sum, q) => sum + q.amountUsd, 0);
+	const cashCad = accounts
+		.map((q) => q.balances)
+		.flat()
+		.filter((q) => q.currency === Currency.cad)
+		.reduce((sum, q) => sum + q.amountCad, 0);
 
 	const totalUsd = equityUsd + cashUsd;
 	const totalCad = equityCad + cashCad;
@@ -201,15 +210,19 @@ export const pageQuery = graphql`
 				priceUsd
 			}
 		}
-		allCash {
+		allAccount {
 			nodes {
+				displayName
 				accountId
-				accountName
-				amount
-				amountCad
-				amountUsd
-				id
-				currency
+				name
+				isTaxable
+				type
+				balances {
+					amount
+					amountCad
+					amountUsd
+					currency
+				}
 			}
 		}
 	}

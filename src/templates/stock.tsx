@@ -35,6 +35,7 @@ import { IOrder } from '../../declarations/order';
 import { IEarningsDate } from '../../declarations/earnings-date';
 import FirebaseImage from '../components/firebase-image/FirebaseImage';
 import { CurrencyContext } from '../context/currency.context';
+import { IAccount } from '../../declarations';
 
 interface IStockTemplateStateProps extends Pick<IStoreState, 'storage'> {}
 
@@ -64,6 +65,8 @@ interface IStockTemplateNode
 		| 'openPnlUsd'
 		| 'currentMarketValueCad'
 		| 'currentMarketValueUsd'
+		| 'openingTrade'
+		| 'accounts'
 	>;
 	quote: Pick<IQuote, 'price' | 'priceUsd' | 'priceCad' | 'currency'>;
 	trades: Pick<
@@ -74,11 +77,10 @@ interface IStockTemplateNode
 		| 'timestamp'
 		| 'pnlCad'
 		| 'pnlUsd'
-		| 'isOpeningPositionTrade'
 		| 'priceCad'
 		| 'priceUsd'
 		| 'isSell'
-		| 'accountName'
+		| 'accountId'
 		| 'type'
 	>[];
 	assessment?: Pick<
@@ -104,8 +106,9 @@ interface IStockTemplateNode
 		| 'limitPriceUsd'
 		| 'openQuantity'
 		| 'action'
-		| 'accountName'
+		| 'accountId'
 	>[];
+	accounts: IAccount[];
 }
 
 interface IStockTemplateQuery {
@@ -121,6 +124,9 @@ interface IStockTemplateQuery {
 		};
 		allEarningsDate: {
 			nodes: Pick<IEarningsDate, 'timestamp'>[];
+		};
+		allAccount: {
+			nodes: IAccount[];
 		};
 	};
 }
@@ -139,6 +145,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	const currency = useContext(CurrencyContext);
 	const company = data.allCompany.nodes[0];
 	const cryptoQuotes = data.allQuote.nodes;
+	const accounts = data.allAccount.nodes;
 	const btcQuote = _.find(cryptoQuotes, (q) => q.symbol === 'btc');
 	const ethQuote = _.find(cryptoQuotes, (q) => q.symbol === 'eth');
 	const { quote, assessment, trades, dividends } = company;
@@ -156,7 +163,8 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 		currentMarketValueUsd: 0,
 		currentMarketValueCad: 0,
 		averageEntryPrice: 0,
-		positions: [],
+		accounts: [],
+		openingTrade: undefined,
 	};
 
 	const pAndLClosedCad = _.sumBy(trades, (trade) => trade.pnlCad || 0);
@@ -165,7 +173,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	const dividendsTotalUsd = _.sumBy(dividends, (d) => d.amountUsd);
 	const totalCad = position.openPnlCad + pAndLClosedCad + dividendsTotalCad;
 	const totalUsd = position.openPnlUsd + pAndLClosedUsd + dividendsTotalUsd;
-	const openingTrade = _.find(trades, (t) => t.isOpeningPositionTrade);
+	const openingTrade = position?.openingTrade;
 	const openingSharePrice = openingTrade?.price || 0;
 	const openingToAverageSharePrice =
 		(position.averageEntryPrice - openingSharePrice) / openingSharePrice;
@@ -202,13 +210,6 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	const potentialAthCad =
 		quote.currency === 'cad' ? potentialAth : potentialAth * usdToCad;
 	const timeHeld = getTimeHeld(trades);
-
-	const tradeAccountsMap: { [accountName: string]: number } = {};
-	trades.forEach(({ accountName, action, quantity }) => {
-		const currentQuantity = tradeAccountsMap[accountName] || 0;
-		tradeAccountsMap[accountName] =
-			currentQuantity + (action === 'buy' ? 1 : -1) * quantity;
-	});
 
 	const positionFormat = company.type === 'crypto' ? '0,0.0000' : '0,0';
 	const earningsDate = data.allEarningsDate.nodes[0]?.timestamp || 0;
@@ -493,11 +494,12 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							<div className='row'>
 								<div className='col-6'>Accounts</div>
 								<div className='col-6'>
-									{Object.entries(tradeAccountsMap)
-										.filter((q) => q[1] > 0)
+									{position.accounts
 										.map(
-											([accountName, quantity]) =>
-												`${accountName}:${numeral(quantity).format(positionFormat)}`
+											({ accountId, quantity }) =>
+												`${
+													accounts.find((q) => q.accountId === accountId)?.displayName
+												}:${numeral(quantity).format(positionFormat)}`
 										)
 										.join(' / ')}
 								</div>
@@ -517,10 +519,14 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 										limitPriceCad={order.limitPriceCad || 0}
 										limitPriceUsd={order.limitPriceUsd || 0}
 										limitPrice={order.limitPrice}
-										accountName={order.accountName}
+										accountName={
+											accounts.find(({ accountId }) => order.accountId === accountId)
+												?.displayName || ''
+										}
 										quotePrice={quote.price}
 										positionCost={position?.totalCost || 0}
 										currency={currency}
+										accountId={order.accountId}
 									/>
 								</div>
 						  ))
@@ -573,7 +579,10 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 												price={trade.price}
 												pnlCad={trade.pnlCad}
 												pnlUsd={trade.pnlUsd}
-												accountName={trade.accountName}
+												accountName={
+													accounts.find((q) => q.accountId === trade.accountId)
+														?.displayName || ''
+												}
 												type={trade.type}
 											/>
 									  ))
@@ -633,6 +642,22 @@ export const pageQuery = graphql`
 					openPnlUsd
 					currentMarketValueCad
 					currentMarketValueUsd
+					accounts {
+						accountId
+						averageEntryPrice
+						quantity
+						averageEntryPriceCad
+						averageEntryPriceUsd
+						currentMarketValue
+						currentMarketValueCad
+						currentMarketValueUsd
+						openPnl
+						openPnlCad
+						openPnlUsd
+						totalCost
+						totalCostCad
+						totalCostUsd
+					}
 				}
 				quote {
 					price
@@ -648,11 +673,10 @@ export const pageQuery = graphql`
 					timestamp
 					pnlCad
 					pnlUsd
-					isOpeningPositionTrade
 					priceUsd
 					priceCad
 					isSell
-					accountName
+					accountId
 					type
 				}
 				assessment {
@@ -682,7 +706,22 @@ export const pageQuery = graphql`
 					limitPriceUsd
 					openQuantity
 					action
-					accountName
+					accountId
+				}
+			}
+		}
+		allAccount {
+			nodes {
+				displayName
+				accountId
+				name
+				isTaxable
+				type
+				balances {
+					amount
+					amountCad
+					amountUsd
+					currency
 				}
 			}
 		}

@@ -288,7 +288,7 @@ export default connect(mapStateToProps, null)(CryptoTrades);
 
 export const pageQuery = graphql`
 	query {
-		allTrade(filter: { accountId: { eq: 26418215 } }) {
+		allTrade(filter: { accountId: { eq: "26418215" } }) {
 			nodes {
 				symbol
 				quantity

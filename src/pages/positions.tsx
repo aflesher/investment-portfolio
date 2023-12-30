@@ -7,7 +7,6 @@ import Position from '../components/position/Position';
 import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
 import XE from '../components/xe/XE';
-import { ICash } from '../../declarations/cash';
 import { ITrade } from '../../declarations/trade';
 import { getPercentSharesRemaining } from '../utils/util';
 import { IOrder } from '../../declarations/order';
@@ -16,6 +15,7 @@ import { IQuote } from '../../declarations/quote';
 import { ICompany } from '../../declarations/company';
 import { IAssessment } from '../../declarations/assessment';
 import { CurrencyContext } from '../context/currency.context';
+import { IAccount } from '../../declarations';
 
 export enum PositionsOrderBy {
 	symbol,
@@ -62,11 +62,11 @@ interface IPositionsQuery {
 		allPosition: {
 			nodes: IPositionNode[];
 		};
-		allCash: {
-			nodes: ICash[];
-		};
 		allOrder: {
 			nodes: Pick<IOrder, 'symbol' | 'action' | 'openQuantity' | 'limitPrice'>[];
+		};
+		allAccount: {
+			nodes: IAccount[];
 		};
 	};
 }
@@ -112,15 +112,18 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 	);
 
 	const currency = useContext(CurrencyContext);
+	const accounts = data.allAccount.nodes;
 
-	let usdCash = data.allCash.nodes.reduce(
-		(sum, { amountUsd }) => sum + amountUsd,
-		0
-	);
-	let cadCash = data.allCash.nodes.reduce(
-		(sum, { amountCad }) => sum + amountCad,
-		0
-	);
+	let cadCash = accounts
+		.map((q) => q.balances)
+		.flat()
+		.filter((q) => q.currency === Currency.cad)
+		.reduce((sum, q) => sum + q.amountCad, 0);
+	let usdCash = accounts
+		.map((q) => q.balances)
+		.flat()
+		.filter((q) => q.currency === Currency.usd)
+		.reduce((sum, q) => sum + q.amountCad, 0);
 
 	let positions = data.allPosition.nodes.filter(
 		(q) =>
@@ -445,23 +448,27 @@ export const pageQuery = graphql`
 				}
 			}
 		}
-		allCash {
-			nodes {
-				accountId
-				accountName
-				amount
-				amountCad
-				amountUsd
-				id
-				currency
-			}
-		}
 		allOrder {
 			nodes {
 				symbol
 				limitPrice
 				action
 				openQuantity
+			}
+		}
+		allAccount {
+			nodes {
+				displayName
+				accountId
+				name
+				isTaxable
+				type
+				balances {
+					amount
+					amountCad
+					amountUsd
+					currency
+				}
 			}
 		}
 	}

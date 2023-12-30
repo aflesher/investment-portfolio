@@ -7,13 +7,12 @@ import Trade from '../components/trade/Trade';
 import Layout from '../components/layout';
 import DateRange from '../components/date-range/DateRange';
 import { dateInputFormat } from '../utils/util';
-import { ITrade } from '../../declarations/trade';
+import { IAccount, ITrade } from '../../declarations';
 
 interface ITradeNode
 	extends Pick<
 		ITrade,
 		| 'accountId'
-		| 'accountName'
 		| 'quantity'
 		| 'action'
 		| 'price'
@@ -31,6 +30,9 @@ interface ITradeQuery {
 		allTrade: {
 			nodes: ITradeNode[];
 		};
+		allAccount: {
+			nodes: IAccount[];
+		};
 	};
 }
 
@@ -41,6 +43,8 @@ const Trades: React.FC<ITradeQuery> = ({ data }) => {
 	const [endDate, setEndDate] = React.useState(new Date());
 	const [symbol, setSymbol] = React.useState('');
 	const [showLength, setShownLength] = React.useState(PAGE_SIZE);
+
+	const accounts = data.allAccount.nodes;
 
 	const trades = useMemo(
 		() =>
@@ -171,7 +175,10 @@ const Trades: React.FC<ITradeQuery> = ({ data }) => {
 								price={trade.price}
 								isSell={trade.action === 'sell'}
 								currency={trade.currency}
-								accountName={trade.accountName}
+								accountName={
+									accounts.find((q) => q.accountId === trade.accountId)?.displayName ||
+									''
+								}
 								type={trade.type}
 							/>
 						))}
@@ -189,7 +196,6 @@ export const pageQuery = graphql`
 		allTrade(sort: { fields: [timestamp], order: DESC }) {
 			nodes {
 				accountId
-				accountName
 				quantity
 				price
 				action
@@ -200,6 +206,21 @@ export const pageQuery = graphql`
 				pnlUsd
 				currency
 				type
+			}
+		}
+		allAccount {
+			nodes {
+				displayName
+				accountId
+				name
+				isTaxable
+				type
+				balances {
+					amount
+					amountCad
+					amountUsd
+					currency
+				}
 			}
 		}
 	}

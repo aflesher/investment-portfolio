@@ -24,7 +24,6 @@ interface IOrderStateProps
 		| 'type'
 		| 'side'
 		| 'filledQuantity'
-		| 'account'
 	> {
 	positionQuantity: number;
 	quotePrice: number;

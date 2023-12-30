@@ -9,6 +9,7 @@ import moment from 'moment-timezone';
 import Order from '../components/order/Order';
 import { IPosition } from '../../declarations/position';
 import { CurrencyContext } from '../context/currency.context';
+import { IAccount } from '../../declarations';
 
 interface IIndexQueryProps extends PageProps {
 	data: {
@@ -44,7 +45,7 @@ interface IIndexQueryProps extends PageProps {
 				limitPriceUsd: number;
 				openQuantity: number;
 				action: string;
-				accountName: string;
+				accountId: string;
 				quote: {
 					price: number;
 					afterHoursPrice: number;
@@ -61,6 +62,9 @@ interface IIndexQueryProps extends PageProps {
 		};
 		allPosition: {
 			nodes: Pick<IPosition, 'quantity' | 'totalCost' | 'symbol'>[];
+		};
+		allAccount: {
+			nodes: IAccount[];
 		};
 	};
 }
@@ -165,6 +169,11 @@ const IndexPage: React.FC<IIndexQueryProps> = ({ data }) => {
 						}
 						quotePrice={order.quote.price}
 						currency={currency}
+						accountName={
+							data.allAccount.nodes.find(
+								({ accountId }) => order.accountId === accountId
+							)?.displayName || ''
+						}
 					/>
 				))}
 			</div>
@@ -208,7 +217,7 @@ export const pageQuery = graphql`
 				limitPriceUsd
 				openQuantity
 				action
-				accountName
+				accountId
 				quote {
 					price
 					afterHoursPrice
@@ -228,6 +237,21 @@ export const pageQuery = graphql`
 				symbol
 				quantity
 				totalCost
+			}
+		}
+		allAccount {
+			nodes {
+				displayName
+				accountId
+				name
+				isTaxable
+				type
+				balances {
+					amount
+					amountCad
+					amountUsd
+					currency
+				}
 			}
 		}
 	}

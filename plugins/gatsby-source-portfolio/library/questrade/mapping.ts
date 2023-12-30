@@ -86,7 +86,7 @@ export const mapOrder = (
 			? 'buy'
 			: 'sell',
 		type: order.orderType,
-		account,
+		accountId: account.accountId,
 		currency,
 		symbolId: order.symbolId,
 	};
@@ -155,7 +155,7 @@ export const mapDividend = (
 		amount: dividend.amount,
 		symbolId: dividend.symbolId,
 		currency,
-		account,
+		accountId: account.accountId,
 		amountCad: dividend.amount * cadRate,
 		amountUsd: dividend.amount * usdRate,
 	};

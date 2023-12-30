@@ -1,5 +1,4 @@
 import { Currency } from '../src/utils/enum';
-import { IAccount } from './account';
 
 export interface IOrder {
 	symbol: string;
@@ -13,7 +12,7 @@ export interface IOrder {
 	side: string;
 	action: string;
 	type: string;
-	account: IAccount;
+	accountId: string;
 	currency: Currency;
 	limitPriceUsd: number;
 	limitPriceCad: number;
