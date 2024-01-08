@@ -136,6 +136,10 @@ export const mapDividend = (
 	dividend: ICloudDividend,
 	usdToCadRate: number
 ): IDividend => {
+	if (!(usdToCadRate > 0)) {
+		console.error('invalid usdToCadRate', usdToCadRate, new Date(dividend.date));
+		usdToCadRate = 1.25;
+	}
 	const account = getAccounts().find(
 		({ accountId: id }) => id === dividend.accountId.toString()
 	);

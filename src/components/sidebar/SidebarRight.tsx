@@ -110,11 +110,7 @@ const SidebarRight: React.FC<
 							case PositionOrderBy.symbol:
 								return position.symbol;
 							case PositionOrderBy.profits:
-								return position.currency === Currency.cad
-									? (position.currentMarketValueCad - position.totalCostCad) /
-											position.totalCostCad
-									: (position.currentMarketValueUsd - position.totalCostUsd) /
-											position.totalCostUsd;
+								return pnl(position);
 							case PositionOrderBy.quote:
 								return quotePercentage(position);
 						}

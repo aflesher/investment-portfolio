@@ -125,8 +125,10 @@ export const getFilteredSymbolIds = () => [17488686];
 export const getMappedSymbolIds = () => [
 	{ original: 20682, replacement: 11419766 }, // googl
 	{ original: 28114781, replacement: 41822360 },
+	{ original: 16529510, replacement: 52040561 },
 ];
 
 export const getMappedSymbols = () => ({
 	'bitf.vn': 'bitf.to',
+	psucf: 'psu.u.to',
 });

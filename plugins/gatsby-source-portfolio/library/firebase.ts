@@ -12,12 +12,16 @@ import {
 	IStockSplit,
 	ITrade,
 	IPosition,
+	IAccount,
 } from '../../../declarations';
 import { Currency, AssetType } from '../../../src/utils/enum';
 import moment from 'moment';
 import { IEarningsDate } from './earnings-calendar';
 import { ICrypto52Weeks } from './crypto';
-import { getExchangeRates as getExchangeLookup } from './exchange';
+import {
+	getExchangeRates as getExchangeLookup,
+	getTodaysRate,
+} from './exchange';
 
 interface ICryptoPosition
 	extends Pick<
@@ -259,113 +263,11 @@ const debugCryptoPosition = (
 	console.log('>>>>>>>>>>>>'.yellow);
 };
 
-export const calculateCryptoPositions = (
-	trades: ICryptoTrade[],
-	rates: IExchangeRate[]
-): ICryptoPosition[] => {
-	const orderedTrades = _.orderBy(trades, (t) => t.timestamp);
-	const ratesMap = _.keyBy(rates, (r) => r.date);
-
-	const positions: ICryptoPosition[] = [];
-	_.forEach(orderedTrades, (t) => {
-		let position = _.find(positions, (p) => p.symbol === t.symbol);
-		const rate = ratesMap[moment(t.timestamp).format('YYYY-MM-DD')];
-		if (!rate) {
-			console.log(`missing rate for ${t.symbol} ${new Date(t.timestamp)}`);
-			return;
-		}
-		// if it's a sell and we don't have a position we can just return (bad state)
-		if (t.isSell && !position) {
-			console.log(`skipping ${t.symbol} ${new Date(t.timestamp)}`);
-			return;
-		}
-
-		// first buy
-		if (!position) {
-			position = {
-				currency: Currency.usd,
-				type: AssetType.crypto,
-				symbol: t.symbol,
-				averageEntryPrice: t.price,
-				averageEntryPriceCad: t.price * rate.rate,
-				quantity: t.quantity,
-				totalCostUsd: t.price * t.quantity,
-				totalCostCad: t.price * t.quantity * rate.rate,
-			};
-			positions.push(position);
-			debugCryptoPosition(t, position);
-			return;
-		}
-
-		// buy
-		if (!t.isSell) {
-			position.totalCostCad += t.quantity * t.price * rate.rate;
-			position.totalCostUsd += t.quantity * t.price;
-			position.quantity += t.quantity;
-			position.averageEntryPrice = position.totalCostUsd / position.quantity;
-			position.averageEntryPriceCad = position.totalCostCad / position.quantity;
-			debugCryptoPosition(t, position);
-			return;
-		}
-
-		// sell
-		position.quantity = Math.max(position.quantity - t.quantity, 0);
-		if (position.quantity < 0.001) {
-			position.quantity = 0;
-		}
-		position.totalCostCad = Math.max(
-			position.quantity * position.averageEntryPriceCad,
-			0
-		);
-		position.totalCostUsd = Math.max(
-			position.quantity * position.averageEntryPrice,
-			0
-		);
-		debugCryptoPosition(t, position);
-	});
-
-	return _.filter(positions, (p) => p.quantity > 0 && p.totalCostCad > 0);
-};
-
 export interface ICryptoTrade
 	extends Pick<
 		ITrade,
 		'symbol' | 'timestamp' | 'isSell' | 'quantity' | 'price' | 'type' | 'pnl'
 	> {}
-
-export const setCryptoTradeGainsAndLosses = (trades: ICryptoTrade[]) => {
-	const tradeTotals: {
-		[symbol: string]: { cost: number; shares: number };
-	} = {};
-	const orderedTrades = _.orderBy(trades, (t) => t.timestamp);
-	orderedTrades.forEach((trade) => {
-		if (!trade.isSell) {
-			tradeTotals[trade.symbol] = tradeTotals[trade.symbol] || {
-				cost: 0,
-				shares: 0,
-			};
-			tradeTotals[trade.symbol].cost += trade.price * trade.quantity;
-			tradeTotals[trade.symbol].shares = NP.plus(
-				tradeTotals[trade.symbol].shares,
-				trade.quantity
-			);
-		} else {
-			if (
-				tradeTotals[trade.symbol] &&
-				tradeTotals[trade.symbol].shares >= trade.quantity
-			) {
-				const totals = tradeTotals[trade.symbol];
-				const avg = totals.cost / totals.shares;
-				const cost = avg * trade.quantity;
-				const proceeds = trade.price * trade.quantity;
-
-				trade.pnl = proceeds - cost;
-				totals.cost -= cost;
-				totals.shares = NP.minus(totals.shares, trade.quantity);
-			}
-		}
-	});
-};
 
 export const getCryptoTrades = async (): Promise<ICryptoTrade[]> => {
 	await initDeferredPromise.promise;
@@ -584,4 +486,31 @@ export const getHisaStocks = async (): Promise<{ symbol: string }[]> => {
 	);
 
 	return hisas;
+};
+
+export const getAccounts = async (): Promise<IAccount[]> => {
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore.collection('account').get();
+
+	const usdToCadRate = await getTodaysRate();
+	const cadToUsdRate = 1 / usdToCadRate;
+
+	const accounts = await querySnapshot.docs.map(
+		(documentSnapshot) => documentSnapshot.data() as IAccount
+	);
+
+	accounts.forEach((account) => {
+		account.balances.forEach((balance) => {
+			if (balance.currency === Currency.cad) {
+				balance.amountCad = balance.amount;
+				balance.amountUsd = balance.amount * cadToUsdRate;
+			} else if (balance.currency === Currency.usd) {
+				balance.amountUsd = balance.amount;
+				balance.amountCad = balance.amount * usdToCadRate;
+			}
+		});
+	});
+
+	return accounts;
 };

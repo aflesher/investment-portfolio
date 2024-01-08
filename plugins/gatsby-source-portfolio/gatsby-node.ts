@@ -33,6 +33,7 @@ import { getCompanies } from './library/companies';
 import { IAccount } from '../../declarations/account';
 import { getAccounts } from './library/accounts';
 import { getAssessments } from './library/assessment';
+import { querySymbol } from './library/debug';
 
 const assessmentsPromise = getAssessments();
 const stockSplitsPromise = firebase.getStockSplits();
@@ -59,6 +60,8 @@ const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	const symbols = positions.map((p) => p.symbol);
 	return getEarningsDates(symbols);
 })();
+
+// querySymbol('weed');
 
 const hash = (content: string): string => {
 	return crypto.createHash('md5').update(content).digest('hex');
@@ -406,7 +409,6 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const getTradeNodes = async (): Promise<ITradeNode[]> => {
 		const trades = await tradesPromise;
 
-		let cryptoIndex = 0;
 		return trades.map((trade, index) => {
 			const tradeNode: ITradeNode = {
 				...trade,
@@ -421,11 +423,7 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 			};
 
 			const content = JSON.stringify(tradeNode);
-			let nodeId = getTradeNodeId(tradeNode.symbol, index);
-			if (trade.type === 'crypto') {
-				nodeId = getTradeNodeId(tradeNode.symbol, cryptoIndex);
-				cryptoIndex++;
-			}
+			const nodeId = getTradeNodeId(tradeNode.symbol, index);
 			_.defaults(tradeNode, {
 				id: nodeId,
 				parent: null,

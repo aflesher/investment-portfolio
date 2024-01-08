@@ -209,7 +209,10 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 		quote.currency === 'usd' ? potentialAth : potentialAth * cadToUsd;
 	const potentialAthCad =
 		quote.currency === 'cad' ? potentialAth : potentialAth * usdToCad;
-	const timeHeld = getTimeHeld(trades);
+	const timeHeld =
+		position.quantity && position.openingTrade
+			? getTimeHeld(position.openingTrade)
+			: 0;
 
 	const positionFormat = company.type === 'crypto' ? '0,0.0000' : '0,0';
 	const earningsDate = data.allEarningsDate.nodes[0]?.timestamp || 0;
@@ -642,6 +645,10 @@ export const pageQuery = graphql`
 					openPnlUsd
 					currentMarketValueCad
 					currentMarketValueUsd
+					openingTrade {
+						price
+						timestamp
+					}
 					accounts {
 						accountId
 						averageEntryPrice

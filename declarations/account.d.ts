@@ -1,3 +1,5 @@
+import { Currency } from '../src/utils/enum';
+
 export interface IBalance {
 	currency: Currency;
 	amount: number;

@@ -354,6 +354,20 @@ export const findSymbolId = async (symbol: string): Promise<number> => {
 	return (stock && stock.symbolId) || 0;
 };
 
+export const querySymbol = async (
+	symbol: string
+): Promise<IQuestradeCompany[]> => {
+	await initDeferredPromise.promise;
+	const resp = await authRequest(`v1/symbols/search?prefix=${symbol}`);
+	console.log(resp);
+	if (!resp) {
+		return [];
+	}
+	const symbols: IQuestradeCompany[] = resp.data.symbols;
+	console.log(resp.data.symbols);
+	return symbols;
+};
+
 export enum QuestradeOrderType {
 	Market = 'Market',
 	Limit = 'Limit',

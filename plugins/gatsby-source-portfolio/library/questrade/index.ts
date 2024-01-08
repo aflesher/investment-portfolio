@@ -136,3 +136,10 @@ export const getAccounts = async (): Promise<IAccount[]> => {
 
 	return accounts;
 };
+
+export const querySymbol = async (
+	symbol: string
+): Promise<api.IQuestradeCompany[]> => {
+	await initDeferredPromise.promise;
+	return api.querySymbol(symbol);
+};

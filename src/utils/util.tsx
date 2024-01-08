@@ -195,33 +195,8 @@ export const getPercentSharesRemaining = (
 };
 
 export const getTimeHeld = (
-	trades: Pick<ITrade, 'timestamp' | 'quantity' | 'isSell'>[]
+	openingTrade: Pick<ITrade, 'timestamp'>
 ): number => {
-	let timeHeld = 0;
-	if (!trades.length) {
-		return 0;
-	}
-
-	[...trades].sort((a, b) => a.timestamp - b.timestamp);
-
-	let quantity = 0;
-	let startTime = 0;
-	trades.forEach((trade) => {
-		if (!trade.isSell) {
-			if (!quantity) {
-				startTime = trade.timestamp;
-			}
-			quantity += trade.quantity;
-		} else {
-			quantity -= trade.quantity;
-			if (!quantity) {
-				timeHeld += trade.timestamp - startTime;
-			}
-		}
-	});
-
-	if (quantity) {
-		timeHeld += new Date().getTime() - startTime;
-	}
-	return timeHeld;
+	console.log(openingTrade, new Date().getTime(), openingTrade.timestamp);
+	return new Date().getTime() - openingTrade.timestamp;
 };
