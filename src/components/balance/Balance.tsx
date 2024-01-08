@@ -26,10 +26,9 @@ const Balance: React.FC<IBalanceStateProps> = ({
 }) => {
 	const format = '$0,0.00';
 	return (
-		<div className='py-4 my-1 pl-4 border'>
-			<div className='row text-emphasis'>
-				<div className='col-6'>Account:</div>
-				<div className='col-6'>{name}</div>
+		<div className='py-4 my-1 border container'>
+			<div className='row text-emphasis border-b pb-1'>
+				<div className='col-12 font-italic'>{name}</div>
 			</div>
 			<div className='row'>
 				<div className='col-6'>$CAD</div>

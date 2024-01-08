@@ -57,7 +57,9 @@ const companiesPromise = quotesPromise.then((quotes) => getCompanies(quotes));
 
 const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	const positions = await positionsPromise;
-	const symbols = positions.map((p) => p.symbol);
+	const symbols = positions
+		.filter((p) => p.type === 'stock')
+		.map((p) => p.symbol);
 	return getEarningsDates(symbols);
 })();
 
