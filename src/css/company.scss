@@ -235,3 +235,7 @@
 		background: url($flag) center / contain no-repeat;
 	}
 }
+
+.s {
+	@include companyBase(#fff, rgb(87, 54, 122), #fff);
+}

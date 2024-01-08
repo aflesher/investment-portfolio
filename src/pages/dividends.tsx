@@ -45,7 +45,15 @@ const DIVIDEND_POSITIONS_YEAR_END: {
 	amountCad: number;
 	amountUsd: number;
 	currency: Currency;
-}[] = [];
+}[] = [
+	{
+		year: 2023,
+		symbol: 'hsuv.u.to',
+		amountCad: 3185.04,
+		amountUsd: 2405.7,
+		currency: Currency.usd,
+	},
+];
 
 const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 	const currency = useContext(CurrencyContext);
