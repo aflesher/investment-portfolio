@@ -17,7 +17,6 @@ export const getAccounts = async (): Promise<IAccount[]> => {
 	]);
 
 	const binanceAccount = binance.getAccount();
-	console.log(firebaseAccounts);
 
 	console.log('companies.getAccounts (end)'.gray);
 	return [

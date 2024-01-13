@@ -221,6 +221,10 @@ export const sync = async (): Promise<void> => {
 	getCustomTrades().forEach((trade) => {
 		if (!tradesMap[trade.hash]) {
 			trades.push(trade);
+			console.log(
+				`adding custom trade: ${trade.symbol} ${trade.action} ${trade.quantity} ${trade.date}}`
+					.yellow
+			);
 			tradesMap[trade.hash] = true;
 		}
 	});
