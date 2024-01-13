@@ -34,6 +34,11 @@ interface IDividendsQueryProps {
 				'symbol' | 'openPnlCad' | 'openPnlUsd' | 'currency'
 			>[];
 		};
+		allExchangeRate: {
+			nodes: {
+				rate: number;
+			}[];
+		};
 	};
 }
 
@@ -57,6 +62,9 @@ const DIVIDEND_POSITIONS_YEAR_END: {
 
 const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 	const currency = useContext(CurrencyContext);
+	const usdToCad = data.allExchangeRate.nodes[0]?.rate || 1;
+	const cadToUsd = 1 / usdToCad;
+
 	const [startDate, setStartDate] = React.useState(
 		moment().startOf('year').toDate()
 	);
@@ -71,8 +79,14 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 				(q) => q.symbol === symbol && q.year === moment().year() - 1
 			) || { amountCad: 0, amountUsd: 0 };
 			const months = moment().month() + 1;
-			const cadDividends = (openPnlCad - previousYearAmount.amountCad) / months;
-			const usdDividends = (openPnlUsd - previousYearAmount.amountUsd) / months;
+			let cadDividends = (openPnlCad - previousYearAmount.amountCad) / months;
+			let usdDividends = (openPnlUsd - previousYearAmount.amountUsd) / months;
+
+			if (currency === Currency.usd) {
+				cadDividends = usdDividends * usdToCad;
+			} else {
+				usdDividends = cadDividends * cadToUsd;
+			}
 
 			return Array.from(Array(months).keys()).map((month) => {
 				return {
@@ -339,6 +353,15 @@ export const pageQuery = graphql`
 				openPnlUsd
 				symbol
 				currency
+			}
+		}
+		allExchangeRate(
+			limit: 1
+			filter: { key: { eq: "USD_CAD" } }
+			sort: { fields: [date], order: DESC }
+		) {
+			nodes {
+				rate
 			}
 		}
 	}
