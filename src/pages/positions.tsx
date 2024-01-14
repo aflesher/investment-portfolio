@@ -16,6 +16,7 @@ import { ICompany } from '../../declarations/company';
 import { IAssessment } from '../../declarations/assessment';
 import { CurrencyContext } from '../context/currency.context';
 import { IAccount } from '../../declarations';
+import { getPortfolioAllocations } from '../utils/calculate';
 
 export enum PositionsOrderBy {
 	symbol,
@@ -132,6 +133,8 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 			(typeFilter === 'stock' && q.type === 'stock')
 	);
 
+	const allocations = getPortfolioAllocations(positions, accounts);
+
 	if (combined) {
 		cadCash += positions
 			.filter((q) => q.company.hisa)
@@ -187,16 +190,6 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 	);
 
 	const orders = data.allOrder.nodes;
-
-	const cashTotalValue = positions
-		.filter(({ type, company }) => type === AssetType.cash || company.hisa)
-		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
-	const stockTotalValue = positions
-		.filter(({ type, company }) => type === AssetType.stock && !company.hisa)
-		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
-	const cryptoTotalValue = positions
-		.filter(({ type }) => type === AssetType.crypto)
-		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
 
 	positions = _.orderBy(
 		positions,
@@ -389,15 +382,9 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 					</tbody>
 				</table>
 				<div>
-					<div>
-						Cash: {numeral(cashTotalValue / totalPositionValue).format('0.00%')}
-					</div>
-					<div>
-						Stocks: {numeral(stockTotalValue / totalPositionValue).format('0.00%')}
-					</div>
-					<div>
-						Crypto: {numeral(cryptoTotalValue / totalPositionValue).format('0.00%')}
-					</div>
+					<div>Cash: {numeral(allocations.cash).format('0.00%')}</div>
+					<div>Stocks: {numeral(allocations.stock).format('0.00%')}</div>
+					<div>Crypto: {numeral(allocations.crypto).format('0.00%')}</div>
 				</div>
 			</div>
 		</Layout>

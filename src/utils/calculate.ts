@@ -1,4 +1,5 @@
-import { Currency } from './enum';
+import { IAccount, IPosition } from '../../declarations';
+import { AssetType, Currency } from './enum';
 
 export const orderPnL = (
 	avgSharePrice: number,
@@ -52,4 +53,53 @@ export const orderNewAvgPrice = (
 		limitPrice,
 		orderQuantity
 	);
+};
+
+interface PortfolioAllocationPosition
+	extends Pick<
+		IPosition,
+		'type' | 'currentMarketValueCad' | 'currentMarketValueUsd'
+	> {
+	company?: {
+		hisa?: boolean;
+	};
+}
+
+export const addUpCash = (accounts: IAccount[]) => {
+	const cadCombined = accounts
+		.map((q) => q.balances)
+		.flat()
+		.reduce((sum, q) => sum + q.amountCad, 0);
+	const usdCombined = accounts
+		.map((q) => q.balances)
+		.flat()
+		.reduce((sum, q) => sum + q.amountUsd, 0);
+
+	return { cadCombined, usdCombined };
+};
+
+export const getPortfolioAllocations = (
+	positions: PortfolioAllocationPosition[],
+	accounts: IAccount[]
+) => {
+	const cashTotalValue = positions
+		.filter(({ type, company }) => type === AssetType.cash || company?.hisa)
+		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
+	const stockTotalValue = positions
+		.filter(({ type, company }) => type === AssetType.stock && !company?.hisa)
+		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
+	const cryptoTotalValue = positions
+		.filter(({ type }) => type === AssetType.crypto)
+		.reduce((sum, { currentMarketValueCad }) => sum + currentMarketValueCad, 0);
+
+	const cash = addUpCash(accounts);
+
+	const totalValue =
+		cashTotalValue + stockTotalValue + cryptoTotalValue + cash.cadCombined;
+
+	return {
+		cash: cashTotalValue / totalValue,
+		stock: stockTotalValue / totalValue,
+		crypto: cryptoTotalValue / totalValue,
+	};
 };
