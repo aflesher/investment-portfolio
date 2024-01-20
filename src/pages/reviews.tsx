@@ -194,6 +194,25 @@ const Reviews: React.FC<
 		[assessments]
 	);
 
+	const calculateReassessmentGoals = useCallback(
+		(text: string): null | number => {
+			if (text !== 'Re-evaluate every stock you own.') {
+				return null;
+			}
+
+			const symbols = positions.map((position) => position.symbol);
+
+			const reassessments = assessments.filter(
+				(assessment) =>
+					assessment.lastUpdatedTimestamp > new Date('2024').getTime() &&
+					symbols.includes(assessment.symbol)
+			);
+
+			return reassessments.length / symbols.length;
+		},
+		[assessments, positions]
+	);
+
 	const calculateGoalProgresses = useCallback(
 		(text: string): null | ReactElement => {
 			let goal = calculatePortfolioAllocationGoalProgress(text);
@@ -203,6 +222,10 @@ const Reviews: React.FC<
 
 			if (!goal) {
 				goal = calculateAssessmentGoals(text);
+			}
+
+			if (!goal) {
+				goal = calculateReassessmentGoals(text);
 			}
 
 			if (goal !== null) {
@@ -215,6 +238,7 @@ const Reviews: React.FC<
 			calculatePortfolioAllocationGoalProgress,
 			calculatePurchaseGoalProgress,
 			calculateAssessmentGoals,
+			calculateReassessmentGoals,
 		]
 	);
 

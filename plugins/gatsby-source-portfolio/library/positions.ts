@@ -158,5 +158,11 @@ export const getPositions = (
 	});
 
 	console.log('positions.getPositions (end)'.gray);
+	// remove any accounts that have no quantity
+	positions.forEach((p) => {
+		p.accounts = p.accounts.filter((a) => a.quantity > 0);
+	});
+
+	// remove any positions that have no quantity
 	return positions.filter((p) => p.quantity > 0 && p.totalCostCad > 0);
 };
