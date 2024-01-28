@@ -74,8 +74,8 @@ interface IQuoteNode
 	position?: Pick<
 		IPosition,
 		| 'quantity'
-		| 'totalCostCad'
-		| 'totalCostUsd'
+		| 'openPnlCadCurrentRate'
+		| 'openPnlUsd'
 		| 'currentMarketValueCad'
 		| 'currentMarketValueUsd'
 	>;
@@ -167,10 +167,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 					nodes {
 						symbol
 						currency
-						totalCostCad
-						totalCostUsd
-						currentMarketValueCad
-						currentMarketValueUsd
+						openPnlCadCurrentRate
+						openPnlUsd
 						quantity
 						averageEntryPrice
 						type
@@ -229,8 +227,8 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						type
 						position {
 							quantity
-							totalCostCad
-							totalCostUsd
+							openPnlCadCurrentRate
+							openPnlUsd
 							currentMarketValueCad
 							currentMarketValueUsd
 						}
@@ -290,10 +288,10 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 				name: quote.company?.name || '',
 				marketCap: quote.company?.marketCap || 0,
 				quantity: quote.position?.quantity,
-				costCad: quote.position?.totalCostCad,
-				costUsd: quote.position?.totalCostUsd,
-				valueCad: quote.position?.currentMarketValueCad,
-				valueUsd: quote.position?.currentMarketValueUsd,
+				openPnlCad: quote.position?.openPnlCadCurrentRate,
+				openPnlUsd: quote.position?.openPnlUsd,
+				currentMarketValueCad: quote.position?.currentMarketValueCad,
+				currentMarketValueUsd: quote.position?.currentMarketValueUsd,
 				shareProgress: quote.assessment?.targetInvestmentProgress,
 				priceProgress: quote.assessment?.targetPriceProgress,
 				type: quote.type,

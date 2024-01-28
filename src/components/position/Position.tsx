@@ -24,6 +24,8 @@ export interface IPositionStateProps {
 	sellOrderPercent?: number;
 	assetCurrency: Currency;
 	symbol: string;
+	openPnlCad: number;
+	openPnlUsd: number;
 }
 
 const Position: React.FC<IPositionStateProps> = (props) => {
@@ -39,6 +41,8 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		sellOrderPercent,
 		assetCurrency,
 		symbol,
+		openPnlCad,
+		openPnlUsd,
 	} = props;
 
 	let pnl =
@@ -112,9 +116,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 			<td>{numeral(percentageOfPortfolio).format('0.0%')}</td>
 			<td className='text-right'>
 				<ColoredNumbers
-					value={
-						activeCurrency === Currency.cad ? valueCad - costCad : valueUsd - costUsd
-					}
+					value={activeCurrency === Currency.cad ? openPnlCad : openPnlUsd}
 					type='dollar'
 				/>
 			</td>

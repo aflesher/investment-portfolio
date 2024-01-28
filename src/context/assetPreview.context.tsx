@@ -8,10 +8,10 @@ export interface IAssetPreview {
 	marketCap: number;
 	quantity: number | undefined;
 	css?: object;
-	costCad: number | undefined;
-	costUsd: number | undefined;
-	valueCad: number | undefined;
-	valueUsd: number | undefined;
+	openPnlCad: number | undefined;
+	openPnlUsd: number | undefined;
+	currentMarketValueCad: number | undefined;
+	currentMarketValueUsd: number | undefined;
 	shareProgress: number | undefined;
 	priceProgress: number | undefined;
 	type: string;

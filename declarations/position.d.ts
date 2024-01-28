@@ -17,6 +17,7 @@ export interface IPositionValues {
 	openPnl: number;
 	openPnlUsd: number;
 	openPnlCad: number;
+	openPnlCadCurrentRate: number;
 }
 
 interface IPositionAccount extends IPositionValues {

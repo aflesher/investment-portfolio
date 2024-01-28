@@ -1,5 +1,7 @@
 import { IQuote, ITrade } from '../../../declarations';
 import { IPosition, IPositionValues } from '../../../declarations/position';
+import { Currency } from '../../../src/utils/enum';
+import { getTodaysRate } from './exchange';
 
 const DEBUG_POSITIONS: string[] = [];
 const IGNORED_POSITIONS: string[] = [
@@ -51,9 +53,15 @@ const getDefaultPositionValues = (): IPositionValues => ({
 	openPnl: 0,
 	openPnlCad: 0,
 	openPnlUsd: 0,
+	openPnlCadCurrentRate: 0,
 });
 
-const calculate = (t: ITrade, position: IPositionValues, quote: IQuote) => {
+const calculate = (
+	t: ITrade,
+	position: IPositionValues,
+	quote: IQuote,
+	usdToCadRate: number
+) => {
 	// buy
 	if (!t.isSell) {
 		position.totalCostCad += t.quantity * t.priceCad;
@@ -94,12 +102,17 @@ const calculate = (t: ITrade, position: IPositionValues, quote: IQuote) => {
 	position.openPnl = position.currentMarketValue - position.totalCost;
 	position.openPnlCad = position.currentMarketValueCad - position.totalCostCad;
 	position.openPnlUsd = position.currentMarketValueUsd - position.totalCostUsd;
+	position.openPnlCadCurrentRate =
+		t.currency === Currency.usd
+			? position.openPnl * usdToCadRate
+			: position.openPnl;
 };
 
-export const getPositions = (
+export const getPositions = async (
 	trades: ITrade[],
 	quotes: IQuote[]
-): IPosition[] => {
+): Promise<IPosition[]> => {
+	const usdToCadRate = await getTodaysRate();
 	const positions: IPosition[] = [];
 	const debugSymbols = {};
 	console.log('positions.getPositions (start)'.gray);
@@ -151,8 +164,8 @@ export const getPositions = (
 			position.openingTrade = t;
 		}
 
-		calculate(t, position, quote);
-		calculate(t, accountPosition, quote);
+		calculate(t, position, quote, usdToCadRate);
+		calculate(t, accountPosition, quote, usdToCadRate);
 
 		debug(t, position);
 	});

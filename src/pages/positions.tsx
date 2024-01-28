@@ -37,6 +37,8 @@ interface IPositionNode
 		| 'totalCostUsd'
 		| 'currentMarketValueCad'
 		| 'currentMarketValueUsd'
+		| 'openPnlCadCurrentRate'
+		| 'openPnlUsd'
 		| 'quantity'
 		| 'averageEntryPrice'
 		| 'symbol'
@@ -82,6 +84,8 @@ const addCurrencyToPositions = (
 		totalCostUsd: usdCash,
 		currentMarketValueCad: cadCash,
 		currentMarketValueUsd: usdCash,
+		openPnlCadCurrentRate: 0,
+		openPnlUsd: 0,
 		quantity: cadCash,
 		averageEntryPrice: 1,
 		symbol: 'CAD',
@@ -160,18 +164,6 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 		(typeFilter === 'crypto' && type === 'crypto') ||
 		(typeFilter === 'stock' && type === 'stock');
 
-	const getTotalCostCad = (position: IPositionNode): number =>
-		position.totalCostCad;
-
-	const getCurrentValueCad = (position: IPositionNode): number =>
-		position.currentMarketValueCad;
-
-	const getTotalCostUsd = (position: IPositionNode): number =>
-		position.totalCostUsd;
-
-	const getCurrentValueUsd = (position: IPositionNode): number =>
-		position.currentMarketValueUsd;
-
 	const totalPositionValue = _.sumBy(
 		positions.filter(filterPosition),
 		(p) => p.currentMarketValueCad
@@ -203,7 +195,7 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 						position.averageEntryPrice
 					);
 				case PositionsOrderBy.position:
-					return getCurrentValueCad(position) / totalPositionValue;
+					return position.currentMarketValueCad / totalPositionValue;
 				case PositionsOrderBy.orders:
 					if (
 						orders.find((q) => q.symbol === position.symbol && q.action === 'buy')
@@ -224,7 +216,7 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 				case PositionsOrderBy.dividendYield:
 					return position.company.yield;
 				case PositionsOrderBy.cashProfits:
-					return getCurrentValueCad(position) - getTotalCostCad(position);
+					return position.openPnlCadCurrentRate;
 			}
 		},
 		orderBy == PositionsOrderBy.symbol ? 'asc' : 'desc'
@@ -334,12 +326,12 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 								key={position.symbol}
 								symbol={position.symbol}
 								index={index + 1}
-								valueCad={getCurrentValueCad(position)}
-								valueUsd={getCurrentValueUsd(position)}
-								costCad={getTotalCostCad(position)}
-								costUsd={getTotalCostUsd(position)}
+								valueCad={position.currentMarketValueCad}
+								valueUsd={position.currentMarketValueUsd}
+								costCad={position.totalCostCad}
+								costUsd={position.totalCostUsd}
 								percentageOfPortfolio={
-									getCurrentValueCad(position) / totalPositionValue
+									position.currentMarketValueCad / totalPositionValue
 								}
 								positionsOrderBy={orderBy}
 								rating={position.assessment?.rating}
@@ -347,6 +339,8 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 								buyOrderPercent={getBuyOrderPercent(position)}
 								sellOrderPercent={getSellOrderPercent(position)}
 								assetCurrency={position.currency}
+								openPnlCad={position.openPnlCadCurrentRate}
+								openPnlUsd={position.openPnlUsd}
 							/>
 						))}
 						<tr>
@@ -402,10 +396,14 @@ export const pageQuery = graphql`
 				totalCostUsd
 				currentMarketValueCad
 				currentMarketValueUsd
+				openPnlCadCurrentRate
+				openPnlUsd
 				quantity
 				averageEntryPrice
 				symbol
 				type
+				openPnlCadCurrentRate
+				openPnlUsd
 				quote {
 					price
 					priceCad

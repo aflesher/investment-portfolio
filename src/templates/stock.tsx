@@ -63,6 +63,7 @@ interface IStockTemplateNode
 		| 'openPnl'
 		| 'openPnlCad'
 		| 'openPnlUsd'
+		| 'openPnlCadCurrentRate'
 		| 'currentMarketValueCad'
 		| 'currentMarketValueUsd'
 		| 'openingTrade'
@@ -157,6 +158,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 		openPnl: 0,
 		openPnlCad: 0,
 		openPnlUsd: 0,
+		openPnlCadCurrentRate: 0,
 		totalCost: 0,
 		totalCostCad: 0,
 		totalCostUsd: 0,
@@ -171,7 +173,8 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	const pAndLClosedUsd = _.sumBy(trades, (trade) => trade.pnlUsd || 0);
 	const dividendsTotalCad = _.sumBy(dividends, (d) => d.amountCad);
 	const dividendsTotalUsd = _.sumBy(dividends, (d) => d.amountUsd);
-	const totalCad = position.openPnlCad + pAndLClosedCad + dividendsTotalCad;
+	const totalCad =
+		position.openPnlCadCurrentRate + pAndLClosedCad + dividendsTotalCad;
 	const totalUsd = position.openPnlUsd + pAndLClosedUsd + dividendsTotalUsd;
 	const openingTrade = position?.openingTrade;
 	const openingSharePrice = openingTrade?.price || 0;
@@ -385,7 +388,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 									})}
 								>
 									<XE
-										cad={position.openPnlCad}
+										cad={position.openPnlCadCurrentRate}
 										usd={position.openPnlUsd}
 										currency={currency}
 									/>
@@ -643,6 +646,7 @@ export const pageQuery = graphql`
 					openPnl
 					openPnlCad
 					openPnlUsd
+					openPnlCadCurrentRate
 					currentMarketValueCad
 					currentMarketValueUsd
 					openingTrade {

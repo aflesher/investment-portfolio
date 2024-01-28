@@ -40,10 +40,10 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 	const defaults = {
 		name: 'unknown',
 		type: 'stock',
-		valueCad: 0,
-		valueUsd: 0,
-		costCad: 0,
-		costUsd: 0,
+		openPnlCad: 0,
+		openPnlUsd: 0,
+		currentMarketValueCad: 0,
+		currentMarketValueUsd: 0,
 		previousClosePrice: 0,
 		price: 0,
 		quoteCurrency: 'cad',
@@ -59,10 +59,10 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 		name,
 		marketCap,
 		quantity,
-		costCad,
-		costUsd,
-		valueCad,
-		valueUsd,
+		openPnlCad,
+		openPnlUsd,
+		currentMarketValueCad,
+		currentMarketValueUsd,
 		shareProgress,
 		priceProgress,
 		type,
@@ -167,7 +167,11 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 									<div className='col-6 text-nowrap'>
 										Position:&nbsp;
 										<span className='font-weight-bold'>
-											<XE cad={valueCad} usd={valueUsd} currency={activeCurrency} />
+											<XE
+												cad={currentMarketValueCad}
+												usd={currentMarketValueUsd}
+												currency={activeCurrency}
+											/>
 										</span>
 									</div>
 									<div className='col-6 text-nowrap'>
@@ -175,16 +179,12 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 										<span
 											className={classNames({
 												'font-weight-bold': true,
-												'text-negative': valueCad < costCad && quantity,
-												'text-positive': valueCad >= costCad && quantity,
+												'text-negative': openPnlCad < 0 && quantity,
+												'text-positive': openPnlCad >= 0 && quantity,
 											})}
 										>
 											{quantity ? (
-												<XE
-													cad={valueCad - costCad}
-													usd={valueUsd - costUsd}
-													currency={activeCurrency}
-												/>
+												<XE cad={openPnlCad} usd={openPnlUsd} currency={activeCurrency} />
 											) : (
 												'N/A'
 											)}
