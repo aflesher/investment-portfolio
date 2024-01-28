@@ -297,17 +297,18 @@ export const getTrades = async (): Promise<ITrade[]> => {
 	const ratesLookup = await getExchangeLookup();
 
 	const trades: ITrade[] = cryptoTrades.map((trade) => {
-		const cadRate = ratesLookup[moment(trade.timestamp).format('YYYY-MM-DD')];
+		const usdToCadRate =
+			ratesLookup[moment(trade.timestamp).format('YYYY-MM-DD')];
 		return {
 			isSell: trade.isSell,
 			symbol: trade.symbol,
-			priceCad: trade.price,
-			priceUsd: trade.price * cadRate,
+			priceCad: trade.price * usdToCadRate,
+			priceUsd: trade.price,
 			timestamp: trade.timestamp,
 			pnl: trade.pnl,
-			pnlCad: trade.pnl,
-			pnlUsd: trade.pnl * cadRate,
-			currency: Currency.cad,
+			pnlCad: trade.pnl * usdToCadRate,
+			pnlUsd: trade.pnl,
+			currency: Currency.usd,
 			price: trade.price,
 			quantity: trade.quantity,
 			action: trade.isSell ? 'sell' : 'buy',
