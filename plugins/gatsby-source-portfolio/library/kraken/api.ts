@@ -92,8 +92,9 @@ export const getBalances = async () => {
 
 export const getTrades = async () => {
 	const kraken = await krakenPromise;
-	const now = Date.now();
-	const start = now - 1000 * 60 * 60 * 24 * 30 * 2;
+	const now = Math.floor(Date.now() / 1000);
+	const start = now - 60 * 60 * 24 * 30 * 2;
+	console.log(`${start}:${now}`.yellow);
 	const response = await kraken
 		.tradesHistory({ start, end: now, trades: true })
 		.catch((e) => console.error(e));

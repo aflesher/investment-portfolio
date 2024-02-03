@@ -9,7 +9,6 @@ const IGNORED_POSITIONS: string[] = [
 	'cgc',
 	'glh.cn',
 	'trst.to',
-	'scr.to',
 	'spy31dec20p250.00',
 	'btcff',
 	'ausa.cn',

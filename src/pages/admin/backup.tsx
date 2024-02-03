@@ -14,6 +14,7 @@ const Backup: React.FC<IBackupStateProps> = ({ storage }) => {
 	const [dividendsUrl, setDividendsUrl] = useState('');
 	const [tradesUrl, setTradesUrl] = useState('');
 	const [activityUrl, setActivityUrl] = useState('');
+	const [krakenTradesUrl, setKrakenTradesUrl] = useState('');
 
 	useEffect(() => {
 		if (storage) {
@@ -26,6 +27,9 @@ const Backup: React.FC<IBackupStateProps> = ({ storage }) => {
 			getDownloadURL(ref(storage, 'activity.json')).then((url) =>
 				setActivityUrl(url)
 			);
+			getDownloadURL(ref(storage, 'kraken-trades.json')).then((url) =>
+				setKrakenTradesUrl(url)
+			);
 		}
 	}, [storage]);
 	return (
@@ -34,6 +38,9 @@ const Backup: React.FC<IBackupStateProps> = ({ storage }) => {
 				<div>{!!dividendsUrl && <a href={dividendsUrl}>DIVIDENDS</a>}</div>
 				<div>{!!tradesUrl && <a href={tradesUrl}>TRADES</a>}</div>
 				<div>{!!activityUrl && <a href={activityUrl}>ACTIVITY</a>}</div>
+				<div>
+					{!!krakenTradesUrl && <a href={krakenTradesUrl}>KRAKEN TRADES</a>}
+				</div>
 			</div>
 		</Layout>
 	);
