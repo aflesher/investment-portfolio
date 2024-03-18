@@ -98,6 +98,7 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 					return trade.type === AssetType.stock;
 			}
 		});
+	console.log(trades);
 
 	const groupedTrades = _.groupBy(trades, (t) => t.symbol);
 	const filteredGroupedTrades = _.filter(

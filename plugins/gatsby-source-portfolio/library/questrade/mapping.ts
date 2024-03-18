@@ -51,6 +51,7 @@ export const mapTrade = (trade: ICloudTrade, usdToCadRate: number): ITrade => {
 		action: trade.action,
 		type: AssetType.stock,
 		symbolId: trade.symbolId,
+		taxable: account.isTaxable,
 	};
 };
 
@@ -137,7 +138,7 @@ export const mapDividend = (
 	usdToCadRate: number
 ): IDividend => {
 	if (!(usdToCadRate > 0)) {
-		console.error('invalid usdToCadRate', usdToCadRate, new Date(dividend.date));
+		// console.error('invalid usdToCadRate', usdToCadRate, new Date(dividend.date));
 		usdToCadRate = 1.25;
 	}
 	const account = getAccounts().find(

@@ -197,6 +197,5 @@ export const getPercentSharesRemaining = (
 export const getTimeHeld = (
 	openingTrade: Pick<ITrade, 'timestamp'>
 ): number => {
-	console.log(openingTrade, new Date().getTime(), openingTrade.timestamp);
 	return new Date().getTime() - openingTrade.timestamp;
 };

@@ -1,4 +1,4 @@
-import React, { useContext, useState, FC } from 'react';
+import React, { useState, FC } from 'react';
 import Paginate from 'react-paginate';
 import _ from 'lodash';
 import { graphql } from 'gatsby';
@@ -7,11 +7,9 @@ import Octicon, { TriangleDown, TriangleUp } from '@primer/octicons-react';
 import CompletedPosition, {
 	ICompletePositionStateProps,
 } from '../../components/completed-position/CompletedPosition';
-import { IStoreState } from '../../store/store';
 import { Currency, AssetType } from '../../utils/enum';
 import Layout from '../../components/layout';
 import { dateInputFormat } from '../../utils/util';
-import { CurrencyContext } from '../../context/currency.context';
 
 interface ICompletedPositionsQuery {
 	data: {
@@ -86,11 +84,11 @@ const CompletedPositions: FC<ICompletedPositionsQuery> = ({ data }) => {
 	const [page, setPage] = useState(0);
 	const [orderBy, setOrderBy] = useState(OrderBy.closedDate);
 	const [orderAscending, setOrderAscending] = useState(false);
-	const currency = useContext(CurrencyContext);
 
 	data.allTrade.nodes.forEach((trade) => {
-		let completedPosition: ICompletedPosition | undefined = _.find(
-			runningCompletedPositions,
+		let completedPosition:
+			| ICompletedPosition
+			| undefined = runningCompletedPositions.find(
 			(q) => q.symbol === trade.symbol
 		);
 		if (!trade.company) {

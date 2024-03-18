@@ -262,7 +262,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 		render={(queryData: ILayoutGraphQL): JSX.Element => {
 			const [isCollapsed, setIsCollapsed] = React.useState(true);
 			const [currency, setCurrency] = React.useState(Currency.cad);
-			const usdCad = _.first(queryData.allExchangeRate.nodes)?.rate || 1;
+			const usdCad = queryData.allExchangeRate.nodes[0]?.rate || 1;
 			const cadUsd = 1 / usdCad;
 
 			const positions: ISidebarPosition[] = queryData.allPosition.nodes.map(

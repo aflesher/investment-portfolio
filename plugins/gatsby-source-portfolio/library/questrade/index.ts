@@ -46,6 +46,7 @@ export const getTrades = async (): Promise<ITrade[]> => {
 			)
 		);
 
+	console.log(`questrade trades: ${trades.length}`);
 	return trades;
 };
 
@@ -70,6 +71,8 @@ export const getQuotes = async (symbolIds: number[]): Promise<IQuote[]> => {
 		api.getQuotes(symbolIds),
 		getTodaysRate(),
 	]);
+
+	console.log(`questrade quotes: ${quotes.length}`);
 
 	return quotes.map((quote) => {
 		return mapQuote(quote, usdToCadRate);
@@ -99,6 +102,8 @@ export const getCompanies = async (
 		api.getCompanies(symbolIds),
 		firebase.getHisaStocks(),
 	]);
+
+	console.log(`questrade companies: ${companies.length}`);
 
 	return companies.map((company) =>
 		mapCompany(

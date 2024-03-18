@@ -126,25 +126,30 @@ export const scrapeAAndW = async (): Promise<IEarningsDate | null> => {
 export const getEarningsDates = async (
 	positionSymbols: string[]
 ): Promise<IEarningsDate[]> => {
-	const dates = await scrapeZacks(positionSymbols);
+	console.log(`getEarningsDates (start)`.gray);
+	const dates = (await scrapeZacks(positionSymbols).catch(console.error)) || [];
 	if (positionSymbols.includes('otgly')) {
-		const cdpr = await scrapeCdProjektRed();
-		dates.push(cdpr);
+		const cdpr = await scrapeCdProjektRed().catch(console.error);
+		if (cdpr) {
+			dates.push(cdpr);
+		}
 	}
 
 	if (positionSymbols.includes('aw.un.to')) {
-		const aw = await scrapeAAndW();
+		const aw = await scrapeAAndW().catch(console.error);
 		if (aw) {
 			dates.push(aw);
 		}
 	}
 
 	if (positionSymbols.includes('hymtf')) {
-		const hymtf = await rssHyundai();
+		const hymtf = await rssHyundai().catch(console.error);
 		if (hymtf) {
 			dates.push(hymtf);
 		}
 	}
+
+	console.log(`getEarningsDates (end ${dates.length})`.gray);
 
 	return dates.filter((d) => !!d.timestamp);
 };

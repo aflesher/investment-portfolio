@@ -100,6 +100,7 @@ const Balances: React.FC<IBalancesQuery> = ({ data }) => {
 		name: 'Combined',
 	};
 	const format = '$0,0.00';
+	console.log(balances);
 
 	return (
 		<Layout>

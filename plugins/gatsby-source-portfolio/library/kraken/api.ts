@@ -38,6 +38,7 @@ export interface KrakenTrade {
 	cmargin?: string | null;
 	net?: string | null;
 	trades?: Array<string> | null;
+	trade_id: number;
 }
 
 export const init = (_key: string, _secret: string) => {
@@ -102,7 +103,7 @@ export const getTrades = async () => {
 	const { trades } = response;
 	return Object.keys(trades)
 		.map((key) => ({
-			...trades[key],
+			...(trades[key] as KrakenTrade),
 		}))
 		.filter((q) => !q.pair?.match(/(usdc|usdt)/i));
 };

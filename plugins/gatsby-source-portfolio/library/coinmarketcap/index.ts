@@ -7,6 +7,36 @@ export { init } from './api';
 
 const dataDeferredPromise = deferredPromise<api.ICoinMarketCapQuote[]>();
 
+const getAllTimeHigh = (symbol: string) => {
+	switch (symbol) {
+		case 'btc':
+			return 73810;
+		case 'eth':
+			return 4356;
+		case 'sol':
+			return 216;
+		case 'rune':
+			return 20.8;
+	}
+
+	return 0;
+};
+
+const getCycleLow = (symbol: string) => {
+	switch (symbol) {
+		case 'btc':
+			return 16217;
+		case 'eth':
+			return 1097;
+		case 'sol':
+			return 9.961;
+		case 'rune':
+			return 1.25;
+	}
+
+	return 0;
+};
+
 export const setSymbols = async (symbols: string[]) => {
 	const slugs = api.symbolsToSlugs(symbols);
 	const quotes = await api.getQuotes(slugs);
@@ -47,8 +77,8 @@ export const getCompanies = async (): Promise<ICompany[]> => {
 		yield: 0,
 		prevDayClosePrice: quote.prevDayClosePrice,
 		type: AssetType.crypto,
-		highPrice52: 0,
-		lowPrice52: 0,
+		highPrice52: getAllTimeHigh(quote.symbol),
+		lowPrice52: getCycleLow(quote.symbol),
 		hisa: false,
 	}));
 };

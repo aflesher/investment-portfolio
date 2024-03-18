@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import { Storage } from '@google-cloud/storage';
-import crypto from 'crypto';
 
 import * as api from './api';
 
@@ -12,27 +11,24 @@ const bucket = storage.bucket('dollar-jockey-5d690.appspot.com');
 const tradesFile = bucket.file('kraken-trades.json');
 
 let trades: api.KrakenTrade[] = [];
-const tradesMap = {};
-
-const getHash = (trade: api.KrakenTrade): string =>
-	crypto.createHash('md5').update(JSON.stringify(trade)).digest('hex');
+const tradesMap: { [key: number]: boolean } = {};
 
 const addTrade = (trade: api.KrakenTrade): void => {
-	const hash = getHash(trade);
+	const tradeId = trade.trade_id;
 
-	if (tradesMap[hash]) {
+	if (tradesMap[tradeId]) {
 		return;
 	}
 
 	trades.push(trade);
-	tradesMap[hash] = true;
+	tradesMap[tradeId] = true;
 };
 
 const loadTrades = async (): Promise<void> => {
 	const data = await tradesFile.download();
 	trades = JSON.parse(data[0].toString());
 	_.forEach(trades, (trade) => {
-		tradesMap[getHash(trade)] = true;
+		tradesMap[trade.trade_id] = true;
 	});
 };
 

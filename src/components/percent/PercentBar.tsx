@@ -11,7 +11,7 @@ export const PercentBar = ({ percent }: { percent: number }) => {
 			<div
 				className='bar'
 				style={{
-					width: `${percent * 100}%`,
+					width: `${Math.abs(percent) * 100}%`,
 				}}
 			>
 				<div className='end-value'>{numeral(percent).format('0%')}</div>

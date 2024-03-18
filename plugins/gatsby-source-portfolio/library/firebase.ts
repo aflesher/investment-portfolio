@@ -13,6 +13,7 @@ import {
 	ITrade,
 	IPosition,
 	IAccount,
+	IQuote,
 } from '../../../declarations';
 import { Currency, AssetType } from '../../../src/utils/enum';
 import moment from 'moment';
@@ -434,6 +435,22 @@ export const checkAndUpdateCryptoMetaData = async (
 			data.oneYearLowUsd = crypto52Week.low;
 			await documentSnapshot?.ref?.set(data, { merge: true });
 		}
+	});
+};
+
+export const updateCrypto52WeekHigh = async (quotes: IQuote[]) => {
+	const querySnapshot = await firestore.collection('cryptoMetaData').get();
+
+	return querySnapshot.forEach(async (doc) => {
+		const documentRef = firestore.collection('cryptoMetaData').doc(doc.id);
+		const data: ICryptoMetaDataDoc = doc.data() as ICryptoMetaDataDoc;
+
+		const quote = quotes.find((q) => q.symbol === data.symbol);
+		if (!quote || quote.price < data.oneYearHighUsd) {
+			return;
+		}
+
+		documentRef.set({ oneYearHighUsd: quote.price }, { merge: true });
 	});
 };
 

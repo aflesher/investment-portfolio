@@ -230,18 +230,22 @@ export const sync = async (): Promise<void> => {
 	});
 
 	const mappedSymbols = getMappedSymbols();
+	//const mappedSymbolIds = getMappedSymbolIds();
 	trades.forEach((trade) => {
 		if (mappedSymbols[trade.symbol]) {
 			trade.symbol = mappedSymbols[trade.symbol];
 		}
+		// if (mappedSymbolIds[trade.symbol]) {
+		// 	trade.symbolId = mappedSymbolIds[trade.symbol];
+		// }
 	});
-
-	// map the any incorrect symbol ids
-	const mappedSymbolIds = getMappedSymbolIds();
-	trades.forEach((trade) => {
-		if (mappedSymbolIds[trade.symbol]) {
-			trade.symbolId = mappedSymbolIds[trade.symbol];
+	dividends.forEach((dividend) => {
+		if (mappedSymbols[dividend.symbol]) {
+			dividend.symbol = mappedSymbols[dividend.symbol];
 		}
+		// if (mappedSymbolIds[dividend.symbol]) {
+		// 	dividend.symbolId = mappedSymbolIds[dividend.symbol];
+		// }
 	});
 
 	// apply stock splits
