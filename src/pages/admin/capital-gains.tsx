@@ -142,6 +142,12 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 		});
 	});
 
+	console.log(
+		capitalGains
+			.map((q) => `${q.symbol},${q.shares},${q.cost},${q.proceeds}`)
+			.join('\n')
+	);
+
 	return (
 		<Layout>
 			<div className='p-4'>
@@ -191,7 +197,7 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 				{capitalGains.map((c, i) => (
 					<div className='row' key={i}>
 						<div className='col-2'>{c.symbol}</div>
-						<div className='col-2'>{numeral(c.shares).format('0,0')}</div>
+						<div className='col-2'>{numeral(c.shares).format('0,0.000')}</div>
 						<div className='col-2'>{numeral(c.cost).format('$0,0.00')}</div>
 						<div className='col-2'>{numeral(c.proceeds).format('$0,0.00')}</div>
 						<div className='col-2'>

@@ -106,11 +106,13 @@ const Balances: React.FC<IBalancesQuery> = ({ data }) => {
 		<Layout>
 			<div className='p-4'>
 				<div className='row'>
-					{balances.map((balance) => (
-						<div className='col-4' key={balance.name}>
-							<Balance {...balance} />
-						</div>
-					))}
+					{balances
+						.filter((q) => !!q.combinedCad)
+						.map((balance) => (
+							<div className='col-4' key={balance.name}>
+								<Balance {...balance} />
+							</div>
+						))}
 				</div>
 				<div className='row'>
 					<div className='col-12' key={combinedBalances.name}>

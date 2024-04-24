@@ -144,7 +144,12 @@ const Reviews: React.FC<
 	);
 
 	const calculatePurchaseGoalProgress = useCallback(
-		(text: string): null | number => {
+		(
+			text: string
+		): null | {
+			progress: number;
+			values: { month: string; completed: boolean }[];
+		} => {
 			if (text !== 'Buy VOO every month') {
 				return null;
 			}
@@ -159,7 +164,14 @@ const Reviews: React.FC<
 				.filter((t) => new Date(t.timestamp).getFullYear() === 2024)
 				.map((t) => new Date(t.timestamp).getMonth());
 
-			return [...new Set(filteredTrades)].length / 12;
+			const values = [...Array(12).keys()].map((month) => ({
+				month: new Date(2024, month).toLocaleString('default', { month: 'long' }),
+				completed: filteredTrades.includes(month),
+			}));
+
+			const progress = [...new Set(filteredTrades)].length / 12;
+
+			return { progress, values };
 		},
 		[positions]
 	);
@@ -195,12 +207,19 @@ const Reviews: React.FC<
 	);
 
 	const calculateReassessmentGoals = useCallback(
-		(text: string): null | number => {
+		(
+			text: string
+		): null | {
+			progress: number;
+			values: { symbol: string; assessment: boolean }[];
+		} => {
 			if (text !== 'Re-evaluate every stock you own.') {
 				return null;
 			}
 
-			const symbols = positions.map((position) => position.symbol);
+			const symbols = positions
+				.filter((q) => !q.company.hisa)
+				.map((position) => position.symbol);
 
 			const reassessments = assessments.filter(
 				(assessment) =>
@@ -208,7 +227,22 @@ const Reviews: React.FC<
 					symbols.includes(assessment.symbol)
 			);
 
-			return reassessments.length / symbols.length;
+			console.log('calculate');
+			console.log(
+				symbols.filter((s) => !reassessments.map((r) => r.symbol).includes(s))
+			);
+
+			const values = symbols.map((symbol) => ({ symbol, assessment: false }));
+			reassessments.forEach((reassessment) => {
+				const value = values.find((value) => value.symbol === reassessment.symbol);
+				if (value) {
+					value.assessment = true;
+				}
+			});
+
+			const progress = reassessments.length / symbols.length;
+
+			return { progress, values };
 		},
 		[assessments, positions]
 	);
@@ -217,7 +251,29 @@ const Reviews: React.FC<
 		(text: string): null | ReactElement => {
 			let goal = calculatePortfolioAllocationGoalProgress(text);
 			if (!goal) {
-				goal = calculatePurchaseGoalProgress(text);
+				const result = calculatePurchaseGoalProgress(text);
+				if (result !== null) {
+					const { progress, values } = result;
+					goal = progress;
+					return (
+						<div>
+							<PercentBar percent={result.progress} />
+							<div>
+								{values.map(({ month, completed }) => (
+									<>
+										<span
+											className='text-uppercase'
+											style={{ textDecorationLine: completed ? 'line-through' : 'none' }}
+											key={month}
+										>
+											{month}
+										</span>{' '}
+									</>
+								))}
+							</div>
+						</div>
+					);
+				}
 			}
 
 			if (!goal) {
@@ -225,7 +281,29 @@ const Reviews: React.FC<
 			}
 
 			if (!goal) {
-				goal = calculateReassessmentGoals(text);
+				const result = calculateReassessmentGoals(text);
+				if (result !== null) {
+					const { progress, values } = result;
+					goal = progress;
+					return (
+						<div>
+							<PercentBar percent={result.progress} />
+							<div>
+								{values.map(({ symbol, assessment }) => (
+									<>
+										<span
+											className='text-uppercase'
+											style={{ textDecorationLine: assessment ? 'line-through' : 'none' }}
+											key={symbol}
+										>
+											${symbol}
+										</span>{' '}
+									</>
+								))}
+							</div>
+						</div>
+					);
+				}
 			}
 
 			if (goal !== null) {
