@@ -32,6 +32,7 @@ export interface IStoreState {
 	firestore: firebase.firestore.Firestore | undefined;
 	storage: firebase.storage.Storage | undefined;
 	goalStatuses: IGoalStatus[];
+	userLoading: boolean;
 }
 
 const initialState: IStoreState = {
@@ -41,6 +42,7 @@ const initialState: IStoreState = {
 	firestore: undefined,
 	storage: undefined,
 	goalStatuses: [],
+	userLoading: true,
 };
 
 const reducer = (
@@ -54,7 +56,7 @@ const reducer = (
 	switch (action.type) {
 		case SET_USER_ACTION:
 			const user = action.payload as firebase.User | null;
-			return { ...state, user };
+			return { ...state, user, userLoading: false };
 		case SET_SHOW_SIDEBAR:
 			const showSidebar = action.payload as boolean;
 			return { ...state, showSidebar };

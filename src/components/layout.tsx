@@ -28,6 +28,7 @@ import { IAccount } from '../../declarations';
 interface ILayoutStateProps {
 	user: firebase.User | null | undefined;
 	showSidebar: boolean;
+	userLoading: boolean;
 }
 
 interface ILayoutDispatchProps {
@@ -38,8 +39,9 @@ interface ILayoutDispatchProps {
 const mapStateToProps = ({
 	user,
 	showSidebar,
+	userLoading,
 }: IStoreState): ILayoutStateProps => {
-	return { user, showSidebar };
+	return { user, showSidebar, userLoading };
 };
 
 const mapDispatchToProps = (
@@ -150,6 +152,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 	user,
 	showSidebar,
 	setShowSidebar,
+	userLoading,
 }) => (
 	<StaticQuery
 		query={graphql`
@@ -315,7 +318,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 											onSetCurrency={setCurrency}
 											usdCad={usdCad}
 											cadUsd={cadUsd}
-											authenticated={!!user}
+											authenticated={!!user || userLoading}
 											isCollapsed={isCollapsed}
 											onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
 										/>
