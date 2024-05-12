@@ -52,6 +52,8 @@ interface IPositionNode
 	trades: Pick<ITrade, 'timestamp' | 'isSell' | 'quantity'>[];
 }
 
+interface ITradeNode extends Pick<ITrade, 'symbol'> {}
+
 interface IAssessmentNode
 	extends Pick<IAssessment, 'lastUpdatedTimestamp' | 'symbol'> {
 	company?: Pick<ICompany, 'marketCap'>;
@@ -70,6 +72,9 @@ interface IReviewQuery {
 		};
 		allAssessment: {
 			nodes: IAssessmentNode[];
+		};
+		allTrade: {
+			nodes: ITradeNode[];
 		};
 	};
 }
@@ -101,6 +106,8 @@ const mapDispatchToProps = (
 	};
 };
 
+const MIDCAPS = ['rivn'];
+
 const Reviews: React.FC<
 	IReviewQuery & IReviewStateProps & IReviewDispatchProps
 > = ({ data, goalStatuses, setGoalStatus, firestore }) => {
@@ -111,6 +118,7 @@ const Reviews: React.FC<
 	const positions = data.allPosition.nodes;
 	const accounts = data.allAccount.nodes;
 	const assessments = data.allAssessment.nodes;
+	const trades = data.allTrade.nodes;
 
 	const goalId = (goal: string): string => {
 		return crypto.createHash('md5').update(JSON.stringify(goal)).digest('hex');
@@ -177,33 +185,34 @@ const Reviews: React.FC<
 	);
 
 	const calculateAssessmentGoals = useCallback(
-		(text: string): null | number => {
+		(text: string): null | { goal: number; values: string[] } => {
 			if (text !== 'Do assessments for 5 midcap companies') {
 				return null;
 			}
 
 			const midcaps = assessments.filter((assessment) => {
 				const marketCap = assessment.company?.marketCap;
-				return marketCap && marketCap < 10000000000;
+				return (
+					(marketCap && marketCap < 10000000000) ||
+					MIDCAPS.includes(assessment.symbol)
+				);
 			});
 
-			const oldAssessments = midcaps
-				.filter(
-					(assessment) =>
-						assessment.lastUpdatedTimestamp <= new Date('2024').getTime()
-				)
-				.map((q) => q.symbol);
+			const tradesSymbols = trades.map((q) => q.symbol);
+
 			const recentAssessments = midcaps
 				.filter(
 					(assessment) =>
 						assessment.lastUpdatedTimestamp > new Date('2024').getTime() &&
-						!oldAssessments.includes(assessment.symbol)
+						!tradesSymbols.includes(assessment.symbol)
 				)
 				.map((q) => q.symbol);
 
-			return recentAssessments.length / 5;
+			const goal = recentAssessments.length / 5;
+
+			return { goal, values: recentAssessments };
 		},
-		[assessments]
+		[assessments, trades]
 	);
 
 	const calculateReassessmentGoals = useCallback(
@@ -262,11 +271,13 @@ const Reviews: React.FC<
 								{values.map(({ month, completed }) => (
 									<>
 										<span
-											className='text-uppercase'
+											className={`text-uppercase text-small ${
+												completed ? 'text-subtle' : ''
+											}`}
 											style={{ textDecorationLine: completed ? 'line-through' : 'none' }}
 											key={month}
 										>
-											{month}
+											{month.substring(0, 3)}
 										</span>{' '}
 									</>
 								))}
@@ -277,7 +288,24 @@ const Reviews: React.FC<
 			}
 
 			if (!goal) {
-				goal = calculateAssessmentGoals(text);
+				const result = calculateAssessmentGoals(text);
+				if (result !== null) {
+					const { goal, values } = result;
+					return (
+						<div>
+							<PercentBar percent={goal} />
+							<div>
+								{values.map((symbol) => (
+									<>
+										<span className={`text-uppercase text-small`} key={symbol}>
+											${symbol}
+										</span>{' '}
+									</>
+								))}
+							</div>
+						</div>
+					);
+				}
 			}
 
 			if (!goal) {
@@ -292,7 +320,9 @@ const Reviews: React.FC<
 								{values.map(({ symbol, assessment }) => (
 									<>
 										<span
-											className='text-uppercase'
+											className={`text-uppercase text-small ${
+												assessment ? 'text-subtle' : ''
+											}`}
 											style={{ textDecorationLine: assessment ? 'line-through' : 'none' }}
 											key={symbol}
 										>
@@ -499,6 +529,11 @@ export const pageQuery = graphql`
 					timestamp
 					isSell
 				}
+			}
+		}
+		allTrade(filter: { timestamp: { lt: 1704067200000 } }) {
+			nodes {
+				symbol
 			}
 		}
 	}

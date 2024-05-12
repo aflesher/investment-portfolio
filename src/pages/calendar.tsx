@@ -37,6 +37,9 @@ const getMonth = (
 
 const CalendarPage: React.FC<IQueryProps> = ({ data }) => {
 	const earningsDate = data.allEarningsDate.nodes;
+	// something is wrong here in the built version
+	// the pre-rendered version of the page flashes the correct data
+	// however, the getMonth function is returning the correct data
 	const months = [
 		getMonth(moment().subtract(1, 'month'), earningsDate),
 		getMonth(moment(), earningsDate),
