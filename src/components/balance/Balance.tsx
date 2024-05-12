@@ -11,6 +11,8 @@ export interface IBalanceStateProps {
 	combinedUsdHISA?: number;
 	combinedCad: number;
 	combinedUsd: number;
+	ordersDeltaCad?: number;
+	ordersDeltaUsd?: number;
 }
 
 const Balance: React.FC<IBalanceStateProps> = ({
@@ -23,6 +25,8 @@ const Balance: React.FC<IBalanceStateProps> = ({
 	combinedUsdHISA,
 	combinedCad,
 	combinedUsd,
+	ordersDeltaCad,
+	ordersDeltaUsd,
 }) => {
 	const format = '$0,0.00';
 	return (
@@ -38,6 +42,18 @@ const Balance: React.FC<IBalanceStateProps> = ({
 				<div className='col-6'>$USD</div>
 				<div className='col-6'>{numeral(amountUsd).format(format)}</div>
 			</div>
+			{!!ordersDeltaCad && (
+				<div className='row text-subtle'>
+					<div className='col-6'>$CAD (-Orders)</div>
+					<div className='col-6'>{numeral(ordersDeltaCad).format(format)}</div>
+				</div>
+			)}
+			{!!ordersDeltaUsd && (
+				<div className='row text-subtle'>
+					<div className='col-6'>$USD (-Orders)</div>
+					<div className='col-6'>{numeral(ordersDeltaUsd).format(format)}</div>
+				</div>
+			)}
 			{!!cadHISA && (
 				<div className='row'>
 					<div className='col-6'>$CAD (HISA)</div>

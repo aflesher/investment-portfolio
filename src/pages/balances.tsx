@@ -1,13 +1,36 @@
 import React from 'react';
 import { graphql } from 'gatsby';
 import numeral from 'numeral';
-import { IAccount, IPosition, IQuote } from '../../declarations';
+import {
+	IAccount,
+	ICompany,
+	IOrder,
+	IPosition,
+	IQuote,
+} from '../../declarations';
 import Balance, { IBalanceStateProps } from '../components/balance/Balance';
 import { Currency } from '../utils/enum';
 import Layout from '../components/layout';
 
 interface IAccountPosition
 	extends Pick<IPosition, 'symbol' | 'currency' | 'accounts' | 'company'> {}
+
+interface IOrderNode
+	extends Pick<
+		IOrder,
+		| 'symbol'
+		| 'limitPrice'
+		| 'limitPriceCad'
+		| 'limitPriceUsd'
+		| 'openQuantity'
+		| 'action'
+		| 'accountId'
+		| 'currency'
+	> {
+	quote: Pick<IQuote, 'price' | 'afterHoursPrice'>;
+	company: Pick<ICompany, 'name' | 'marketCap'>;
+	position?: Pick<IPosition, 'quantity' | 'totalCost'>;
+}
 
 interface IBalancesQuery {
 	data: {
@@ -23,11 +46,15 @@ interface IBalancesQuery {
 				'symbol' | 'price' | 'priceCad' | 'priceUsd' | 'currency'
 			>[];
 		};
+		allOrder: {
+			nodes: IOrderNode[];
+		};
 	};
 }
 
 const Balances: React.FC<IBalancesQuery> = ({ data }) => {
 	const positions = data.allPosition.nodes;
+	const orders = data.allOrder.nodes;
 	const balances: IBalanceStateProps[] = data.allAccount.nodes.map((account) => {
 		const amountCad =
 			account.balances.find((q) => q.currency === Currency.cad)?.amount || 0;
@@ -65,6 +92,18 @@ const Balances: React.FC<IBalancesQuery> = ({ data }) => {
 		const combinedCad = amountCad + amountUsdInCad + combinedCadHISA;
 		const combinedUsd = amountUsd + amountCadInUsd + combinedUsdHISA;
 
+		const ordersCad = orders
+			.filter(
+				(q) => q.accountId === account.accountId && q.currency === Currency.cad
+			)
+			.reduce((sum, q) => sum + q.limitPrice * q.openQuantity, 0);
+
+		const ordersUsd = orders
+			.filter(
+				(q) => q.accountId === account.accountId && q.currency === Currency.usd
+			)
+			.reduce((sum, q) => sum + q.limitPrice * q.openQuantity, 0);
+
 		const balance: IBalanceStateProps = {
 			name: account.displayName,
 			amountCad,
@@ -75,6 +114,8 @@ const Balances: React.FC<IBalancesQuery> = ({ data }) => {
 			combinedUsdHISA,
 			combinedCad,
 			combinedUsd,
+			ordersDeltaCad: ordersCad ? amountCad - ordersCad : 0,
+			ordersDeltaUsd: ordersUsd ? amountUsd - ordersUsd : 0,
 		};
 
 		return balance;
@@ -238,6 +279,30 @@ export const pageQuery = graphql`
 				currency
 				company {
 					hisa
+				}
+			}
+		}
+		allOrder {
+			nodes {
+				symbol
+				limitPrice
+				limitPriceCad
+				limitPriceUsd
+				openQuantity
+				action
+				accountId
+				currency
+				quote {
+					price
+					afterHoursPrice
+				}
+				company {
+					name
+					marketCap
+				}
+				position {
+					quantity
+					totalCost
 				}
 			}
 		}
