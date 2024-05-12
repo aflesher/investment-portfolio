@@ -38,6 +38,8 @@ export const getMappedSymbolIds = () => [
 	{ original: 20682, replacement: 11419766 }, // googl
 	{ original: 28114781, replacement: 41822360 },
 	{ original: 16529510, replacement: 52040561 },
+	{ original: 31181458, replacement: 54301044 }, // hsuv.u.to
+	{ original: 38844425, replacement: 54300999 }, // cash.to
 ];
 
 export const getMappedSymbols = () => ({

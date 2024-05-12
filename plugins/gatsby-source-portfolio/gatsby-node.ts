@@ -33,6 +33,7 @@ import { getCompanies } from './library/companies';
 import { IAccount } from '../../declarations/account';
 import { getAccounts } from './library/accounts';
 import { getAssessments } from './library/assessment';
+import { querySymbol } from './library/debug';
 
 const assessmentsPromise = getAssessments();
 const stockSplitsPromise = firebase.getStockSplits();
@@ -62,7 +63,7 @@ const earningsDatesPromise = (async (): Promise<IEarningsDate[]> => {
 	return getEarningsDates(symbols);
 })();
 
-// querySymbol('weed');
+//querySymbol('cash.to');
 
 const hash = (content: string): string => {
 	return crypto.createHash('md5').update(content).digest('hex');

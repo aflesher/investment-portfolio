@@ -17,7 +17,7 @@ export default ({ element }): JSX.Element => {
 
 	import('firebase/compat/app').then((firebase) => {
 		console.log('firebase loaded');
-		if (!firebase || !firebase.default.initializeApp) {
+		if (!firebase || !firebase?.default?.initializeApp) {
 			return;
 		}
 

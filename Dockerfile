@@ -1,12 +1,5 @@
 FROM node:18 as base
-
-RUN yarn add curl && \
-    yarn add which && \
-    yarn add git && \
-    yarn add unzip && \
-    apt update -y && \
-    apt install python2 -y && \
-    npm install -g gatsby-cli
+RUN npm install -g gatsby-cli
 
 FROM base as npm-install
 WORKDIR /var/www
@@ -24,8 +17,5 @@ COPY . ./
 COPY --from=gatsby-nodes /var/www/plugins /var/www/plugins
 RUN npm run build
 
-FROM python:latest
-COPY --from=build /var/www/public /var/www/public
-WORKDIR /var/www/public
-EXPOSE 7000
-CMD python -m http.server 7000
+FROM nginx:alpine
+COPY --from=build /var/www/public /usr/share/nginx/html

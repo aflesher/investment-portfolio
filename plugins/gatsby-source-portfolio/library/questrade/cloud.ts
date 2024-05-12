@@ -230,7 +230,7 @@ export const sync = async (): Promise<void> => {
 	});
 
 	const mappedSymbols = getMappedSymbols();
-	//const mappedSymbolIds = getMappedSymbolIds();
+	//	const mappedSymbolIds = getMappedSymbolIds();
 	trades.forEach((trade) => {
 		if (mappedSymbols[trade.symbol]) {
 			trade.symbol = mappedSymbols[trade.symbol];
@@ -244,7 +244,7 @@ export const sync = async (): Promise<void> => {
 			dividend.symbol = mappedSymbols[dividend.symbol];
 		}
 		// if (mappedSymbolIds[dividend.symbol]) {
-		// 	dividend.symbolId = mappedSymbolIds[dividend.symbol];
+		// 	dividend.symbolId = mappedSymbolIds[dividend.symbol as string];
 		// }
 	});
 
