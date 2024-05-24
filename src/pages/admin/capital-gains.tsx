@@ -29,7 +29,6 @@ interface ICapitalGainsQuery {
 				symbol: string;
 				quantity: number;
 				price: number;
-				pnl: number;
 				timestamp: number;
 				currency: Currency;
 				action: string;
@@ -233,7 +232,6 @@ export const pageQuery = graphql`
 				symbol
 				quantity
 				price
-				pnl
 				timestamp
 				currency
 				action

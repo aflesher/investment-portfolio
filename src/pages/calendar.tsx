@@ -23,9 +23,16 @@ const getMonth = (
 	const name = date.format('MMMM');
 	const daysInMonth = date.daysInMonth();
 	let currentDay = date.startOf('month');
+
+	// this issue cannot be solved the frontend. The timestamps are different
+	// when doing a build vs develop. You'll have to change the nodes
+	// to use strings instead of timestamps
 	const days = times(daysInMonth, () => {
+		const date = currentDay.format('YYYY-MM-DD');
 		const timestamp = currentDay.toDate().getTime();
-		const earningsDates = earningsDate.filter((q) => q.timestamp === timestamp);
+		const earningsDates = earningsDate.filter(
+			(q) => moment(q.timestamp).format('YYYY-MM-DD') === date
+		);
 		const day = { timestamp, earningsDates };
 
 		currentDay = currentDay.add(1, 'day');

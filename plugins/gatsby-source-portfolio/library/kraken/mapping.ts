@@ -47,6 +47,9 @@ export const mapTrade = (trade: KrakenTrade, usdToCadRate: number): ITrade => {
 		action: trade.type === 'buy' ? 'buy' : 'sell',
 		type: AssetType.crypto,
 		taxable: true,
+		accountPnl: 0,
+		accountPnlCad: 0,
+		accountPnlUsd: 0,
 	};
 };
 

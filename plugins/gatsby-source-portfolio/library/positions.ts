@@ -3,7 +3,7 @@ import { IPosition, IPositionValues } from '../../../declarations/position';
 import { Currency } from '../../../src/utils/enum';
 import { getTodaysRate } from './exchange';
 
-const DEBUG_POSITIONS: string[] = [];
+const DEBUG_POSITIONS: string[] = ['tcehy'];
 const IGNORED_POSITIONS: string[] = [
 	'ry.to',
 	'cgc',
@@ -17,7 +17,6 @@ const IGNORED_POSITIONS: string[] = [
 	'glh.cn.11480862',
 	'pins20jan23c55.00',
 	'chal.cn',
-	'gme',
 	'ele.vn',
 	'dsf.vn',
 ];
@@ -59,7 +58,8 @@ const calculate = (
 	t: ITrade,
 	position: IPositionValues,
 	quote: IQuote,
-	usdToCadRate: number
+	usdToCadRate: number,
+	isAccountPosition: boolean
 ) => {
 	// buy
 	if (!t.isSell) {
@@ -86,11 +86,24 @@ const calculate = (
 		position.totalCostUsd = position.quantity * position.averageEntryPriceUsd;
 
 		// set the pnl for each trade
-		t.pnl = t.quantity * t.price - t.quantity * position.averageEntryPrice;
-		t.pnlCad =
-			t.quantity * t.priceCad - t.quantity * position.averageEntryPriceCad;
-		t.pnlUsd =
-			t.quantity * t.priceUsd - t.quantity * position.averageEntryPriceUsd;
+		// we actually do want to calculate pnl based on account, not aggregated position
+		// this is why it may appear that the pnl on a trade is incorrect when
+		// looking at the position
+		// TODO: actually I think we need to calculate and store both
+		if (isAccountPosition) {
+			t.accountPnl =
+				t.quantity * t.price - t.quantity * position.averageEntryPrice;
+			t.accountPnlCad =
+				t.quantity * t.priceCad - t.quantity * position.averageEntryPriceCad;
+			t.accountPnlUsd =
+				t.quantity * t.priceUsd - t.quantity * position.averageEntryPriceUsd;
+		} else {
+			t.pnl = t.quantity * t.price - t.quantity * position.averageEntryPrice;
+			t.pnlCad =
+				t.quantity * t.priceCad - t.quantity * position.averageEntryPriceCad;
+			t.pnlUsd =
+				t.quantity * t.priceUsd - t.quantity * position.averageEntryPriceUsd;
+		}
 	}
 
 	// always set the current market value
@@ -163,8 +176,8 @@ export const getPositions = async (
 			position.openingTrade = t;
 		}
 
-		calculate(t, position, quote, usdToCadRate);
-		calculate(t, accountPosition, quote, usdToCadRate);
+		calculate(t, position, quote, usdToCadRate, false);
+		calculate(t, accountPosition, quote, usdToCadRate, true);
 
 		debug(t, position);
 	});

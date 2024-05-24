@@ -52,6 +52,9 @@ export const mapTrade = (trade: ICloudTrade, usdToCadRate: number): ITrade => {
 		type: AssetType.stock,
 		symbolId: trade.symbolId,
 		taxable: account.isTaxable,
+		accountPnl: 0,
+		accountPnlCad: 0,
+		accountPnlUsd: 0,
 	};
 };
 

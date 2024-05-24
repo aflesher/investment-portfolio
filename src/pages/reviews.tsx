@@ -236,11 +236,6 @@ const Reviews: React.FC<
 					symbols.includes(assessment.symbol)
 			);
 
-			console.log('calculate');
-			console.log(
-				symbols.filter((s) => !reassessments.map((r) => r.symbol).includes(s))
-			);
-
 			const values = symbols.map((symbol) => ({ symbol, assessment: false }));
 			reassessments.forEach((reassessment) => {
 				const value = values.find((value) => value.symbol === reassessment.symbol);
@@ -482,7 +477,7 @@ export const pageQuery = graphql`
 				}
 			}
 		}
-		allAssessment(filter: { type: { eq: "stock" } }) {
+		allAssessment {
 			nodes {
 				company {
 					marketCap

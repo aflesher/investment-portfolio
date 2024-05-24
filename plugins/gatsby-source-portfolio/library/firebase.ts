@@ -316,6 +316,9 @@ export const getTrades = async (): Promise<ITrade[]> => {
 			type: AssetType.crypto,
 			taxable: true,
 			accountId: 'binance',
+			accountPnl: 0,
+			accountPnlCad: 0,
+			accountPnlUsd: 0,
 		};
 	});
 

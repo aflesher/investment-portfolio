@@ -96,13 +96,21 @@ const Balances: React.FC<IBalancesQuery> = ({ data }) => {
 			.filter(
 				(q) => q.accountId === account.accountId && q.currency === Currency.cad
 			)
-			.reduce((sum, q) => sum + q.limitPrice * q.openQuantity, 0);
+			.reduce(
+				(sum, q) =>
+					sum + q.limitPrice * q.openQuantity * (q.action === 'sell' ? -1 : 1),
+				0
+			);
 
 		const ordersUsd = orders
 			.filter(
 				(q) => q.accountId === account.accountId && q.currency === Currency.usd
 			)
-			.reduce((sum, q) => sum + q.limitPrice * q.openQuantity, 0);
+			.reduce(
+				(sum, q) =>
+					sum + q.limitPrice * q.openQuantity * (q.action === 'sell' ? -1 : 1),
+				0
+			);
 
 		const balance: IBalanceStateProps = {
 			name: account.displayName,

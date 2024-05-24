@@ -225,7 +225,6 @@
 	position: relative;
 	background: url($flagbg) center/contain repeat-x;
 	color: rgb(59, 60, 107);
-	text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
 	> div {
 		position: absolute;
 		left: 0;
@@ -233,6 +232,9 @@
 		height: 100%;
 		width: 94px;
 		background: url($flag) center / contain no-repeat;
+	}
+	> span {
+		background-color: #fff;
 	}
 }
 

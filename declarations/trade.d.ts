@@ -25,4 +25,7 @@ export interface ITrade {
 	type: AssetType;
 	symbolId?: number;
 	taxable: boolean;
+	accountPnl: number;
+	accountPnlUsd: number;
+	accountPnlCad: number;
 }
