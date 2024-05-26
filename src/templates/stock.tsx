@@ -124,7 +124,7 @@ interface IStockTemplateQuery {
 			nodes: IStockSplit[];
 		};
 		allEarningsDate: {
-			nodes: Pick<IEarningsDate, 'timestamp'>[];
+			nodes: Pick<IEarningsDate, 'date'>[];
 		};
 		allAccount: {
 			nodes: IAccount[];
@@ -218,7 +218,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 			: 0;
 
 	const positionFormat = company.type === 'crypto' ? '0,0.0000' : '0,0';
-	const earningsDate = data.allEarningsDate.nodes[0]?.timestamp || 0;
+	const earningsDate = data.allEarningsDate.nodes[0]?.date || '';
 	const incomeStatements =
 		assessment?.notes
 			.filter((q) => q.match(/image=\S+income-statement\S+/))
@@ -755,7 +755,7 @@ export const pageQuery = graphql`
 		}
 		allEarningsDate(filter: { symbol: { eq: $symbol } }) {
 			nodes {
-				timestamp
+				date
 			}
 		}
 	}

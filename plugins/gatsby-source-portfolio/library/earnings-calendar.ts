@@ -6,8 +6,8 @@ import Parser from 'rss-parser';
 const rssParser = new Parser();
 
 export interface IEarningsDate {
-	timestamp: number;
 	symbol: string;
+	date: string;
 }
 
 const fetchZacks = async (symbol: string): Promise<IEarningsDate> => {
@@ -16,15 +16,17 @@ const fetchZacks = async (symbol: string): Promise<IEarningsDate> => {
 	const root = parse(response.data);
 	const element = root.querySelector('.key-expected-earnings-data-module');
 	if (!element) {
-		return { symbol, timestamp: 0 };
+		return { symbol, date: '' };
 	}
 
 	const dateElement = element.querySelector('tbody tr th');
 	if (!dateElement) {
-		return { symbol, timestamp: 0 };
+		return { symbol, date: '' };
 	}
-	const date = dateElement.innerText.substring(0, 10);
-	return { symbol, timestamp: new Date(date).getTime() };
+	const dateRaw = dateElement.innerText.substring(0, 10);
+	console.log(`[ed] ${symbol}`, dateRaw);
+	const date = moment(dateRaw, 'MM/DD/YYYY').format('YYYY-MM-DD');
+	return { symbol, date };
 };
 
 const filterZacks = (symbols: string[]): string[] => {
@@ -60,12 +62,14 @@ export const scrapeCdProjektRed = async (): Promise<IEarningsDate> => {
 	const calendarLine = calendarLines.find((q) =>
 		q.innerHTML.match(/.*report\sfor\s(H|Q).*/)
 	);
-	const date = (
+	const dateRaw = (
 		calendarLine?.querySelectorAll('span')?.[1].innerText || ''
 	).trim();
+	console.log('[ed] otgly', dateRaw);
+	const date = moment(dateRaw, 'MMM DD, YYYY').format('YYYY-MM-DD');
 	return {
 		symbol: 'otgly',
-		timestamp: moment(new Date(date).getTime()).startOf('day').toDate().getTime(),
+		date,
 	};
 };
 
@@ -84,11 +88,13 @@ const scapeSecondPageAAndW = async (
 ): Promise<IEarningsDate | null> => {
 	const response = await axios.get(url);
 	const html: string = response.data;
-	const date = html.match(/>(\w*,\s\w*\s\d{1,2},\s\d{4})</)?.[1];
-	if (!date) {
+	const dateRaw = html.match(/>(\w*,\s\w*\s\d{1,2},\s\d{4})</)?.[1];
+	console.log('[ed] aw.un.to', dateRaw);
+	if (!dateRaw) {
 		return null;
 	}
-	return { symbol: 'aw.un.to', timestamp: new Date(date).getTime() };
+	const date = moment(dateRaw).format('YYYY-MM-DD');
+	return { symbol: 'aw.un.to', date };
 };
 
 const rssHyundai = async (): Promise<IEarningsDate | null> => {
@@ -96,17 +102,19 @@ const rssHyundai = async (): Promise<IEarningsDate | null> => {
 		'https://www.hyundai.com/wsvc/ww/rss/ir.calendar.do'
 	);
 
-	const date = feed.items
+	const dateRaw = feed.items
 		.find((item) => item.title?.match(/Business\sResults/gi))
 		?.contentSnippet?.split('\n')
 		?.find((q) => q.match(/(US|North\sAmerica)/))
 		?.match(/\d{4}\.\d{2}\.\d{2}/)?.[0];
 
-	if (!date) {
+	console.log('[ed] hymtf', dateRaw);
+	if (!dateRaw) {
 		return null;
 	}
+	const date = moment(dateRaw).format('YYYY-MM-DD');
 
-	return { symbol: 'hymtf', timestamp: new Date(date).getTime() };
+	return { symbol: 'hymtf', date };
 };
 
 export const scrapeAAndW = async (): Promise<IEarningsDate | null> => {
@@ -151,5 +159,5 @@ export const getEarningsDates = async (
 
 	console.log(`getEarningsDates (end ${dates.length})`.gray);
 
-	return dates.filter((d) => !!d.timestamp);
+	return dates.filter((d) => !!d.date);
 };

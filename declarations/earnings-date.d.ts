@@ -1,7 +1,7 @@
 import { IPosition } from './position';
 
 export interface IEarningsDate {
-	timestamp: number;
+	date: string;
 	symbol: string;
 	position?: IPosition;
 }

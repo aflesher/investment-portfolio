@@ -10,7 +10,7 @@ interface IQueryProps {
 		allEarningsDate: {
 			nodes: {
 				symbol: string;
-				timestamp: number;
+				date: string;
 			}[];
 		};
 	};
@@ -18,7 +18,7 @@ interface IQueryProps {
 
 const getMonth = (
 	date: moment.Moment,
-	earningsDate: { symbol: string; timestamp: number }[]
+	earningsDate: { symbol: string; date: string }[]
 ) => {
 	const name = date.format('MMMM');
 	const daysInMonth = date.daysInMonth();
@@ -29,11 +29,8 @@ const getMonth = (
 	// to use strings instead of timestamps
 	const days = times(daysInMonth, () => {
 		const date = currentDay.format('YYYY-MM-DD');
-		const timestamp = currentDay.toDate().getTime();
-		const earningsDates = earningsDate.filter(
-			(q) => moment(q.timestamp).format('YYYY-MM-DD') === date
-		);
-		const day = { timestamp, earningsDates };
+		const earningsDates = earningsDate.filter((q) => q.date === date);
+		const day = { date, earningsDates };
 
 		currentDay = currentDay.add(1, 'day');
 		return day;
@@ -70,7 +67,7 @@ export const pageQuery = graphql`
 					quantity
 				}
 				symbol
-				timestamp
+				date
 			}
 		}
 	}

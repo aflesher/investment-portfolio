@@ -34,7 +34,7 @@ interface IIndexQueryProps extends PageProps {
 		allEarningsDate: {
 			nodes: {
 				symbol: string;
-				timestamp: number;
+				date: string;
 			}[];
 		};
 		allOrder: {
@@ -75,8 +75,8 @@ const IndexPage: React.FC<IIndexQueryProps> = ({ data }) => {
 	const review = _.first(data.allReview.nodes);
 	const random = _.random(1, 3);
 	const earningsDates = data.allEarningsDate.nodes
-		.sort((a, b) => compareNumber(a.timestamp, b.timestamp))
-		.filter(({ timestamp }) => moment(timestamp).diff(moment(), 'days') >= 0)
+		.sort((a, b) => compareNumber(moment(a.date).unix(), moment(b.date).unix()))
+		.filter(({ date }) => moment(date).diff(moment(), 'days') >= 0)
 		.slice(0, 5);
 	const positions = data.allPosition.nodes;
 	const orders = _.orderBy(
@@ -132,10 +132,10 @@ const IndexPage: React.FC<IIndexQueryProps> = ({ data }) => {
 			))}
 			<div className='mx-2 mt-4'>
 				<h3>Upcoming Earnings</h3>
-				{earningsDates.map(({ timestamp, symbol }) => (
+				{earningsDates.map(({ date, symbol }) => (
 					<div
 						className='row my-2 home-page-earnings-wrapper'
-						key={`${symbol}${timestamp}`}
+						key={`${symbol}${date}`}
 					>
 						<div className='home-page-earnings col-3'>
 							<CompanyBanner
@@ -145,10 +145,9 @@ const IndexPage: React.FC<IIndexQueryProps> = ({ data }) => {
 							/>
 						</div>
 						<div className='pl-4 col-9' style={{ lineHeight: 2.3 }}>
-							{moment(timestamp).format('ddd, MMM DD YYYY')}&nbsp;
+							{moment(date).format('ddd, MMM DD YYYY')}&nbsp;
 							<i>
-								(
-								{moment(timestamp).startOf('day').diff(moment().startOf('day'), 'days')}{' '}
+								({moment(date).startOf('day').diff(moment().startOf('day'), 'days')}{' '}
 								days away)
 							</i>
 						</div>
@@ -206,7 +205,7 @@ export const pageQuery = graphql`
 		allEarningsDate {
 			nodes {
 				symbol
-				timestamp
+				date
 			}
 		}
 		allOrder {

@@ -8,7 +8,7 @@ interface ICalendarStateProps {
 	months: {
 		name: string;
 		days: {
-			timestamp: number;
+			date: string;
 			earningsDates: IEarningsDate[];
 		}[];
 	}[];
@@ -16,23 +16,23 @@ interface ICalendarStateProps {
 
 const Calendar: React.FC<ICalendarStateProps> = ({ months }) => {
 	const [currentMonth, setCurrentMonth] = React.useState(1);
-	const currentDay = moment().startOf('day').toDate().getTime();
+	const currentDay = moment().startOf('day').format('YYYY-MM-DD');
 	const month = months[currentMonth];
-	const firstDay = moment(month.days[0].timestamp).utc().weekday();
-	const lastDay = moment(month.days[month.days.length - 1].timestamp)
+	const firstDay = moment(month.days[0].date).utc().weekday();
+	const lastDay = moment(month.days[month.days.length - 1].date)
 		.utc()
 		.weekday();
 	const paddingStart = firstDay;
 	const paddingEnd = 6 - lastDay;
 	const days = flatMap([
 		times(paddingStart, (n) => ({
-			timestamp: 0,
-			earningsDates: [{ timestamp: n * 37, symbol: '' }],
+			date: '',
+			earningsDates: [{ date: n * 37 + '', symbol: '' }],
 		})),
 		month.days,
 		times(paddingEnd, (n) => ({
-			timestamp: 0,
-			earningsDates: [{ timestamp: n * 15, symbol: '' }],
+			date: '',
+			earningsDates: [{ date: n * 15 + '', symbol: '' }],
 		})),
 	]);
 	const weeks = chunk(days, 7);
@@ -70,28 +70,22 @@ const Calendar: React.FC<ICalendarStateProps> = ({ months }) => {
 				</span>
 			</div>
 			{weeks.map((week) => (
-				<div
-					className='d-flex week'
-					key={week.map(({ timestamp }) => timestamp).join()}
-				>
+				<div className='d-flex week' key={week.map(({ date }) => date).join()}>
 					{week.map((day) => (
 						<div
-							className={`day ${currentDay === day.timestamp ? 'today' : ''}`}
-							key={
-								day.timestamp ||
-								day.earningsDates.map(({ timestamp }) => timestamp).join('')
-							}
+							className={`day ${currentDay === day.date ? 'today' : ''}`}
+							key={day.date || day.earningsDates.map(({ date }) => date).join('')}
 						>
-							{!!day.timestamp && (
+							{!!day.date && (
 								<>
-									<div className='date'>{moment(day.timestamp).date()}</div>
+									<div className='date'>{moment(day.date).date()}</div>
 									<div className='day-content'>
-										{day.earningsDates.map(({ symbol, timestamp }) => (
+										{day.earningsDates.map(({ symbol, date }) => (
 											<CompanyBanner
 												symbol={replaceSymbol(symbol)}
 												name={`$${symbol.toUpperCase().replace('.TO', '')}`}
 												isNotBanner={true}
-												key={`${symbol}${timestamp}`}
+												key={`${symbol}${date}`}
 											/>
 										))}
 									</div>

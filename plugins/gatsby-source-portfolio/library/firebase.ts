@@ -349,11 +349,11 @@ export const checkAndUpdateEarningsDates = async (
 	await initDeferredPromise.promise;
 
 	await Promise.all(
-		earningsDates.map(async ({ symbol, timestamp }) => {
+		earningsDates.map(async ({ symbol, date }) => {
 			await firestore
-				.collection('earningsDates')
+				.collection('earnings')
 				.doc(symbol)
-				.set({ timestamp }, { merge: true });
+				.set({ date }, { merge: true });
 		})
 	);
 };
@@ -363,14 +363,14 @@ interface IEarningsDateData extends Omit<IEarningsDate, 'symbol'> {}
 export const getEarningsDates = async (): Promise<IEarningsDate[]> => {
 	await initDeferredPromise.promise;
 
-	const querySnapshot = await firestore.collection('earningsDates').get();
+	const querySnapshot = await firestore.collection('earnings').get();
 
 	const dates = await Promise.all(
 		querySnapshot.docs.map(async (documentSnapshot) => {
 			const {
-				timestamp,
+				date,
 			}: IEarningsDateData = documentSnapshot.data() as IEarningsDateData;
-			return { symbol: documentSnapshot.id, timestamp };
+			return { symbol: documentSnapshot.id, date };
 		})
 	);
 

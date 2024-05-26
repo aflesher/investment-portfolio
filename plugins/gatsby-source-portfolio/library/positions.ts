@@ -3,7 +3,7 @@ import { IPosition, IPositionValues } from '../../../declarations/position';
 import { Currency } from '../../../src/utils/enum';
 import { getTodaysRate } from './exchange';
 
-const DEBUG_POSITIONS: string[] = ['tcehy'];
+const DEBUG_POSITIONS: string[] = [];
 const IGNORED_POSITIONS: string[] = [
 	'ry.to',
 	'cgc',
