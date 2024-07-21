@@ -6,6 +6,7 @@ import {
 } from './coinmarketcap';
 import { IAssessment, IOrder, IQuote, ITrade } from '../../../declarations';
 import { AssetType } from '../../../src/utils/enum';
+import { SYMBOL_FILTER } from './filter';
 
 export const getQuotes = async (
 	trades: ITrade[],
@@ -54,5 +55,7 @@ export const getQuotes = async (
 	const stockQuotes = await getStockQuotes(stockSymbolIds);
 
 	console.log('quotes.getQuotes (end)'.gray);
-	return [...cryptoQuotes, ...stockQuotes];
+	return [...cryptoQuotes, ...stockQuotes].filter(
+		(quote) => !SYMBOL_FILTER.includes(quote.symbol)
+	);
 };

@@ -41,6 +41,28 @@ export interface KrakenTrade {
 	trade_id: number;
 }
 
+interface KrakenReward {
+	converted: string;
+	native: string;
+}
+
+export interface KrakenEarnAllocation {
+	native_asset: string;
+	total_rewarded: KrakenReward;
+	payout: {
+		accumulated_reward: KrakenReward;
+		estimated_reward: KrakenReward;
+		period_end: string;
+	};
+	amount_allocated: {
+		total: KrakenReward;
+	};
+}
+
+interface KrakenEarnAllocations {
+	items: KrakenEarnAllocation[];
+}
+
 export const init = (_key: string, _secret: string) => {
 	key = _key;
 	secret = _secret;
@@ -116,4 +138,14 @@ export const getCurrencyAndSymbolFromPair = (pair: string) => {
 	symbol = symbol.replace(/(xxbtz)/, 'btc').replace(/(xethz)/, 'eth');
 
 	return { symbol, currency };
+};
+
+export const getEarnAllocations = async (): Promise<KrakenEarnAllocation[]> => {
+	const kraken = await krakenPromise;
+	const response = await kraken
+		.request('Earn/Allocations', null, 'private')
+		.catch((e) => console.error(e));
+	if (!response) return [];
+	const { items } = response as KrakenEarnAllocations;
+	return items;
 };

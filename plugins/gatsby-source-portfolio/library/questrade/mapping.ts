@@ -93,6 +93,7 @@ export const mapOrder = (
 		accountId: account.accountId,
 		currency,
 		symbolId: order.symbolId,
+		virtual: false,
 	};
 };
 

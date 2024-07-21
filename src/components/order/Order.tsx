@@ -43,6 +43,7 @@ const Order: React.FC<IOrderStateProps> = ({
 	accountName,
 	quotePrice,
 	positionCost,
+	virtual,
 }) => {
 	const gap = orderPriceGap(quotePrice, limitPrice, action === 'sell');
 	const curAvgPrice = positionCost / positionQuantity;
@@ -64,9 +65,13 @@ const Order: React.FC<IOrderStateProps> = ({
 		return `rgb(${red}, ${green}, ${blue})`;
 	};
 	const avgPriceDiff = (curAvgPrice - newAvgPrice) / curAvgPrice;
+	const sx: any = {};
+	if (virtual) {
+		sx['background'] = '#000022';
+	}
 
 	return (
-		<div className='border-top-normal'>
+		<div className='border-top-normal' style={sx}>
 			<div className='d-block d-sm-none'>
 				<div className='row'>
 					<div className='text-uppercase font-weight-bold col-6'>

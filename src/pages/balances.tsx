@@ -290,7 +290,7 @@ export const pageQuery = graphql`
 				}
 			}
 		}
-		allOrder {
+		allOrder(filter: { virtual: { eq: false } }) {
 			nodes {
 				symbol
 				limitPrice

@@ -17,4 +17,5 @@ export interface IOrder {
 	limitPriceUsd: number;
 	limitPriceCad: number;
 	symbolId?: number;
+	virtual?: boolean;
 }

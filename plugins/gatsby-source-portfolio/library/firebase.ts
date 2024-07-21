@@ -14,6 +14,7 @@ import {
 	IPosition,
 	IAccount,
 	IQuote,
+	IOrder,
 } from '../../../declarations';
 import { Currency, AssetType } from '../../../src/utils/enum';
 import moment from 'moment';
@@ -534,4 +535,218 @@ export const getAccounts = async (): Promise<IAccount[]> => {
 	});
 
 	return accounts;
+};
+
+interface IQuestradeVirtualOrder {
+	symbol: string;
+	quantity: number;
+	isSell: boolean;
+	price: number;
+	accountId: string;
+	currency: Currency;
+	type: AssetType;
+}
+
+export const getVirtualOrders = async (): Promise<IOrder[]> => {
+	const usdToCadRate = await getTodaysRate();
+	const cadToUsdRate = 1 / usdToCadRate;
+
+	const virtualOrders: IQuestradeVirtualOrder[] = [
+		{
+			symbol: 'eth',
+			quantity: 1,
+			isSell: true,
+			price: 4000,
+			accountId: 'kraken',
+			currency: Currency.usd,
+			type: AssetType.crypto,
+		},
+		{
+			symbol: 'otgly',
+			quantity: 223,
+			isSell: false,
+			price: 6.2,
+			accountId: '26418215',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+		{
+			symbol: 'hymtf',
+			quantity: 28,
+			isSell: false,
+			price: 53,
+			accountId: '26418215',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+		{
+			symbol: 'googl',
+			quantity: 10,
+			isSell: false,
+			price: 160,
+			accountId: '51637118',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+		{
+			symbol: 's',
+			quantity: 100,
+			isSell: false,
+			price: 18,
+			accountId: '51443858',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+		{
+			symbol: 'tlt',
+			quantity: 30,
+			isSell: false,
+			price: 90.5,
+			accountId: '51443858',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+		{
+			symbol: 'meta',
+			quantity: 4,
+			isSell: false,
+			price: 430,
+			accountId: '51637118',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+		{
+			symbol: 'amd',
+			quantity: 10,
+			isSell: false,
+			price: 115,
+			accountId: '51637118',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+		{
+			symbol: 'ntdoy',
+			quantity: 100,
+			isSell: false,
+			price: 11.6,
+			accountId: '51637118',
+			currency: Currency.usd,
+			type: AssetType.stock,
+		},
+	];
+
+	return virtualOrders.map(
+		({ symbol, quantity, isSell, price, accountId, currency, type }) => ({
+			symbol,
+			type,
+			taxable: true,
+			action: isSell ? 'sell' : 'buy',
+			quantity: quantity,
+			openQuantity: quantity,
+			filledQuantity: 0,
+			totalQuantity: quantity,
+			limitPrice: price,
+			currency,
+			accountId,
+			stopPrice: 0,
+			orderType: 'limit',
+			avgExecPrice: 0,
+			side: isSell ? 'sell' : 'buy',
+			limitPriceCad: Currency.cad === currency ? price : price * usdToCadRate,
+			limitPriceUsd: Currency.usd === currency ? price : price * cadToUsdRate,
+			virtual: true,
+		})
+	);
+};
+
+export interface IKrakenStakingReward {
+	symbol: string;
+	date: string;
+	usd: number;
+	amount: number;
+	allocationAmount: number;
+}
+
+interface IKrakenStakingRewardDoc extends firebase.firestore.DocumentData {
+	isCurrentPeriod: boolean;
+}
+
+export const getKrakenStakingRewards = async (): Promise<
+	IKrakenStakingReward[]
+> => {
+	console.log('firebase.get.krakenStakingRewards (start)'.gray);
+	await initDeferredPromise.promise;
+
+	const querySnapshot = await firestore
+		.collection('krakenStakingRewards')
+		.where('isCurrentPeriod', '==', false)
+		.get();
+
+	console.log('firebase.get.krakenStakingRewards (querySnapshot)'.magenta);
+
+	const results = querySnapshot.docs.map((documentSnapshot) => {
+		const {
+			symbol,
+			date,
+			usd,
+			amount,
+			allocationAmount,
+		} = documentSnapshot.data() as IKrakenStakingRewardDoc;
+
+		console.log(documentSnapshot.data());
+
+		const data: IKrakenStakingReward = {
+			symbol,
+			date,
+			usd,
+			amount,
+			allocationAmount,
+		};
+
+		return data;
+	});
+
+	console.log('firebase.get.krakenStakingRewards (end)'.gray);
+	return results;
+};
+
+export const updateKrakenStakingRewardCurrentPeriod = async (
+	reward: IKrakenStakingReward
+): Promise<void> => {
+	console.log('firebase.update.krakenStakingRewardCurrentPeriod (start)'.gray);
+	await initDeferredPromise.promise;
+
+	// here
+	// Find the current period document
+	const currentPeriodQuery = await firestore
+		.collection('krakenStakingRewards')
+		.where('isCurrentPeriod', '==', true)
+		.where('symbol', '==', reward.symbol)
+		.where('date', '==', reward.date)
+		.get();
+
+	if (!currentPeriodQuery.empty) {
+		// Update existing document
+		const docRef = currentPeriodQuery.docs[0].ref;
+		await docRef.update({ ...reward, isCurrentPeriod: true });
+	} else {
+		// Set previous document to false if it exists
+		const previousPeriodQuery = await firestore
+			.collection('krakenStakingRewards')
+			.where('symbol', '==', reward.symbol)
+			.where('isCurrentPeriod', '==', true)
+			.get();
+
+		if (!previousPeriodQuery.empty) {
+			await previousPeriodQuery.docs[0].ref.update({ isCurrentPeriod: false });
+		}
+
+		// Create new document
+		await firestore.collection('krakenStakingRewards').add({
+			...reward,
+			isCurrentPeriod: true,
+		});
+	}
+
+	console.log('firebase.update.krakenStakingRewardCurrentPeriod (end)'.gray);
 };

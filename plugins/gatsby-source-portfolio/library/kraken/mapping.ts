@@ -1,7 +1,9 @@
-import { IOrder, ITrade } from '../../../../declarations';
+import { IKrakenStakingReward } from 'library/firebase';
+import { IDividend, IOrder, ITrade } from '../../../../declarations';
 import { IAccount } from '../../../../declarations/account';
 import { AssetType, Currency } from '../../../../src/utils/enum';
-import { KrakenOpenOrder, KrakenTrade } from './api';
+import { KrakenEarnAllocation, KrakenOpenOrder, KrakenTrade } from './api';
+import moment from 'moment';
 
 const account: IAccount = {
 	accountId: 'kraken',
@@ -77,5 +79,39 @@ export const mapOrder = (
 		type: order.ordertype || 'buy',
 		accountId: account.accountId,
 		currency,
+		virtual: false,
+	};
+};
+
+export const mapDividend = (
+	reward: IKrakenStakingReward,
+	usdToCadRate: number
+): IDividend => {
+	const symbol = reward.symbol;
+	const amount = reward.usd;
+	const timestamp = new Date(reward.date).getTime();
+	const amountUsd = amount;
+	const amountCad = amount * usdToCadRate;
+
+	return {
+		symbol,
+		timestamp,
+		amount,
+		currency: Currency.usd,
+		accountId: account.accountId,
+		amountUsd,
+		amountCad,
+	};
+};
+
+export const mapReward = (
+	earnAllocation: KrakenEarnAllocation
+): IKrakenStakingReward => {
+	return {
+		symbol: earnAllocation.native_asset.toLowerCase(),
+		usd: Number(earnAllocation.payout.estimated_reward.converted),
+		amount: Number(earnAllocation.payout.estimated_reward.native),
+		date: moment(earnAllocation.payout.period_end).utc().format('YYYY-MM-DD'),
+		allocationAmount: Number(earnAllocation.amount_allocated.total.native),
 	};
 };

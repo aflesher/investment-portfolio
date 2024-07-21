@@ -9,7 +9,25 @@ import moment from 'moment-timezone';
 import Order from '../components/order/Order';
 import { IPosition } from '../../declarations/position';
 import { CurrencyContext } from '../context/currency.context';
-import { IAccount } from '../../declarations';
+import { IAccount, ICompany, IOrder, IQuote } from '../../declarations';
+
+interface IOrderNode
+	extends Pick<
+		IOrder,
+		| 'symbol'
+		| 'limitPrice'
+		| 'limitPriceCad'
+		| 'limitPriceUsd'
+		| 'openQuantity'
+		| 'action'
+		| 'accountId'
+		| 'virtual'
+		| 'action'
+	> {
+	quote: Pick<IQuote, 'price' | 'afterHoursPrice'>;
+	company: Pick<ICompany, 'name' | 'marketCap'>;
+	position?: Pick<IPosition, 'quantity' | 'totalCost'>;
+}
 
 interface IIndexQueryProps extends PageProps {
 	data: {
@@ -37,29 +55,7 @@ interface IIndexQueryProps extends PageProps {
 				date: string;
 			}[];
 		};
-		allOrder: {
-			nodes: {
-				symbol: string;
-				limitPrice: number;
-				limitPriceCad: number;
-				limitPriceUsd: number;
-				openQuantity: number;
-				action: string;
-				accountId: string;
-				quote: {
-					price: number;
-					afterHoursPrice: number;
-				};
-				company: {
-					name: string;
-					marketCap: number;
-				};
-				position?: {
-					quantity: number;
-					totalCost: number;
-				};
-			}[];
-		};
+		allOrder: { nodes: IOrderNode[] };
 		allPosition: {
 			nodes: Pick<IPosition, 'quantity' | 'totalCost' | 'symbol'>[];
 		};
@@ -217,6 +213,7 @@ export const pageQuery = graphql`
 				openQuantity
 				action
 				accountId
+				virtual
 				quote {
 					price
 					afterHoursPrice

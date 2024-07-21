@@ -2,6 +2,7 @@ import { IQuote, ITrade } from '../../../declarations';
 import { IPosition, IPositionValues } from '../../../declarations/position';
 import { Currency } from '../../../src/utils/enum';
 import { getTodaysRate } from './exchange';
+import { SYMBOL_FILTER } from './filter';
 
 const DEBUG_POSITIONS: string[] = [];
 const IGNORED_POSITIONS: string[] = [
@@ -189,7 +190,11 @@ export const getPositions = async (
 
 	// remove any positions that have no quantity
 	const filteredPositions = positions.filter(
-		(p) => p.quantity > 0 && p.totalCostCad > 0 && p.currentMarketValue > 50
+		(p) =>
+			p.quantity > 0 &&
+			p.totalCostCad > 0 &&
+			p.currentMarketValue > 50 &&
+			!SYMBOL_FILTER.includes(p.symbol)
 	);
 
 	console.log(`positions.getPositions (end ${filteredPositions.length})`.gray);

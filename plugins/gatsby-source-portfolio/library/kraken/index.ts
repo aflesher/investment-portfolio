@@ -4,16 +4,18 @@ import { getExchangeRates, getTodaysRate } from '../exchange';
 import moment from 'moment-timezone';
 import { ITrade } from '../../../../declarations/trade';
 import * as cloud from './cloud';
-import { mapOrder, mapTrade } from './mapping';
-import { IOrder } from '../../../../declarations';
+import { mapDividend, mapOrder, mapReward, mapTrade } from './mapping';
+import { IDividend, IOrder } from '../../../../declarations';
 import { IAccount } from '../../../../declarations/account';
 import { Currency } from '../../../../src/utils/enum';
+import * as firebase from '../firebase';
 
 const initDeferredPromise = deferredPromise();
 const dataDeferredPromise = deferredPromise<{
 	orders: api.KrakenOpenOrder[];
 	balances: { usd: number; cad: number };
 	trades: api.KrakenTrade[];
+	earnAllocations: api.KrakenEarnAllocation[];
 }>();
 
 export const init = async (key: string, secret: string) => {
@@ -23,10 +25,16 @@ export const init = async (key: string, secret: string) => {
 	const orders = await api.getOpenOrders();
 	const balances = await api.getBalances();
 	const fetchedTrades = await api.getTrades();
+	const earnAllocations = await api.getEarnAllocations();
 	await cloud.sync(fetchedTrades);
 	const trades = cloud.getTrades();
+	await Promise.all(
+		earnAllocations.map((earnAllocation) =>
+			firebase.updateKrakenStakingRewardCurrentPeriod(mapReward(earnAllocation))
+		)
+	);
 
-	dataDeferredPromise.resolve({ orders, balances, trades });
+	dataDeferredPromise.resolve({ orders, balances, trades, earnAllocations });
 };
 
 export const getTrades = async (): Promise<ITrade[]> => {
@@ -79,4 +87,17 @@ export const getAccount = async (): Promise<IAccount> => {
 	};
 
 	return account;
+};
+
+export const getDividends = async (): Promise<IDividend[]> => {
+	await dataDeferredPromise.promise;
+	const [rewards, exchangeRates] = await Promise.all([
+		firebase.getKrakenStakingRewards(),
+		getExchangeRates(),
+	]);
+
+	const dividends = rewards.map((reward) =>
+		mapDividend(reward, exchangeRates[moment(reward.date).format('YYYY-MM-DD')])
+	);
+	return dividends;
 };

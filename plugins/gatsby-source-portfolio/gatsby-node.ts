@@ -451,29 +451,31 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const getDividendNodes = async (): Promise<IDividendNode[]> => {
 		const dividends = await dividendsPromise;
 
-		return dividends.map((dividend, index) => {
-			const dividendNode: IDividendNode = {
-				position___NODE: positionNodeIdsMap[dividend.symbol] || null,
-				company___NODE: companyNodeIdsMap[dividend.symbol] || null,
-				quote___NODE: quoteNodeIdsMap[dividend.symbol] || null,
-				assessment___NODE: assessmentNodeIdsMap[dividend.symbol] || null,
-				...dividend,
-			};
+		return dividends
+			.filter((q) => q.symbol !== 'xmmrf')
+			.map((dividend, index) => {
+				const dividendNode: IDividendNode = {
+					position___NODE: positionNodeIdsMap[dividend.symbol] || null,
+					company___NODE: companyNodeIdsMap[dividend.symbol] || null,
+					quote___NODE: quoteNodeIdsMap[dividend.symbol] || null,
+					assessment___NODE: assessmentNodeIdsMap[dividend.symbol] || null,
+					...dividend,
+				};
 
-			const content = JSON.stringify(dividendNode);
-			_.defaults(dividendNode, {
-				id: getDividendNodeId(dividendNode.symbol, index),
-				parent: null,
-				children: [],
-				internal: {
-					type: 'Dividend',
-					content,
-					contentDigest: hash(content),
-				},
+				const content = JSON.stringify(dividendNode);
+				_.defaults(dividendNode, {
+					id: getDividendNodeId(dividendNode.symbol, index),
+					parent: null,
+					children: [],
+					internal: {
+						type: 'Dividend',
+						content,
+						contentDigest: hash(content),
+					},
+				});
+
+				return dividendNode;
 			});
-
-			return dividendNode;
-		});
 	};
 
 	interface IQuoteNode extends INode, IQuote {
@@ -523,32 +525,34 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 	const getCompanyNodes = async (): Promise<ICompanyNode[]> => {
 		const companies = await companiesPromise;
 
-		return companies.map((company) => {
-			const companyNode = {
-				...company,
-				position___NODE: positionNodeIdsMap[company.symbol] || null,
-				quote___NODE: quoteNodeIdsMap[company.symbol] || null,
-				trades___NODE: tradeNodeIdsMap[company.symbol] || [],
-				dividends___NODE: dividendNodeIdsMap[company.symbol] || [],
-				company___NODE: companyNodeIdsMap[company.symbol] || null,
-				assessment___NODE: assessmentNodeIdsMap[company.symbol] || null,
-				orders___NODE: orderNodeIdsMap[company.symbol] || [],
-			};
+		return companies
+			.filter((q) => q.symbol !== 'xmmrf')
+			.map((company) => {
+				const companyNode = {
+					...company,
+					position___NODE: positionNodeIdsMap[company.symbol] || null,
+					quote___NODE: quoteNodeIdsMap[company.symbol] || null,
+					trades___NODE: tradeNodeIdsMap[company.symbol] || [],
+					dividends___NODE: dividendNodeIdsMap[company.symbol] || [],
+					company___NODE: companyNodeIdsMap[company.symbol] || null,
+					assessment___NODE: assessmentNodeIdsMap[company.symbol] || null,
+					orders___NODE: orderNodeIdsMap[company.symbol] || [],
+				};
 
-			const content = JSON.stringify(companyNode);
-			_.defaults(companyNode, {
-				id: getCompanyNodeId(companyNode.symbol),
-				parent: null,
-				children: [],
-				internal: {
-					type: 'Company',
-					content,
-					contentDigest: hash(content),
-				},
+				const content = JSON.stringify(companyNode);
+				_.defaults(companyNode, {
+					id: getCompanyNodeId(companyNode.symbol),
+					parent: null,
+					children: [],
+					internal: {
+						type: 'Company',
+						content,
+						contentDigest: hash(content),
+					},
+				});
+
+				return companyNode;
 			});
-
-			return companyNode;
-		});
 	};
 
 	interface IAccountNode extends INode, IAccount {}
