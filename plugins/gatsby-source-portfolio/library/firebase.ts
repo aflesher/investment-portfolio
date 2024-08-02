@@ -547,96 +547,59 @@ interface IQuestradeVirtualOrder {
 	type: AssetType;
 }
 
+export const insertVirtualOrdersIntoFirebase = async (): Promise<void> => {
+	await initDeferredPromise.promise;
+
+	const virtualOrders: IQuestradeVirtualOrder[] = [
+		// {
+		// 	symbol: 'eth',
+		// 	quantity: 1,
+		// 	isSell: true,
+		// 	price: 4000,
+		// 	accountId: 'kraken',
+		// 	currency: Currency.usd,
+		// 	type: AssetType.crypto,
+		// },
+	];
+
+	if (virtualOrders.length === 0) {
+		return;
+	}
+
+	const batch = firestore.batch();
+
+	virtualOrders.forEach((order) => {
+		const docRef = firestore.collection('virtualOrders').doc();
+		batch.set(docRef, order);
+	});
+
+	await batch.commit();
+	console.log('Virtual orders inserted into Firebase collection');
+};
+
 export const getVirtualOrders = async (): Promise<IOrder[]> => {
+	console.log('firebase.get.virtualOrders (start)'.gray);
+	await initDeferredPromise.promise;
+
 	const usdToCadRate = await getTodaysRate();
 	const cadToUsdRate = 1 / usdToCadRate;
 
-	const virtualOrders: IQuestradeVirtualOrder[] = [
-		{
-			symbol: 'eth',
-			quantity: 1,
-			isSell: true,
-			price: 4000,
-			accountId: 'kraken',
-			currency: Currency.usd,
-			type: AssetType.crypto,
-		},
-		{
-			symbol: 'otgly',
-			quantity: 223,
-			isSell: false,
-			price: 6.2,
-			accountId: '26418215',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-		{
-			symbol: 'hymtf',
-			quantity: 28,
-			isSell: false,
-			price: 53,
-			accountId: '26418215',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-		{
-			symbol: 'googl',
-			quantity: 10,
-			isSell: false,
-			price: 160,
-			accountId: '51637118',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-		{
-			symbol: 's',
-			quantity: 100,
-			isSell: false,
-			price: 18,
-			accountId: '51443858',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-		{
-			symbol: 'tlt',
-			quantity: 30,
-			isSell: false,
-			price: 90.5,
-			accountId: '51443858',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-		{
-			symbol: 'meta',
-			quantity: 4,
-			isSell: false,
-			price: 430,
-			accountId: '51637118',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-		{
-			symbol: 'amd',
-			quantity: 10,
-			isSell: false,
-			price: 115,
-			accountId: '51637118',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-		{
-			symbol: 'ntdoy',
-			quantity: 100,
-			isSell: false,
-			price: 11.6,
-			accountId: '51637118',
-			currency: Currency.usd,
-			type: AssetType.stock,
-		},
-	];
+	const querySnapshot = await firestore.collection('virtualOrders').get();
 
-	return virtualOrders.map(
-		({ symbol, quantity, isSell, price, accountId, currency, type }) => ({
+	console.log('firebase.get.virtualOrders (querySnapshot)'.magenta);
+
+	const virtualOrders = querySnapshot.docs.map((documentSnapshot) => {
+		const {
+			symbol,
+			quantity,
+			isSell,
+			price,
+			accountId,
+			currency,
+			type,
+		} = documentSnapshot.data() as IQuestradeVirtualOrder;
+
+		return {
 			symbol,
 			type,
 			taxable: true,
@@ -655,8 +618,11 @@ export const getVirtualOrders = async (): Promise<IOrder[]> => {
 			limitPriceCad: Currency.cad === currency ? price : price * usdToCadRate,
 			limitPriceUsd: Currency.usd === currency ? price : price * cadToUsdRate,
 			virtual: true,
-		})
-	);
+		};
+	});
+
+	console.log('firebase.get.virtualOrders (end)'.gray);
+	return virtualOrders;
 };
 
 export interface IKrakenStakingReward {
