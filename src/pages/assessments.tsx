@@ -86,7 +86,7 @@ const Assessments: React.FC<IAssessmentsQuery & IAssessmentStateProps> = ({
 							<label className='form-label'>Symbol</label>
 							<div className='input-group'>
 								<Typeahead
-									onChange={(symbol): void => changeSymbol(symbol[0])}
+									onChange={(symbol): void => changeSymbol(symbol[0] as string)}
 									onInputChange={(symbol): void => changeSymbol(symbol)}
 									options={_.map(assessments, (q) => q.symbol)}
 									id='symbol'
@@ -144,7 +144,7 @@ export default connect(mapStateToProps, null)(Assessments);
 
 export const pageQuery = graphql`
 	query {
-		allAssessment(sort: { fields: [lastUpdatedTimestamp], order: DESC }) {
+		allAssessment(sort: { lastUpdatedTimestamp: DESC }) {
 			nodes {
 				assessment
 				symbol

@@ -231,7 +231,7 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 						<div className='form-group'>
 							<label htmlFor='symbol'>Symbol</label>
 							<Typeahead
-								onChange={(symbols): void => handleSymbolChange(symbols[0])}
+								onChange={(options): void => handleSymbolChange(options[0] as string)}
 								onInputChange={(symbol): void => handleSymbolChange(symbol)}
 								options={symbols}
 								allowNew
@@ -337,7 +337,7 @@ export default Dividends;
 
 export const pageQuery = graphql`
 	query {
-		allDividend(sort: { fields: timestamp, order: DESC }) {
+		allDividend(sort: { timestamp: DESC }) {
 			nodes {
 				amount
 				amountCad
@@ -358,7 +358,7 @@ export const pageQuery = graphql`
 		allExchangeRate(
 			limit: 1
 			filter: { key: { eq: "USD_CAD" } }
-			sort: { fields: [date], order: DESC }
+			sort: { date: DESC }
 		) {
 			nodes {
 				rate

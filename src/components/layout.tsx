@@ -147,20 +147,16 @@ interface ILayoutGraphQL {
 	};
 }
 
-const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
-	children,
-	user,
-	showSidebar,
-	setShowSidebar,
-	userLoading,
-}) => (
+const MainLayout: React.FC<
+	ILayoutStateProps & ILayoutDispatchProps & React.PropsWithChildren
+> = ({ children, user, showSidebar, setShowSidebar, userLoading }) => (
 	<StaticQuery
 		query={graphql`
 			query {
 				allExchangeRate(
 					limit: 1
 					filter: { key: { eq: "USD_CAD" } }
-					sort: { fields: [date], order: DESC }
+					sort: { date: DESC }
 				) {
 					nodes {
 						rate
@@ -192,7 +188,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
-				allTrade(sort: { fields: [timestamp], order: DESC }, limit: 7) {
+				allTrade(sort: { timestamp: DESC }, limit: 7) {
 					nodes {
 						accountId
 						quantity
@@ -210,7 +206,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						isSell
 					}
 				}
-				allDividend(limit: 7, sort: { fields: timestamp, order: DESC }) {
+				allDividend(limit: 7, sort: { timestamp: DESC }) {
 					nodes {
 						amountCad
 						amountUsd

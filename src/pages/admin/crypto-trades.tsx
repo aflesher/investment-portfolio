@@ -302,7 +302,7 @@ export const pageQuery = graphql`
 		allExchangeRate(
 			limit: 1
 			filter: { key: { eq: "USD_CAD" } }
-			sort: { fields: [date], order: DESC }
+			sort: { date: DESC }
 		) {
 			nodes {
 				rate
