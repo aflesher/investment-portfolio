@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 
-import StockHover from '../stock-hover/StockHover';
+import AssetSymbol from '../stock-hover/AssetSymbol';
 import { IDividend } from '../../../declarations/dividend';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
@@ -15,7 +15,7 @@ const Dividend: React.FC<IDividendStateProps> = (props) => {
 	return (
 		<div className='d-flex py-2 border-b'>
 			<div>
-				<StockHover
+				<AssetSymbol
 					symbol={symbol}
 					css={{ 'text-emphasis': true, 'font-weight-bold': true }}
 				/>

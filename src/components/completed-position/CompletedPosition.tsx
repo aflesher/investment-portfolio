@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import numeral from 'numeral';
 
-import StockHover, { IAssetHoverProps } from '../stock-hover/StockHover';
+import AssetSymbol, { IAssetHoverProps } from '../stock-hover/AssetSymbol';
 import { Currency } from '../../utils/enum';
 import { formatDateShort } from '../../utils/util';
 import { CurrencyContext } from '../../context/currency.context';
@@ -33,7 +33,7 @@ const CompletedPosition: React.FC<ICompletePositionStateProps> = ({
 	return (
 		<tr className='colored-row'>
 			<td>
-				<StockHover symbol={symbol} />
+				<AssetSymbol symbol={symbol} />
 			</td>
 			<td className='text-right'>{quantityBought}</td>
 			<td className='text-right'>{numeral(avgPricePaid).format('$0.00')}</td>

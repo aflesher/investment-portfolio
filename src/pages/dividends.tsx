@@ -9,7 +9,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Currency, AssetType } from '../utils/enum';
 import Layout from '../components/layout';
 import XE from '../components/xe/XE';
-import StockHover from '../components/stock-hover/StockHover';
+import AssetSymbol from '../components/stock-hover/AssetSymbol';
 import * as util from '../utils/util';
 import { dateInputFormat } from '../utils/util';
 import Percent from '../components/percent/Percent';
@@ -294,7 +294,7 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 							key={`${dividend.symbol}${dividend.timestamp}${index}`}
 						>
 							<div className='col-3'>
-								<StockHover symbol={dividend.symbol} />
+								<AssetSymbol symbol={dividend.symbol} />
 							</div>
 							<div className='col-3 text-right'>
 								{util.formatDate(dividend.timestamp)}

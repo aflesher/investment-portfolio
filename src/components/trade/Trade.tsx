@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
 
-import StockHover from '../stock-hover/StockHover';
+import AssetSymbol from '../stock-hover/AssetSymbol';
 import { ITrade } from '../../../declarations/trade';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
@@ -42,7 +42,7 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 				<div className='col-8'>
 					{symbol && (
 						<div className='d-inline-block'>
-							<StockHover
+							<AssetSymbol
 								symbol={symbol}
 								css={{ 'text-emphasis': true, 'font-weight-bold': true }}
 							/>
