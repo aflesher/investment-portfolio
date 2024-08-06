@@ -1,7 +1,5 @@
 import React, { ReactElement, useCallback } from 'react';
-import numeral from 'numeral';
 import { graphql } from 'gatsby';
-import crypto from 'crypto';
 import { connect } from 'react-redux';
 import Layout from '../components/layout';
 import { IReview } from '../../declarations/review';
@@ -121,7 +119,7 @@ const Reviews: React.FC<
 	const trades = data.allTrade.nodes;
 
 	const goalId = (goal: string): string => {
-		return crypto.createHash('md5').update(JSON.stringify(goal)).digest('hex');
+		return goal.replace(/\s/g, '');
 	};
 
 	const toggleGoal = async (text: string, achieved: boolean) => {
