@@ -1,9 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import classNames from 'classnames';
 import numeral from 'numeral';
-// @ts-ignore
-import { componentWillAppendToBody } from 'react-append-to-body';
-// @ts-ignore
 import { Link } from 'gatsby';
 import { displayMarketCap } from '../../utils/util';
 import XE from '../xe/XE';
@@ -15,13 +12,7 @@ export interface IAssetHoverProps {
 	css?: object;
 }
 
-function HoverComponent({ children }: { children: JSX.Element }): JSX.Element {
-	return <div>{children}</div>;
-}
-
-let AppendedHoverComponent: React.ElementType | null = null;
-
-const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
+const StockHover = ({ symbol, css }: IAssetHoverProps) => {
 	const marginTopAbove = '-145px';
 	const marginTopBelow = '30px';
 
@@ -50,8 +41,10 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 		marketCap: 0,
 	};
 
-	const asset = useContext(AssetPreviewContext).find((q) => q.symbol === symbol);
 	const activeCurrency = useContext(CurrencyContext);
+	const assets = useContext(AssetPreviewContext);
+
+	const asset = useMemo(() => assets.find((q) => q.symbol === symbol), [assets]);
 
 	const {
 		previousClosePrice,
@@ -68,10 +61,6 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 		type,
 		quoteCurrency,
 	} = { ...defaults, ...asset };
-
-	React.useEffect(() => {
-		AppendedHoverComponent = componentWillAppendToBody(HoverComponent);
-	}, []);
 
 	const stockQuoteRef = React.useRef<HTMLDivElement>();
 
@@ -102,7 +91,7 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 
 	return (
 		// @ts-ignore
-		<div ref={stockQuoteRef}>
+		<div ref={stockQuoteRef} className='position: relative'>
 			<Link
 				to={`/stock/${symbol}`}
 				className={classNames({
@@ -116,99 +105,97 @@ const StockHover: React.FC<IAssetHoverProps> = ({ symbol, css }) => {
 			>
 				{symbol.substring(0, 8)}
 			</Link>
-			{AppendedHoverComponent ? (
-				<AppendedHoverComponent>
-					<div style={{ ...hoverStyles, position: 'fixed', zIndex: 1 }}>
-						<div
-							className={classNames({
-								'hover-positive': isProfit,
-								'hover-negative': !isProfit,
-								'stock-hover': true,
-							})}
-						>
-							<div className='p-2'>
-								<div
-									style={{ overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '300px' }}
-									className='font-weight-bold text-emphasis'
-								>
-									{name}
+			{hoverStyles.display !== 'none' ? (
+				<div style={{ ...hoverStyles, position: 'fixed', zIndex: 1 }}>
+					<div
+						className={classNames({
+							'hover-positive': isProfit,
+							'hover-negative': !isProfit,
+							'stock-hover': true,
+						})}
+					>
+						<div className='p-2'>
+							<div
+								style={{ overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '300px' }}
+								className='font-weight-bold text-emphasis'
+							>
+								{name}
+							</div>
+							<span>
+								{numeral(price).format('$0,000.00')}&nbsp;
+								{quoteCurrency.toUpperCase()}
+							</span>
+							&nbsp;
+							<span
+								className={classNames({
+									'text-positive': isProfit,
+									'text-negative': !isProfit,
+									'text-sub': true,
+								})}
+							>
+								{isProfit ? '+' : '-'}
+								{numeral(Math.abs(profitsLosses)).format('$0,000.00')}&nbsp; (
+								{numeral(profitsLossesPercentage).format('0.00%')})
+							</span>
+							<div className='text-sub pt-1 row'>
+								<div className='col-6 text-nowrap'>
+									Market Cap:&nbsp;
+									<span className='font-weight-bold text-uppercase'>
+										{displayMarketCap(marketCap)}
+									</span>
 								</div>
-								<span>
-									{numeral(price).format('$0,000.00')}&nbsp;
-									{quoteCurrency.toUpperCase()}
-								</span>
-								&nbsp;
-								<span
-									className={classNames({
-										'text-positive': isProfit,
-										'text-negative': !isProfit,
-										'text-sub': true,
-									})}
-								>
-									{isProfit ? '+' : '-'}
-									{numeral(Math.abs(profitsLosses)).format('$0,000.00')}&nbsp; (
-									{numeral(profitsLossesPercentage).format('0.00%')})
-								</span>
-								<div className='text-sub pt-1 row'>
-									<div className='col-6 text-nowrap'>
-										Market Cap:&nbsp;
-										<span className='font-weight-bold text-uppercase'>
-											{displayMarketCap(marketCap)}
-										</span>
-									</div>
-									<div className='col-6 text-nowrap'>
-										{type == 'crypto' ? 'Coins' : 'Shares'}:&nbsp;
-										<span className='font-weight-bold'>
-											{numeral(quantity).format(type == 'crypto' ? '0,000.00' : '0,000')}
-										</span>
-									</div>
+								<div className='col-6 text-nowrap'>
+									{type == 'crypto' ? 'Coins' : 'Shares'}:&nbsp;
+									<span className='font-weight-bold'>
+										{numeral(quantity).format(type == 'crypto' ? '0,000.00' : '0,000')}
+									</span>
 								</div>
-								<div className='text-sub pt-1 row'>
-									<div className='col-6 text-nowrap'>
-										Position:&nbsp;
-										<span className='font-weight-bold'>
-											<XE
-												cad={currentMarketValueCad}
-												usd={currentMarketValueUsd}
-												currency={activeCurrency}
-											/>
-										</span>
-									</div>
-									<div className='col-6 text-nowrap'>
-										P and L:{' '}
-										<span
-											className={classNames({
-												'font-weight-bold': true,
-												'text-negative': openPnlCad < 0 && quantity,
-												'text-positive': openPnlCad >= 0 && quantity,
-											})}
-										>
-											{quantity ? (
-												<XE cad={openPnlCad} usd={openPnlUsd} currency={activeCurrency} />
-											) : (
-												'N/A'
-											)}
-										</span>
-									</div>
+							</div>
+							<div className='text-sub pt-1 row'>
+								<div className='col-6 text-nowrap'>
+									Position:&nbsp;
+									<span className='font-weight-bold'>
+										<XE
+											cad={currentMarketValueCad}
+											usd={currentMarketValueUsd}
+											currency={activeCurrency}
+										/>
+									</span>
 								</div>
-								<div className='text-sub pt-1 row'>
-									<div className='col-6 text-nowrap'>
-										Holdings Prog.:&nbsp;
-										<span className='font-weight-bold'>
-											{shareProgress ? numeral(shareProgress).format('0%') : 'N/A'}
-										</span>
-									</div>
-									<div className='col-6 text-nowrap'>
-										Target Price:&nbsp;
-										<span className='font-weight-bold'>
-											{priceProgress ? numeral(priceProgress).format('0%') : 'N/A'}
-										</span>
-									</div>
+								<div className='col-6 text-nowrap'>
+									P and L:{' '}
+									<span
+										className={classNames({
+											'font-weight-bold': true,
+											'text-negative': openPnlCad < 0 && quantity,
+											'text-positive': openPnlCad >= 0 && quantity,
+										})}
+									>
+										{quantity ? (
+											<XE cad={openPnlCad} usd={openPnlUsd} currency={activeCurrency} />
+										) : (
+											'N/A'
+										)}
+									</span>
+								</div>
+							</div>
+							<div className='text-sub pt-1 row'>
+								<div className='col-6 text-nowrap'>
+									Holdings Prog.:&nbsp;
+									<span className='font-weight-bold'>
+										{shareProgress ? numeral(shareProgress).format('0%') : 'N/A'}
+									</span>
+								</div>
+								<div className='col-6 text-nowrap'>
+									Target Price:&nbsp;
+									<span className='font-weight-bold'>
+										{priceProgress ? numeral(priceProgress).format('0%') : 'N/A'}
+									</span>
 								</div>
 							</div>
 						</div>
 					</div>
-				</AppendedHoverComponent>
+				</div>
 			) : (
 				<span></span>
 			)}
