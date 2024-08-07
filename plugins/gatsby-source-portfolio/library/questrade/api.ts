@@ -23,6 +23,7 @@ const initDeferredPromise = util.deferredPromise();
 
 // use this to replace refresh token
 const overrideLoginToken = ''; // 'Xe43mfqe5YDXwLuAliYDv2WF84juOMl60';
+const ALWAYS_REFRESH = true;
 
 export interface IQuestradeOrder {
 	id: number;
@@ -69,7 +70,12 @@ export const getAccounts = (): IAccount[] => [
 const getLoginInfo = async (): Promise<void> => {
 	const auth = await firebase.getQuestradeAuth();
 
-	if (new Date().getTime() > auth.expiryTime || overrideLoginToken) {
+	if (
+		new Date().getTime() > auth.expiryTime ||
+		overrideLoginToken ||
+		ALWAYS_REFRESH
+	) {
+		console.log('attempting questrade token refresh'.grey);
 		const refreshToken = overrideLoginToken || cryptr.decrypt(auth.refreshToken);
 		await login(refreshToken);
 	} else {
@@ -102,6 +108,7 @@ const updateLoginInfo = async (
 };
 
 const login = async (refreshToken: string): Promise<void> => {
+	console.log('questrade token expired, refreshing'.bgMagenta.white);
 	const resp = await axios
 		.get(loginUrl, {
 			params: {
@@ -109,7 +116,7 @@ const login = async (refreshToken: string): Promise<void> => {
 				refresh_token: refreshToken,
 			},
 		})
-		.catch(console.log);
+		.catch(() => console.log('questrade refresh failed!'.red));
 
 	if (!resp) {
 		return;
@@ -117,6 +124,7 @@ const login = async (refreshToken: string): Promise<void> => {
 
 	apiUrl = resp.data.api_server;
 	accessToken = resp.data.access_token;
+	console.log(`new access token ${accessToken}`.bgMagenta.white);
 
 	await updateLoginInfo(resp.data.refresh_token, resp.data.expires_in);
 };
@@ -132,7 +140,9 @@ const authRequest = async (
 			},
 			params,
 		})
-		.catch(console.log);
+		.catch((e) =>
+			console.log(`authorized questrade request failed ${e?.response.data}`.red)
+		);
 };
 
 export interface IQuestradePosition {

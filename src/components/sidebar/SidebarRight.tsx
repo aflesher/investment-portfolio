@@ -5,7 +5,7 @@ import { Link } from 'gatsby';
 import Trade, { ITradeStateProps } from '../trade/Trade';
 import Dividend, { IDividendStateProps } from '../dividend/Dividend';
 import { Currency } from '../../utils/enum';
-import StockHover from '../stock-hover/StockHover';
+import AssetSymbol from '../stock-hover/AssetSymbol';
 import Percent from '../percent/Percent';
 import { IPosition } from '../../../declarations/position';
 import ColoredNumbers from '../colored-numbers/ColoredNumbers';
@@ -120,7 +120,7 @@ const SidebarRight: React.FC<
 					<div className='row position' key={position.symbol}>
 						<div className='col-4 pr-0'>
 							<div className='d-inline-block'>
-								<StockHover symbol={position.symbol} />
+								<AssetSymbol symbol={position.symbol} />
 							</div>
 						</div>
 						<div className='col-4 text-right'>

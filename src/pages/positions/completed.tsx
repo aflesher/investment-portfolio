@@ -340,7 +340,7 @@ export default CompletedPositions;
 
 export const pageQuery = graphql`
 	query {
-		allTrade(sort: { fields: [timestamp], order: ASC }) {
+		allTrade(sort: { timestamp: ASC }) {
 			nodes {
 				quantity
 				price

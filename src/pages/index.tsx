@@ -180,7 +180,7 @@ export default IndexPage;
 
 export const pageQuery = graphql`
 	query {
-		allReview(sort: { fields: year, order: ASC }, limit: 1) {
+		allReview(sort: { year: ASC }, limit: 1) {
 			nodes {
 				comments
 				continue

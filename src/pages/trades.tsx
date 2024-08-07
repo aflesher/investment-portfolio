@@ -111,7 +111,7 @@ const Trades: React.FC<ITradeQuery> = ({ data }) => {
 						<div className='form-group'>
 							<label htmlFor='symbol'>Symbol</label>
 							<Typeahead
-								onChange={(symbols): void => handleSymbolChange(symbols[0])}
+								onChange={(symbols): void => handleSymbolChange(symbols[0] as string)}
 								onInputChange={(symbol): void => handleSymbolChange(symbol)}
 								options={symbols}
 								allowNew
@@ -193,7 +193,7 @@ export default Trades;
 
 export const pageQuery = graphql`
 	query {
-		allTrade(sort: { fields: [timestamp], order: DESC }) {
+		allTrade(sort: { timestamp: DESC }) {
 			nodes {
 				accountId
 				quantity

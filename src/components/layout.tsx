@@ -16,6 +16,7 @@ import SidebarRight, { ISidebarPosition } from './sidebar/SidebarRight';
 import { ITradeStateProps } from './trade/Trade';
 import { IDividendStateProps } from './dividend/Dividend';
 import { AssetPreviewContext } from '../context/assetPreview.context';
+import AssetHoverProvider from '../context/assetHover.context';
 import { IQuote } from '../../declarations/quote';
 import { ICompany } from '../../declarations/company';
 import { IPosition } from '../../declarations/position';
@@ -24,6 +25,7 @@ import { CurrencyContext } from '../context/currency.context';
 import { IDividend } from '../../declarations/dividend';
 import { ITrade } from '../../declarations/trade';
 import { IAccount } from '../../declarations';
+import AssetHover from './stock-hover/AssetHover';
 
 interface ILayoutStateProps {
 	user: firebase.User | null | undefined;
@@ -147,20 +149,16 @@ interface ILayoutGraphQL {
 	};
 }
 
-const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
-	children,
-	user,
-	showSidebar,
-	setShowSidebar,
-	userLoading,
-}) => (
+const MainLayout: React.FC<
+	ILayoutStateProps & ILayoutDispatchProps & React.PropsWithChildren
+> = ({ children, user, showSidebar, setShowSidebar, userLoading }) => (
 	<StaticQuery
 		query={graphql`
 			query {
 				allExchangeRate(
 					limit: 1
 					filter: { key: { eq: "USD_CAD" } }
-					sort: { fields: [date], order: DESC }
+					sort: { date: DESC }
 				) {
 					nodes {
 						rate
@@ -192,7 +190,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						}
 					}
 				}
-				allTrade(sort: { fields: [timestamp], order: DESC }, limit: 7) {
+				allTrade(sort: { timestamp: DESC }, limit: 7) {
 					nodes {
 						accountId
 						quantity
@@ -210,7 +208,7 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 						isSell
 					}
 				}
-				allDividend(limit: 7, sort: { fields: timestamp, order: DESC }) {
+				allDividend(limit: 7, sort: { timestamp: DESC }) {
 					nodes {
 						amountCad
 						amountUsd
@@ -306,39 +304,42 @@ const MainLayout: React.FC<ILayoutStateProps & ILayoutDispatchProps> = ({
 				<div className='page-wrapper'>
 					<AssetPreviewContext.Provider value={assetHovers}>
 						<CurrencyContext.Provider value={currency}>
-							<div className={`page ${isCollapsed && 'collapsed'}`}>
-								<div
-									className={`sidebar-left ${showSidebar && 'sidebar-open'} ${
-										isCollapsed && 'collapsed'
-									}`}
-								>
-									<div className='p-2'>
-										<SidebarLeft
-											currency={currency}
-											onSetCurrency={setCurrency}
-											usdCad={usdCad}
-											cadUsd={cadUsd}
-											authenticated={!!user || userLoading}
-											isCollapsed={isCollapsed}
-											onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
-										/>
+							<AssetHoverProvider>
+								<div className={`page ${isCollapsed && 'collapsed'}`}>
+									<div
+										className={`sidebar-left ${showSidebar && 'sidebar-open'} ${
+											isCollapsed && 'collapsed'
+										}`}
+									>
+										<div className='p-2'>
+											<SidebarLeft
+												currency={currency}
+												onSetCurrency={setCurrency}
+												usdCad={usdCad}
+												cadUsd={cadUsd}
+												authenticated={!!user || userLoading}
+												isCollapsed={isCollapsed}
+												onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+											/>
+										</div>
 									</div>
-								</div>
-								<div className='sidebar-right'>
-									<div className='p-2'>
-										<SidebarRight
-											positions={positions}
-											trades={trades}
-											dividends={dividends}
-										/>
+									<div className='sidebar-right'>
+										<div className='p-2'>
+											<SidebarRight
+												positions={positions}
+												trades={trades}
+												dividends={dividends}
+											/>
+										</div>
 									</div>
+									<div
+										className='mobile-nav-link'
+										onClick={(): void => setShowSidebar(!showSidebar)}
+									></div>
+									<div className='main-content'>{children}</div>
 								</div>
-								<div
-									className='mobile-nav-link'
-									onClick={(): void => setShowSidebar(!showSidebar)}
-								></div>
-								<div className='main-content'>{children}</div>
-							</div>
+								<AssetHover />
+							</AssetHoverProvider>
 						</CurrencyContext.Provider>
 					</AssetPreviewContext.Provider>
 				</div>

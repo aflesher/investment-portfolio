@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import numeral from 'numeral';
 
-import StockHover from '../stock-hover/StockHover';
+import AssetSymbol from '../stock-hover/AssetSymbol';
 import { Currency, RatingType } from '../../utils/enum';
 import XE from '../xe/XE';
 import { PositionsOrderBy } from '../../pages/positions';
@@ -59,7 +59,7 @@ const Position: React.FC<IPositionStateProps> = (props) => {
 		<tr className='position colored-row'>
 			<td className='pr-0'>
 				<div className='d-inline-block'>
-					<StockHover symbol={symbol} />
+					<AssetSymbol symbol={symbol} />
 				</div>
 			</td>
 			<td>
