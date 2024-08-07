@@ -6,7 +6,6 @@ import numeral from 'numeral';
 import Position from '../components/position/Position';
 import Layout from '../components/layout';
 import { Currency, AssetType } from '../utils/enum';
-import XE from '../components/xe/XE';
 import { ITrade } from '../../declarations/trade';
 import { getPercentSharesRemaining } from '../utils/util';
 import { IOrder } from '../../declarations/order';
@@ -167,18 +166,6 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 	const totalPositionValue = _.sumBy(
 		positions.filter(filterPosition),
 		(p) => p.currentMarketValueCad
-	);
-	const totalPositionCost = _.sumBy(
-		positions.filter(filterPosition),
-		(p) => p.totalCostCad
-	);
-	const totalPositionValueUsd = _.sumBy(
-		positions.filter(filterPosition),
-		(p) => p.currentMarketValueUsd
-	);
-	const totalPositionCostUsd = _.sumBy(
-		positions.filter(filterPosition),
-		(p) => p.totalCostUsd
 	);
 
 	const orders = data.allOrder.nodes;
@@ -343,15 +330,6 @@ const Positions: React.FC<IPositionsQuery> = ({ data }) => {
 								openPnlUsd={position.openPnlUsd}
 							/>
 						))}
-						<tr>
-							<td colSpan={7} className='text-right'>
-								<XE
-									cad={totalPositionValue - totalPositionCost}
-									usd={totalPositionValueUsd - totalPositionCostUsd}
-									currency={currency}
-								/>
-							</td>
-						</tr>
 						<tr>
 							<td className='link' onClick={() => setCombined(!combined)}>
 								{(combined && 'combined *') || 'not combined'}
