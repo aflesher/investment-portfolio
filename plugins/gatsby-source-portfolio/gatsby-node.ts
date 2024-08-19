@@ -617,27 +617,30 @@ exports.sourceNodes = async ({ actions, createNodeId }, configOptions) => {
 		const scrapedEarnings = await earningsDatesPromise;
 		await firebase.checkAndUpdateEarningsDates(scrapedEarnings);
 		const earnings = await firebase.getEarningsDates();
-		return earnings.map((e) => {
-			const earningsNode: IEarningsDateNode = {
-				...e,
-				position___NODE: positionNodeIdsMap[e.symbol] || null,
-				quote___NODE: quoteNodeIdsMap[e.symbol] || null,
-				company___NODE: companyNodeIdsMap[e.symbol] || null,
-				assessment___NODE: assessmentNodeIdsMap[e.symbol] || null,
-			};
-			const content = JSON.stringify(earningsNode);
-			_.defaults(earningsNode, {
-				id: getEarningsDateNodeId(e.symbol),
-				parent: null,
-				children: [],
-				internal: {
-					type: 'EarningsDate',
-					content,
-					contentDigest: hash(content),
-				},
+		const symbols = (await positionsPromise).map(({ symbol }) => symbol);
+		return earnings
+			.filter((e) => symbols.includes(e.symbol))
+			.map((e) => {
+				const earningsNode: IEarningsDateNode = {
+					...e,
+					position___NODE: positionNodeIdsMap[e.symbol] || null,
+					quote___NODE: quoteNodeIdsMap[e.symbol] || null,
+					company___NODE: companyNodeIdsMap[e.symbol] || null,
+					assessment___NODE: assessmentNodeIdsMap[e.symbol] || null,
+				};
+				const content = JSON.stringify(earningsNode);
+				_.defaults(earningsNode, {
+					id: getEarningsDateNodeId(e.symbol),
+					parent: null,
+					children: [],
+					internal: {
+						type: 'EarningsDate',
+						content,
+						contentDigest: hash(content),
+					},
+				});
+				return earningsNode;
 			});
-			return earningsNode;
-		});
 	};
 
 	interface IStockSplitNode extends INode, IStockSplit {
