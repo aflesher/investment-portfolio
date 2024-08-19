@@ -90,11 +90,16 @@ export const getAccount = async (): Promise<IAccount> => {
 };
 
 export const getDividends = async (): Promise<IDividend[]> => {
-	await dataDeferredPromise.promise;
-	const [rewards, exchangeRates] = await Promise.all([
-		firebase.getKrakenStakingRewards(),
-		getExchangeRates(),
-	]);
+	const { earnAllocations } = await dataDeferredPromise.promise;
+	const [exchangeRates] = await Promise.all([getExchangeRates()]);
+
+	const rewards = earnAllocations.map((allocation) => ({
+		symbol: allocation.native_asset.toLowerCase(),
+		date: moment().format('YYYY-MM-DD'),
+		usd: Number(allocation.total_rewarded.converted),
+		amount: Number(allocation.total_rewarded.native),
+		allocationAmount: Number(allocation.amount_allocated.total.native),
+	}));
 
 	const dividends = rewards.map((reward) =>
 		mapDividend(reward, exchangeRates[moment(reward.date).format('YYYY-MM-DD')])
