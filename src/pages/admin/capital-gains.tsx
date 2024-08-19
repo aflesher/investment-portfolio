@@ -77,7 +77,16 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 		if (trade.currency === Currency.cad) {
 			return 1;
 		}
-		const date = moment(trade.timestamp).startOf('day').format('YYYY-MM-DD');
+		let date = moment(trade.timestamp).startOf('day').format('YYYY-MM-DD');
+		if (!ratesMap[date]) {
+			date = moment(trade.timestamp)
+				.startOf('day')
+				.add(1, 'day')
+				.format('YYYY-MM-DD');
+		}
+		if (!ratesMap[date]) {
+			console.log('missing date', date);
+		}
 		return ratesMap[date];
 	};
 
@@ -97,7 +106,6 @@ const CapitalGains: React.FC<ICapitalGainsQuery> = ({ data }) => {
 					return trade.type === AssetType.stock;
 			}
 		});
-	console.log(trades);
 
 	const groupedTrades = _.groupBy(trades, (t) => t.symbol);
 	const filteredGroupedTrades = _.filter(
