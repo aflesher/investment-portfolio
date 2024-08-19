@@ -1,1 +1,1 @@
-export const SYMBOL_FILTER = ['xmmrf'];
+export const SYMBOL_FILTER = ['xmmrf', 'hear'];
