@@ -241,3 +241,18 @@
 .s {
 	@include companyBase(#fff, rgb(87, 54, 122), #fff);
 }
+
+.wulf {
+	@include companyBase(
+		rgb(203, 218, 224),
+		linear-gradient(
+			to right,
+			rgb(0, 116, 190) 0%,
+			/* Start at 0% with rgb(0, 116, 190) */ rgb(0, 148, 231) 50%,
+			/* Transition to rgb(0, 148, 231) at 50% */ rgb(0, 159, 246) 50%,
+			/* Slight transition to rgb(0, 159, 246) at 51% */ rgb(0, 161, 248) 100%
+				/* End at 100% with rgb(0, 161, 248) */
+		),
+		rgb(203, 218, 224)
+	);
+}
