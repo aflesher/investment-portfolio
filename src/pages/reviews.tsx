@@ -191,7 +191,7 @@ const Reviews: React.FC<
 			const midcaps = assessments.filter((assessment) => {
 				const marketCap = assessment.company?.marketCap;
 				return (
-					(marketCap && marketCap < 10000000000) ||
+					(marketCap && marketCap < 15000000000) ||
 					MIDCAPS.includes(assessment.symbol)
 				);
 			});
