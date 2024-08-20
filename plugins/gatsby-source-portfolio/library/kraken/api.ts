@@ -94,9 +94,9 @@ export const getOpenOrders = async (): Promise<KrakenOpenOrder[]> => {
 	const { open } = result;
 	if (!open) return [];
 
-	return Object.keys(open).map(
-		(key) => ({ ...open[key].descr, vol: open[key].vol } as KrakenOpenOrder)
-	);
+	return Object.keys(open)
+		.map((key) => ({ ...open[key].descr, vol: open[key].vol } as KrakenOpenOrder))
+		.filter((q) => !q.pair?.match(/(cad|usd)_(cad|usd)/i));
 };
 
 export const getBalances = async () => {
