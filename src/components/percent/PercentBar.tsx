@@ -2,6 +2,7 @@ import React from 'react';
 import numeral from 'numeral';
 
 export const PercentBar = ({ percent }: { percent: number }) => {
+	percent = Math.min(1, percent);
 	return (
 		<div
 			className={`bar-graph bar-background ${
