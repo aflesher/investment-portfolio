@@ -30,7 +30,7 @@ export const init = async (key: string, secret: string) => {
 	const trades = cloud.getTrades();
 	await Promise.all(
 		earnAllocations.map((earnAllocation) =>
-			firebase.updateKrakenStakingRewardCurrentPeriod(mapReward(earnAllocation))
+			firebase.updateKrakenTotalStakeRewards(mapReward(earnAllocation))
 		)
 	);
 
@@ -90,16 +90,11 @@ export const getAccount = async (): Promise<IAccount> => {
 };
 
 export const getDividends = async (): Promise<IDividend[]> => {
-	const { earnAllocations } = await dataDeferredPromise.promise;
-	const [exchangeRates] = await Promise.all([getExchangeRates()]);
-
-	const rewards = earnAllocations.map((allocation) => ({
-		symbol: allocation.native_asset.toLowerCase(),
-		date: moment().format('YYYY-MM-DD'),
-		usd: Number(allocation.total_rewarded.converted),
-		amount: Number(allocation.total_rewarded.native),
-		allocationAmount: Number(allocation.amount_allocated.total.native),
-	}));
+	await dataDeferredPromise.promise;
+	const [rewards, exchangeRates] = await Promise.all([
+		firebase.getKrakenStakingRewards(),
+		getExchangeRates(),
+	]);
 
 	const dividends = rewards.map((reward) =>
 		mapDividend(reward, exchangeRates[moment(reward.date).format('YYYY-MM-DD')])

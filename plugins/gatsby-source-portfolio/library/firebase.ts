@@ -633,9 +633,9 @@ export interface IKrakenStakingReward {
 	allocationAmount: number;
 }
 
-interface IKrakenStakingRewardDoc extends firebase.firestore.DocumentData {
-	isCurrentPeriod: boolean;
-}
+interface IKrakenStakingRewardDoc
+	extends firebase.firestore.DocumentData,
+		IKrakenStakingReward {}
 
 export const getKrakenStakingRewards = async (): Promise<
 	IKrakenStakingReward[]
@@ -643,10 +643,7 @@ export const getKrakenStakingRewards = async (): Promise<
 	console.log('firebase.get.krakenStakingRewards (start)'.gray);
 	await initDeferredPromise.promise;
 
-	const querySnapshot = await firestore
-		.collection('krakenStakingRewards')
-		.where('isCurrentPeriod', '==', false)
-		.get();
+	const querySnapshot = await firestore.collection('krakenStakingRewards').get();
 
 	console.log('firebase.get.krakenStakingRewards (querySnapshot)'.magenta);
 
@@ -676,43 +673,74 @@ export const getKrakenStakingRewards = async (): Promise<
 	return results;
 };
 
-export const updateKrakenStakingRewardCurrentPeriod = async (
+export interface IKrakenStakingTotalReward {
+	symbol: string;
+	amount: number;
+	date: string;
+}
+
+export const updateKrakenTotalStakeRewards = async (
 	reward: IKrakenStakingReward
 ): Promise<void> => {
 	console.log('firebase.update.krakenStakingRewardCurrentPeriod (start)'.gray);
 	await initDeferredPromise.promise;
 
-	// here
-	// Find the current period document
-	const currentPeriodQuery = await firestore
-		.collection('krakenStakingRewards')
-		.where('isCurrentPeriod', '==', true)
+	const totalRewardQuery = await firestore
+		.collection('krakenStakingTotalRewards')
 		.where('symbol', '==', reward.symbol)
-		.where('date', '==', reward.date)
 		.get();
+	const { symbol, amount, date, usd } = reward;
 
-	if (!currentPeriodQuery.empty) {
-		// Update existing document
-		const docRef = currentPeriodQuery.docs[0].ref;
-		await docRef.update({ ...reward, isCurrentPeriod: true });
+	if (totalRewardQuery.empty) {
+		// Create new document
+		const docRef = firestore.collection('krakenStakingTotalRewards').doc();
+		await docRef.set({ symbol, amount, date });
+		await addKrakenStakingReward({
+			symbol,
+			amount,
+			date: date,
+			usd,
+			allocationAmount: reward.allocationAmount,
+		});
 	} else {
-		// Set previous document to false if it exists
-		const previousPeriodQuery = await firestore
-			.collection('krakenStakingRewards')
-			.where('symbol', '==', reward.symbol)
-			.where('isCurrentPeriod', '==', true)
-			.get();
+		// Update existing document
+		const docRef = totalRewardQuery.docs[0].ref;
+		const { amount: currentTotalAmount } = (
+			await docRef.get()
+		).data() as IKrakenStakingTotalReward;
 
-		if (!previousPeriodQuery.empty) {
-			await previousPeriodQuery.docs[0].ref.update({ isCurrentPeriod: false });
+		// reward hasn't changed
+		if (currentTotalAmount === amount) {
+			return;
 		}
 
-		// Create new document
-		await firestore.collection('krakenStakingRewards').add({
-			...reward,
-			isCurrentPeriod: true,
+		if (currentTotalAmount > amount) {
+			console.log(
+				'firebase.update.krakenStakingRewardCurrentPeriod (amount decreased)'.red
+			);
+			return;
+		}
+
+		const diffAmount = amount - currentTotalAmount;
+		const diffUsd = (usd / amount) * diffAmount;
+		await docRef.update({ symbol, amount, date });
+		await addKrakenStakingReward({
+			symbol,
+			amount: diffAmount,
+			date: date,
+			usd: diffUsd,
+			allocationAmount: reward.allocationAmount,
 		});
 	}
+};
 
-	console.log('firebase.update.krakenStakingRewardCurrentPeriod (end)'.gray);
+export const addKrakenStakingReward = async (
+	reward: IKrakenStakingReward
+): Promise<void> => {
+	console.log('firebase.create.krakenStakingReward (start)'.gray);
+	await initDeferredPromise.promise;
+
+	await firestore.collection('krakenStakingRewards').add({
+		...reward,
+	});
 };

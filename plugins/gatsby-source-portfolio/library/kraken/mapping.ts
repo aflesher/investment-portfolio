@@ -109,9 +109,9 @@ export const mapReward = (
 ): IKrakenStakingReward => {
 	return {
 		symbol: earnAllocation.native_asset.toLowerCase(),
-		usd: Number(earnAllocation.payout.estimated_reward.converted),
-		amount: Number(earnAllocation.payout.estimated_reward.native),
-		date: moment(earnAllocation.payout.period_end).utc().format('YYYY-MM-DD'),
+		usd: Number(earnAllocation.total_rewarded.converted),
+		amount: Number(earnAllocation.total_rewarded.native),
+		date: moment().format('YYYY-MM-DD'),
 		allocationAmount: Number(earnAllocation.amount_allocated.total.native),
 	};
 };
