@@ -552,13 +552,13 @@ export const insertVirtualOrdersIntoFirebase = async (): Promise<void> => {
 
 	const virtualOrders: IQuestradeVirtualOrder[] = [
 		// {
-		// 	symbol: 'sol',
-		// 	quantity: 10,
+		// 	symbol: 'wulf',
+		// 	quantity: 500,
 		// 	isSell: false,
-		// 	price: 120,
-		// 	accountId: 'kraken',
+		// 	price: 3.85,
+		// 	accountId: '51443858',
 		// 	currency: Currency.usd,
-		// 	type: AssetType.crypto,
+		// 	type: AssetType.stock,
 		// },
 	];
 

@@ -10,6 +10,8 @@ import { IAccount } from '../../../../declarations/account';
 import { Currency } from '../../../../src/utils/enum';
 import * as firebase from '../firebase';
 
+const FILTERED_TRADES = [3374453, 3374452, 3374451];
+
 const initDeferredPromise = deferredPromise();
 const dataDeferredPromise = deferredPromise<{
 	orders: api.KrakenOpenOrder[];
@@ -41,12 +43,14 @@ export const getTrades = async (): Promise<ITrade[]> => {
 	const { trades } = await dataDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
 
-	return trades.map((trade) => {
-		const timestamp = Number(trade.time) * 1000;
-		const usdToCadRate = exchangeRates[moment(timestamp).format('YYYY-MM-DD')];
+	return trades
+		.filter((trade) => !FILTERED_TRADES.includes(trade.trade_id))
+		.map((trade) => {
+			const timestamp = Number(trade.time) * 1000;
+			const usdToCadRate = exchangeRates[moment(timestamp).format('YYYY-MM-DD')];
 
-		return mapTrade(trade, usdToCadRate);
-	});
+			return mapTrade(trade, usdToCadRate);
+		});
 };
 
 export const getOrders = async (): Promise<IOrder[]> => {
