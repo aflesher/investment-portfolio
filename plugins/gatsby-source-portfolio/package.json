@@ -10,7 +10,6 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"node-kraken-api": "^2.2.2",
 		"typescript": "^4.9.5"
 	}
 }
