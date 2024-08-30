@@ -10,7 +10,7 @@ import { IAccount } from '../../../../declarations/account';
 import { Currency } from '../../../../src/utils/enum';
 import * as firebase from '../firebase';
 
-const FILTERED_TRADES = [3374453, 3374452, 3374451];
+const FILTERED_TRADES = [3377429, 3374453, 3374452, 3374451];
 
 const initDeferredPromise = deferredPromise();
 const dataDeferredPromise = deferredPromise<{
