@@ -8,7 +8,10 @@ interface ITextStateProps {
 	config?: ITextConfig;
 }
 
-const Text: FC<ITextStateProps> = ({ children, config }) => {
+const Text: FC<ITextStateProps & React.PropsWithChildren> = ({
+	children,
+	config,
+}) => {
 	const classes: string[] = [];
 	if (config?.color === 'positive') {
 		classes.push('text-positive');

@@ -12,7 +12,8 @@ import Layout from '../components/layout';
 import CompanyBanner from '../components/company-banner/CompanyBanner';
 import XE from '../components/xe/XE';
 import Order from '../components/order/Order';
-import Assessment from '../components/assessment/Assessment';
+import AssessmentSummary from '../components/assessment/Summary';
+import AssessmentNotes from '../components/assessment/Notes';
 import Trade from '../components/trade/Trade';
 import {
 	formatDate,
@@ -143,9 +144,6 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	storage,
 }) => {
 	const [toggleIncomeStatement, setToggleIncomeStatement] = useState(false);
-	const [activeContent, setActiveContent] = useState<'assessment' | 'activity'>(
-		'assessment'
-	);
 	const currency = useContext(CurrencyContext);
 	const company = data.allCompany.nodes[0];
 	const cryptoQuotes = data.allQuote.nodes;
@@ -541,111 +539,88 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 						  ))
 						: '(no orders)'}
 
-					<div className='row pb-2'>
-						<div className='col-6'>
-							<h3
-								className={`${activeContent === 'assessment' ? '' : 'link'}`}
-								onClick={() => setActiveContent('assessment')}
-							>
-								Assessment
-							</h3>
-						</div>
-						<div className='col-6'>
-							<h3
-								className={`${activeContent === 'activity' ? '' : 'link'}`}
-								onClick={() => setActiveContent('activity')}
-							>
-								Activity
-							</h3>
-						</div>
+					<div>
+						{!!assessment ? (
+							<AssessmentSummary
+								symbol={company.symbol}
+								targetPrice={assessment.targetPrice}
+								lastUpdatedTimestamp={assessment.lastUpdatedTimestamp}
+								quotePrice={quote.price}
+								pluses={assessment.pluses}
+								minuses={assessment.minuses}
+								questions={assessment.questions}
+								positionTotalCost={position?.totalCost || 0}
+								targetInvestment={assessment.targetInvestment}
+								valuations={assessment.valuations}
+								rating={assessment.rating}
+								name={''}
+								maxShares={getMaxShares(trades)}
+								currentShares={position.quantity}
+								storage={storage}
+							/>
+						) : (
+							<span>(no assessment)</span>
+						)}
 					</div>
-
-					{activeContent === 'assessment' && (
-						<>
-							<div>
-								{!!assessment ? (
-									<Assessment
-										symbol={company.symbol}
-										targetPrice={assessment.targetPrice}
-										lastUpdatedTimestamp={assessment.lastUpdatedTimestamp}
-										quotePrice={quote.price}
-										pluses={assessment.pluses}
-										minuses={assessment.minuses}
-										notes={assessment.notes}
-										questions={assessment.questions}
-										positionTotalCost={position?.totalCost || 0}
-										targetInvestment={assessment.targetInvestment}
-										valuations={assessment.valuations}
-										rating={assessment.rating}
-										name={''}
-										maxShares={getMaxShares(trades)}
-										currentShares={position.quantity}
-										storage={storage}
-									/>
-								) : (
-									<span>(no assessment)</span>
-								)}
-							</div>
-						</>
-					)}
 					{!!stockSplits.length && (
 						<div className='mb-4'>
 							<h3>Stock Splits</h3>
 							<StockSplits stockSplits={stockSplits} />
 						</div>
 					)}
-					{activeContent === 'activity' && (
-						<>
-							<div className='row'>
-								<div className='col-7'>
-									<h4>Trades</h4>
-									<div>
-										{trades.length
-											? _.orderBy(trades, (t) => t.timestamp, 'desc').map((trade, i) => (
-													<Trade
-														symbol={company.symbol}
-														isSell={trade.action == 'sell'}
-														quantity={trade.quantity}
-														key={i}
-														timestamp={trade.timestamp}
-														currency={quote.currency}
-														price={trade.price}
-														pnlCad={trade.pnlCad}
-														pnlUsd={trade.pnlUsd}
-														accountName={
-															accounts.find((q) => q.accountId === trade.accountId)
-																?.displayName || ''
-														}
-														type={trade.type}
-													/>
-											  ))
-											: '(no trades)'}
-									</div>
-								</div>
-								<div className='col-5'>
-									<h4>Dividends</h4>
-									<div>
-										{dividends.length
-											? _.orderBy(dividends, (t) => t.timestamp, 'desc').map(
-													(dividend, i) => (
-														<div key={i} className='row border-top-normal'>
-															<div className='col-6'>{formatDate(dividend.timestamp)}</div>
-															<div className='col-6'>
-																<XE
-																	cad={dividend.amountCad}
-																	usd={dividend.amountUsd}
-																	currency={currency}
-																/>
-															</div>
-														</div>
-													)
-											  )
-											: '(no dividends)'}
-									</div>
-								</div>
+					<div className='row'>
+						<div className='col-8'>
+							<h4>Trades</h4>
+							<div>
+								{trades.length
+									? _.orderBy(trades, (t) => t.timestamp, 'desc').map((trade, i) => (
+											<Trade
+												symbol={company.symbol}
+												isSell={trade.action == 'sell'}
+												quantity={trade.quantity}
+												key={i}
+												timestamp={trade.timestamp}
+												currency={quote.currency}
+												price={trade.price}
+												pnlCad={trade.pnlCad}
+												pnlUsd={trade.pnlUsd}
+												accountName={
+													accounts.find((q) => q.accountId === trade.accountId)
+														?.displayName || ''
+												}
+												type={trade.type}
+											/>
+									  ))
+									: '(no trades)'}
 							</div>
-						</>
-					)}
+						</div>
+						<div className='col-4'>
+							<h4>Dividends</h4>
+							<div>
+								{dividends.length
+									? _.orderBy(dividends, (t) => t.timestamp, 'desc').map(
+											(dividend, i) => (
+												<div key={i} className='row border-top-normal'>
+													<div className='col-6'>{formatDate(dividend.timestamp)}</div>
+													<div className='col-6'>
+														<XE
+															cad={dividend.amountCad}
+															usd={dividend.amountUsd}
+															currency={currency}
+														/>
+													</div>
+												</div>
+											)
+									  )
+									: '(no dividends)'}
+							</div>
+						</div>
+					</div>
+					<div>
+						{!!assessment && (
+							<AssessmentNotes notes={assessment.notes} storage={storage} />
+						)}
+					</div>
 				</div>
 			)}
 		</Layout>

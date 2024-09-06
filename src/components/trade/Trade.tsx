@@ -6,6 +6,8 @@ import AssetSymbol from '../stock-hover/AssetSymbol';
 import { ITrade } from '../../../declarations/trade';
 import XE from '../xe/XE';
 import { formatDateShort } from '../../utils/util';
+import Numeral from '../number/Number';
+import { Currency } from '../../utils/enum';
 
 export interface ITradeStateProps
 	extends Pick<
@@ -23,6 +25,14 @@ export interface ITradeStateProps
 	accountName: string;
 }
 
+const rowStyle = {
+	display: 'flex',
+};
+
+const tradeDetailsStyle = {
+	flexGrow: '1',
+};
+
 const Trade: React.FC<ITradeStateProps> = (props) => {
 	const {
 		symbol,
@@ -38,8 +48,8 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 	} = props;
 	return (
 		<div className='trade border-top-normal'>
-			<div className='row'>
-				<div className='col-8'>
+			<div style={rowStyle}>
+				<div style={tradeDetailsStyle}>
 					{symbol && (
 						<div className='d-inline-block'>
 							<AssetSymbol
@@ -69,27 +79,24 @@ const Trade: React.FC<ITradeStateProps> = (props) => {
 					<span className='text-subtle'>
 						({numeral(price * quantity).format('$1,000.00')})
 					</span>
+					{isSell && (
+						<>
+							&nbsp;
+							<span className='text-sub'>
+								<Numeral
+									value={currency === Currency.usd ? pnlUsd : pnlCad}
+									type='dollar'
+									config={{ showPlus: true }}
+								/>
+							</span>
+						</>
+					)}
 				</div>
-				<div className='col-4 text-sub text-right'>
+				<div className='text-sub text-right'>
 					<span className='text-subtle'>{accountName}&nbsp;</span>
 					{formatDateShort(timestamp)}
 				</div>
 			</div>
-			{isSell && (
-				<div className='ml-4'>
-					<span className='mr-2' style={{ whiteSpace: 'nowrap' }}>
-						P & L:
-					</span>
-					<span
-						className={classNames({
-							'text-positive': pnlCad >= 0,
-							'text-negative': pnlCad < 0,
-						})}
-					>
-						<XE cad={pnlCad} usd={pnlUsd} currency={currency} />
-					</span>
-				</div>
-			)}
 		</div>
 	);
 };
