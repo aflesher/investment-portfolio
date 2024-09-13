@@ -1,1 +1,1 @@
-export const SYMBOL_FILTER = ['xmmrf', 'hear'];
+export const SYMBOL_FILTER = ['xmmrf', 'hear', 'pza.to'];

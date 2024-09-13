@@ -17,4 +17,6 @@ export interface IDividend {
 	quote?: IQuote;
 	assessment?: IAssessment;
 	symbolId?: number;
+	reward?: number;
+	allocation?: number;
 }

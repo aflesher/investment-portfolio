@@ -23,6 +23,7 @@ import {
 	cryptoPremium,
 	getMaxShares,
 	getTimeHeld,
+	formatCryptoAmount,
 } from '../utils/util';
 import { IStockSplit } from '../../declarations/stock-split';
 import StockSplits from '../components/stock-splits/StockSplits';
@@ -99,7 +100,7 @@ interface IStockTemplateNode
 	>;
 	dividends: Pick<
 		IDividend,
-		'amount' | 'timestamp' | 'amountCad' | 'amountUsd'
+		'amount' | 'timestamp' | 'amountCad' | 'amountUsd' | 'allocation' | 'reward'
 	>[];
 	orders: Pick<
 		IOrder,
@@ -150,7 +151,8 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 	const accounts = data.allAccount.nodes;
 	const btcQuote = _.find(cryptoQuotes, (q) => q.symbol === 'btc');
 	const ethQuote = _.find(cryptoQuotes, (q) => q.symbol === 'eth');
-	const { quote, assessment, trades, dividends } = company;
+	const { quote, assessment, trades, dividends: unsortedDividends } = company;
+	const dividends = unsortedDividends.sort((a, b) => b.timestamp - a.timestamp);
 	const position = company.position || {
 		symbol: company.symbol,
 		quantity: 0,
@@ -225,6 +227,11 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 			.filter((q) => q.match(/image=\S+income-statement\S+/))
 			.map((q) => q.match(/image=(\S+income-statement\S+)/)?.[1] || '') || [];
 
+	const cryptoYield =
+		company.type === 'crypto' && dividends.length
+			? (((dividends[0].reward || 0) * 52) / (dividends[0].allocation || 0)) * 100
+			: 0;
+
 	return (
 		<Layout>
 			{toggleIncomeStatement && (
@@ -281,7 +288,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							<div className='row font-weight-bold'>
 								<div className='col-6'>Yield</div>
 								<div className='col-6'>
-									{numeral((company.yield || 0) / 100).format('%0.00')}
+									{numeral((company.yield || cryptoYield || 0) / 100).format('%0.00')}
 								</div>
 							</div>
 							<div className='row font-weight-bold'>
@@ -598,20 +605,23 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							<h4>Dividends</h4>
 							<div>
 								{dividends.length
-									? _.orderBy(dividends, (t) => t.timestamp, 'desc').map(
-											(dividend, i) => (
-												<div key={i} className='row border-top-normal'>
-													<div className='col-6'>{formatDate(dividend.timestamp)}</div>
-													<div className='col-6'>
-														<XE
-															cad={dividend.amountCad}
-															usd={dividend.amountUsd}
-															currency={currency}
-														/>
-													</div>
+									? dividends.map((dividend, i) => (
+											<div key={i} className='row border-top-normal'>
+												<div className='col-6'>{formatDate(dividend.timestamp)}</div>
+												<div className='col-6'>
+													{!!dividend.reward && (
+														<span className='text-sub text-subtle'>
+															({formatCryptoAmount(dividend.reward)})&nbsp;
+														</span>
+													)}
+													<XE
+														cad={dividend.amountCad}
+														usd={dividend.amountUsd}
+														currency={currency}
+													/>
 												</div>
-											)
-									  )
+											</div>
+									  ))
 									: '(no dividends)'}
 							</div>
 						</div>
@@ -713,6 +723,8 @@ export const pageQuery = graphql`
 					timestamp
 					amountUsd
 					amountCad
+					allocation
+					reward
 				}
 				orders {
 					symbol

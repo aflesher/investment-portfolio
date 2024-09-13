@@ -101,6 +101,8 @@ export const mapDividend = (
 		accountId: account.accountId,
 		amountUsd,
 		amountCad,
+		reward: reward.amount,
+		allocation: reward.allocationAmount,
 	};
 };
 

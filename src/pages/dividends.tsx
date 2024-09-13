@@ -16,12 +16,24 @@ import Percent from '../components/percent/Percent';
 import { IDividend } from '../../declarations/dividend';
 import { IPosition } from '../../declarations/position';
 import { CurrencyContext } from '../context/currency.context';
+import { ICompany } from '../../declarations';
+
+interface IDividendCompanyQueryNode extends Pick<ICompany, 'hisa' | 'type'> {}
 
 interface IDividendsQueryNode
 	extends Pick<
 		IDividend,
-		'symbol' | 'timestamp' | 'amount' | 'currency' | 'amountUsd' | 'amountCad'
-	> {}
+		| 'symbol'
+		| 'timestamp'
+		| 'amount'
+		| 'currency'
+		| 'amountUsd'
+		| 'amountCad'
+		| 'allocation'
+		| 'reward'
+	> {
+	company: IDividendCompanyQueryNode;
+}
 
 interface IDividendsQueryProps {
 	data: {
@@ -96,6 +108,10 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 					amountUsd: usdDividends,
 					currency,
 					amount: currency === Currency.cad ? cadDividends : usdDividends,
+					company: {
+						hisa: true,
+						type: AssetType.stock,
+					},
 				};
 			});
 		})
@@ -111,6 +127,10 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 			amountUsd,
 			currency,
 			amount: currency === Currency.cad ? amountCad : amountUsd,
+			company: {
+				hisa: true,
+				type: AssetType.stock,
+			},
 		})
 	);
 
@@ -139,8 +159,47 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 
 	const dividends = _.orderBy(unOrderedDividends, ['timestamp'], ['desc']);
 
-	const totalCad = _.sumBy(dividends, (q) => q.amountCad);
-	const totalUsd = _.sumBy(dividends, (q) => q.amountUsd);
+	const totalCad = dividends.reduce((sum, q) => sum + q.amountCad, 0);
+	const totalUsd = dividends.reduce((sum, q) => sum + q.amountUsd, 0);
+
+	const totalHisaCad = dividends.reduce((sum, q) => {
+		if (!q.company.hisa) {
+			return sum;
+		}
+		return sum + q.amountCad;
+	}, 0);
+	const totalHisaUsd = dividends.reduce((sum, q) => {
+		if (!q.company.hisa) {
+			return sum;
+		}
+		return sum + q.amountUsd;
+	}, 0);
+
+	const totalStockCad = dividends.reduce((sum, q) => {
+		if (q.company.hisa || q.company.type !== AssetType.stock) {
+			return sum;
+		}
+		return sum + q.amountCad;
+	}, 0);
+	const totalStockUsd = dividends.reduce((sum, q) => {
+		if (q.company.hisa || q.company.type !== AssetType.stock) {
+			return sum;
+		}
+		return sum + q.amountUsd;
+	}, 0);
+
+	const totalCryptoCad = dividends.reduce((sum, q) => {
+		if (q.company.hisa || q.company.type !== AssetType.crypto) {
+			return sum;
+		}
+		return sum + q.amountCad;
+	}, 0);
+	const totalCryptoUsd = dividends.reduce((sum, q) => {
+		if (q.company.hisa || q.company.type !== AssetType.crypto) {
+			return sum;
+		}
+		return sum + q.amountUsd;
+	}, 0);
 
 	const symbols = [...new Set(data.allDividend.nodes.map((t) => t.symbol))];
 
@@ -221,10 +280,24 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 						</div>
 					))}
 				</div>
-				<div className='my-1'>
-					{moment().year()} current projection{' '}
-					{numeral(projection).format('$0,0.00')}{' '}
-					<Percent percent={projectionPercentage} />
+				<div className='my-1' style={{ display: 'flex' }}>
+					<div>
+						{moment().year()} current projection{' '}
+						{numeral(projection).format('$0,0.00')}{' '}
+						<Percent percent={projectionPercentage} />
+					</div>
+					<div className='ml-4'>
+						HISA:
+						<XE cad={totalHisaCad} usd={totalHisaUsd} currency={currency} />
+					</div>
+					<div className='ml-4'>
+						Stock:
+						<XE cad={totalStockCad} usd={totalStockUsd} currency={currency} />
+					</div>
+					<div className='ml-4'>
+						Crypto:
+						<XE cad={totalCryptoCad} usd={totalCryptoUsd} currency={currency} />
+					</div>
 				</div>
 				<div className='row'>
 					<div className='col-3'>
@@ -307,6 +380,11 @@ const Dividends: React.FC<IDividendsQueryProps> = ({ data }) => {
 								/>
 							</div>
 							<div className='col-3 text-right'>
+								{!!dividend.reward && (
+									<span className='text-sub text-subtle'>
+										({util.formatCryptoAmount(dividend.reward)})&nbsp;
+									</span>
+								)}
 								<XE
 									cad={dividend.amountCad}
 									usd={dividend.amountUsd}
@@ -345,6 +423,12 @@ export const pageQuery = graphql`
 				currency
 				symbol
 				timestamp
+				allocation
+				reward
+				company {
+					hisa
+					type
+				}
 			}
 		}
 		allPosition(filter: { symbol: { eq: "hsuv.u.to" } }) {

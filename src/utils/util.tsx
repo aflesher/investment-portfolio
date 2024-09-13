@@ -199,3 +199,7 @@ export const getTimeHeld = (
 ): number => {
 	return new Date().getTime() - openingTrade.timestamp;
 };
+
+export const formatCryptoAmount = (amount: number) => {
+	return numeral(amount).format('0,0.0000');
+};
