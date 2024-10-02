@@ -14,6 +14,7 @@ import {
 	mapQuote,
 	mapDividend,
 	mapCompany,
+	mapExecutedOrderToTrade,
 } from './mapping';
 import moment from 'moment-timezone';
 import { deferredPromise } from '../util';
@@ -36,8 +37,9 @@ export const init = async (cryptSecret: string) => {
 export const getTrades = async (): Promise<ITrade[]> => {
 	await initDeferredPromise.promise;
 	const exchangeRates = await getExchangeRates();
+	const todaysRate = await getTodaysRate();
 
-	const trades = cloud
+	const existingTrades = cloud
 		.getTrades()
 		.map((trade) =>
 			mapTrade(
@@ -45,7 +47,11 @@ export const getTrades = async (): Promise<ITrade[]> => {
 				exchangeRates[moment(trade.date).format('YYYY-MM-DD')] || 1.3
 			)
 		);
+	const todaysTrades = (await api.getExecutedOrders()).map((order) =>
+		mapExecutedOrderToTrade(order, todaysRate)
+	);
 
+	const trades = [...existingTrades, ...todaysTrades];
 	console.log(`questrade trades: ${trades.length}`);
 	return trades;
 };

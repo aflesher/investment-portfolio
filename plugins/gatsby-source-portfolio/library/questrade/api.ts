@@ -38,6 +38,7 @@ export interface IQuestradeOrder {
 	stopPrice: number;
 	avgExecPrice: number;
 	side: QuestradeOrderSide;
+	state: 'Accepted' | 'Executed';
 }
 
 export const getAccounts = (): IAccount[] => [
@@ -369,12 +370,10 @@ export const querySymbol = async (
 ): Promise<IQuestradeCompany[]> => {
 	await initDeferredPromise.promise;
 	const resp = await authRequest(`v1/symbols/search?prefix=${symbol}`);
-	console.log(resp);
 	if (!resp) {
 		return [];
 	}
 	const symbols: IQuestradeCompany[] = resp.data.symbols;
-	console.log(resp.data.symbols);
 	return symbols;
 };
 
@@ -393,9 +392,10 @@ export enum QuestradeOrderSide {
 	BTO = 'BTO',
 }
 
-const getActiveOrdersForMonth = async (
+const fetchOrders = async (
 	startTime: Date,
-	endTime: Date
+	endTime: Date,
+	stateFilter: 'Open' | 'Closed' | 'All' = 'Open'
 ): Promise<IQuestradeOrder[]> => {
 	await initDeferredPromise.promise;
 	const accounts = getAccounts();
@@ -407,7 +407,7 @@ const getActiveOrdersForMonth = async (
 				await authRequest(`${accountsRoute}/${accountId}/orders`, {
 					startTime,
 					endTime,
-					stateFilter: 'Open',
+					stateFilter,
 				})
 		)
 	);
@@ -421,10 +421,7 @@ const getActiveOrdersForMonth = async (
 		});
 	}
 
-	const orders: IQuestradeOrder[] = _(ordersByAccount)
-		.flatten()
-		.filter({ state: 'Accepted' })
-		.value();
+	const orders: IQuestradeOrder[] = _(ordersByAccount).flatten().value();
 
 	orders.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
@@ -434,15 +431,15 @@ const getActiveOrdersForMonth = async (
 export const getOrders = async (): Promise<IQuestradeOrder[]> => {
 	console.log('questrade.getActiveOrders (start)'.grey);
 	await initDeferredPromise.promise;
-	const orders1 = await getActiveOrdersForMonth(
+	const orders1 = await fetchOrders(
 		moment().subtract(1, 'month').toDate(),
 		new Date()
 	);
-	const orders2 = await getActiveOrdersForMonth(
+	const orders2 = await fetchOrders(
 		moment().subtract(2, 'month').toDate(),
 		moment().subtract(1, 'month').toDate()
 	);
-	const orders3 = await getActiveOrdersForMonth(
+	const orders3 = await fetchOrders(
 		moment().subtract(3, 'month').toDate(),
 		moment().subtract(2, 'month').toDate()
 	);
@@ -450,10 +447,24 @@ export const getOrders = async (): Promise<IQuestradeOrder[]> => {
 	const orders: IQuestradeOrder[] = _(orders1)
 		.concat(orders2, orders3)
 		.uniqBy('id')
-		.value();
+		.value()
+		.filter(({ state }) => state === 'Accepted');
 
 	orders.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
 	console.log('questrade.getActiveOrders (end)'.grey);
+	return orders;
+};
+
+export const getExecutedOrders = async (): Promise<IQuestradeOrder[]> => {
+	console.log('questrade.getExecutedOrders (start)'.grey);
+	await initDeferredPromise.promise;
+	const orders = (
+		await fetchOrders(moment().startOf('day').toDate(), new Date(), 'All')
+	).filter(({ state }) => state === 'Executed');
+
+	orders.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
+
+	console.log('questrade.getExecutedOrders (end)'.grey);
 	return orders;
 };

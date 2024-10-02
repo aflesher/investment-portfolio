@@ -169,3 +169,43 @@ export const mapDividend = (
 		amountUsd: dividend.amount * usdRate,
 	};
 };
+
+export const mapExecutedOrderToTrade = (
+	order: IQuestradeOrder,
+	usdToCadRate: number
+): ITrade => {
+	const cadToUsdRate = 1 / usdToCadRate;
+	const currency: Currency = isUsd(order.symbol) ? Currency.usd : Currency.cad;
+	const usdRate = currency === Currency.usd ? 1 : cadToUsdRate;
+	const cadRate = currency === Currency.cad ? 1 : usdToCadRate;
+
+	const account = getAccounts().find(
+		({ accountId: id }) => id === order.accountId.toString()
+	);
+	if (!account) {
+		console.error('account not found', order.accountId);
+		throw new Error('account not found');
+	}
+
+	return {
+		isSell: order.side === 'Sell',
+		symbol: order.symbol,
+		accountId: order.accountId.toString(),
+		priceCad: order.avgExecPrice * cadRate,
+		priceUsd: order.avgExecPrice * usdRate,
+		timestamp: new Date().getTime(),
+		pnl: 0,
+		pnlCad: 0,
+		pnlUsd: 0,
+		currency,
+		price: order.avgExecPrice,
+		quantity: order.filledQuantity,
+		action: order.side.toLocaleLowerCase(),
+		type: AssetType.stock,
+		symbolId: order.symbolId,
+		taxable: account.isTaxable,
+		accountPnl: 0,
+		accountPnlCad: 0,
+		accountPnlUsd: 0,
+	};
+};
