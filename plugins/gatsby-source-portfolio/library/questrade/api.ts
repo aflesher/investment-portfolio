@@ -39,6 +39,7 @@ export interface IQuestradeOrder {
 	avgExecPrice: number;
 	side: QuestradeOrderSide;
 	state: 'Accepted' | 'Executed';
+	updateTime: string;
 }
 
 export const getAccounts = (): IAccount[] => [
@@ -459,9 +460,17 @@ export const getOrders = async (): Promise<IQuestradeOrder[]> => {
 export const getExecutedOrders = async (): Promise<IQuestradeOrder[]> => {
 	console.log('questrade.getExecutedOrders (start)'.grey);
 	await initDeferredPromise.promise;
-	const orders = (
-		await fetchOrders(moment().startOf('day').toDate(), new Date(), 'All')
-	).filter(({ state }) => state === 'Executed');
+	const allOrders = await fetchOrders(
+		moment().subtract(1, 'month').toDate(),
+		new Date(),
+		'All'
+	);
+
+	const orders = allOrders.filter(
+		({ state, updateTime }) =>
+			state === 'Executed' &&
+			moment(updateTime).dayOfYear() === moment().dayOfYear()
+	);
 
 	orders.forEach((q) => (q.symbol = q.symbol.toLocaleLowerCase()));
 
