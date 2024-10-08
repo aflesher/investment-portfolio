@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { IStoreState } from '../../store/store';
 import { getDownloadURL, ref } from 'firebase/storage';
+import { useFirebase } from '../../providers/firebaseProvider';
 
 interface IFirebaseImageProps {
 	image: string;
 }
 
-interface IFirebaseImageStateProps extends Pick<IStoreState, 'storage'> {}
-
-const FirebaseImage: React.FC<
-	IFirebaseImageProps & IFirebaseImageStateProps
-> = ({ image, storage }) => {
+const FirebaseImage: React.FC<IFirebaseImageProps> = ({ image }) => {
 	const [imageUrl, setImageUrl] = useState<string>('');
+	const { storage } = useFirebase();
 
 	useEffect(() => {
 		if (storage && image) {

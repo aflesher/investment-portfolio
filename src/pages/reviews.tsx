@@ -1,15 +1,9 @@
-import React, { ReactElement, useCallback } from 'react';
+import React, { ReactElement, useCallback, useState } from 'react';
 import { graphql } from 'gatsby';
-import { connect } from 'react-redux';
 import Layout from '../components/layout';
 import { IReview } from '../../declarations/review';
 import { compareNumber } from '../utils/util';
-import {
-	IGoalStatus,
-	IStoreAction,
-	IStoreState,
-	SET_GOAL_STATUS,
-} from '../store/store';
+
 import {
 	IAccount,
 	IAssessment,
@@ -20,6 +14,7 @@ import {
 } from '../../declarations';
 import { getPortfolioAllocations } from '../utils/calculate';
 import { PercentBar } from '../components/percent/PercentBar';
+import { useFirebase } from '../providers/firebaseProvider';
 
 interface IPositionNode
 	extends Pick<
@@ -77,38 +72,15 @@ interface IReviewQuery {
 	};
 }
 
-interface IReviewStateProps
-	extends Pick<IStoreState, 'goalStatuses' | 'firestore'> {}
-
-interface IReviewDispatchProps {
-	setGoalStatus: (goalStatus: IGoalStatus) => void;
-}
-
-const mapStateToProps = ({
-	goalStatuses,
-	firestore,
-}: IStoreState): IReviewStateProps => ({
-	goalStatuses,
-	firestore,
-});
-
-const mapDispatchToProps = (
-	dispatch: (action: IStoreAction) => void
-): IReviewDispatchProps => {
-	return {
-		setGoalStatus: (goalStatus: IGoalStatus): void =>
-			dispatch({
-				type: SET_GOAL_STATUS,
-				payload: goalStatus,
-			}),
-	};
-};
-
 const MIDCAPS = ['rivn'];
 
-const Reviews: React.FC<
-	IReviewQuery & IReviewStateProps & IReviewDispatchProps
-> = ({ data, goalStatuses, setGoalStatus, firestore }) => {
+interface IGoalStatus {
+	text: string;
+	achieved: boolean;
+}
+
+const Reviews: React.FC<IReviewQuery> = ({ data }) => {
+	const { firestore } = useFirebase();
 	const reviews = data.allReview.nodes
 		.filter((q) => q.year < new Date().getFullYear())
 		.sort((a, b) => compareNumber(b.year, a.year));
@@ -121,6 +93,9 @@ const Reviews: React.FC<
 	const goalId = (goal: string): string => {
 		return goal.replace(/\s/g, '');
 	};
+
+	const [goalStatus, setGoalStatus] = useState({ text: '', achieved: false });
+	const [goalStatuses, setGoalStatuses] = useState<IGoalStatus[]>([]);
 
 	const toggleGoal = async (text: string, achieved: boolean) => {
 		if (!firestore) {
@@ -443,7 +418,7 @@ const Reviews: React.FC<
 	);
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Reviews);
+export default Reviews;
 
 export const pageQuery = graphql`
 	query {

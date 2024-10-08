@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { ref, getDownloadURL } from 'firebase/storage';
-import { IStoreState } from '../../store/store';
-import { connect } from 'react-redux';
 import Layout from '../../components/layout';
+import { useFirebase } from '../../providers/firebaseProvider';
 
-interface IBackupStateProps extends Pick<IStoreState, 'storage'> {}
-
-const mapStateToProps = ({ storage }: IStoreState): IBackupStateProps => ({
-	storage,
-});
-
-const Backup: React.FC<IBackupStateProps> = ({ storage }) => {
+const Backup = () => {
 	const [dividendsUrl, setDividendsUrl] = useState('');
 	const [tradesUrl, setTradesUrl] = useState('');
 	const [activityUrl, setActivityUrl] = useState('');
 	const [krakenTradesUrl, setKrakenTradesUrl] = useState('');
+
+	const { storage } = useFirebase();
 
 	useEffect(() => {
 		if (storage) {
@@ -46,4 +41,4 @@ const Backup: React.FC<IBackupStateProps> = ({ storage }) => {
 	);
 };
 
-export default connect(mapStateToProps)(Backup);
+export default Backup;

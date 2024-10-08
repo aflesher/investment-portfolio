@@ -3,18 +3,17 @@ import React from 'react';
 import { Link } from 'gatsby';
 import numeral from 'numeral';
 import { Currency } from '../../utils/enum';
+import { useSidebar } from '../../providers/sidebarProvider';
 
 interface ISidebarLeftStateProps {
 	usdCad: number;
 	cadUsd: number;
 	currency: Currency;
 	authenticated: boolean;
-	isCollapsed: boolean;
 }
 
 interface ISidebarLeftDispatchProps {
 	onSetCurrency: (currency: Currency) => void;
-	onToggleCollapse: () => void;
 }
 
 interface ILink {
@@ -64,32 +63,19 @@ const LINKS: ILink[] = [
 		addIcon: true,
 	},
 	{ text: 'Financials', icon: 'fa-table', route: '/admin/financials' },
-	{
-		text: 'Crypto Trades',
-		icon: 'fa-sync',
-		route: '/admin/crypto-trades',
-		addIcon: true,
-	},
 	{ text: 'Backup', icon: 'fa-file-download', route: '/admin/backup' },
 ];
 
 const SidebarLeft: React.FC<
 	ISidebarLeftStateProps & ISidebarLeftDispatchProps
-> = ({
-	usdCad,
-	cadUsd,
-	currency,
-	onSetCurrency,
-	authenticated,
-	isCollapsed,
-	onToggleCollapse,
-}) => {
+> = ({ usdCad, cadUsd, currency, onSetCurrency, authenticated }) => {
+	const { open, setOpen } = useSidebar();
 	return (
 		<div>
 			<div>
-				<button onClick={() => onToggleCollapse()}>
-					{isCollapsed && <i className='far fa-caret-square-right'></i>}
-					{!isCollapsed && <i className='far fa-caret-square-left'></i>}
+				<button onClick={() => setOpen(!open)}>
+					{open && <i className='far fa-caret-square-right'></i>}
+					{!open && <i className='far fa-caret-square-left'></i>}
 				</button>
 			</div>
 			<div className='nav-links text-uppercase'>
@@ -98,7 +84,7 @@ const SidebarLeft: React.FC<
 						{spacer && <div className='border-t my-2'></div>}
 						<div style={{ position: 'relative' }} key={route}>
 							<Link to={route}>
-								{isCollapsed && (
+								{open && (
 									<>
 										<span>
 											<i className={`fas ${icon} mr-2`} title={text}></i>
@@ -110,7 +96,7 @@ const SidebarLeft: React.FC<
 										)}
 									</>
 								)}
-								{!isCollapsed && <span>{text}</span>}
+								{!open && <span>{text}</span>}
 							</Link>
 						</div>
 					</div>
@@ -135,14 +121,14 @@ const SidebarLeft: React.FC<
 					</div>
 					{currency == Currency.cad ? (
 						<div className='text-sub text-subtle'>
-							{!isCollapsed && <span>CAD:</span>} {numeral(usdCad).format('$0.000')}
+							{!open && <span>CAD:</span>} {numeral(usdCad).format('$0.000')}
 						</div>
 					) : (
 						''
 					)}
 					{currency == Currency.usd ? (
 						<div className='text-sub text-subtle'>
-							{!isCollapsed && <span>USD:</span>} {numeral(cadUsd).format('$0.000')}
+							{!open && <span>USD:</span>} {numeral(cadUsd).format('$0.000')}
 						</div>
 					) : (
 						''
