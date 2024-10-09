@@ -4,12 +4,12 @@ import { Link } from 'gatsby';
 import numeral from 'numeral';
 import { Currency } from '../../utils/enum';
 import { useSidebar } from '../../providers/sidebarProvider';
+import Icon from '../icon/Icon';
 
 interface ISidebarLeftStateProps {
 	usdCad: number;
 	cadUsd: number;
 	currency: Currency;
-	authenticated: boolean;
 }
 
 interface ISidebarLeftDispatchProps {
@@ -68,14 +68,14 @@ const LINKS: ILink[] = [
 
 const SidebarLeft: React.FC<
 	ISidebarLeftStateProps & ISidebarLeftDispatchProps
-> = ({ usdCad, cadUsd, currency, onSetCurrency, authenticated }) => {
+> = ({ usdCad, cadUsd, currency, onSetCurrency }) => {
 	const { open, setOpen } = useSidebar();
 	return (
 		<div>
 			<div>
 				<button onClick={() => setOpen(!open)}>
-					{open && <i className='far fa-caret-square-right'></i>}
-					{!open && <i className='far fa-caret-square-left'></i>}
+					{open && <Icon icon='fa-caret-square-right' />}
+					{!open && <Icon icon='fa-caret-square-left' />}
 				</button>
 			</div>
 			<div className='nav-links text-uppercase'>
@@ -86,12 +86,12 @@ const SidebarLeft: React.FC<
 							<Link to={route}>
 								{open && (
 									<>
-										<span>
-											<i className={`fas ${icon} mr-2`} title={text}></i>
+										<span className='mr-2'>
+											<Icon icon={icon} title={text} />
 										</span>
 										{addIcon && (
-											<span className='plus-icon'>
-												<i className={`fas fa-plus mr-2 fa-xs`}></i>
+											<span className='plus-icon mr-2'>
+												<Icon icon='fa-plus' size='fa-xs' />
 											</span>
 										)}
 									</>
@@ -101,11 +101,9 @@ const SidebarLeft: React.FC<
 						</div>
 					</div>
 				))}
-				{!authenticated && (
-					<div className='border-t mt-2 pt-2'>
-						<Link to='/login'>Sign In</Link>
-					</div>
-				)}
+				<div className='border-t mt-2 pt-2'>
+					<Link to='/login'>Sign In</Link>
+				</div>
 				<div className='border-t mt-4 pt-4'>
 					<div className='form-group'>
 						<select

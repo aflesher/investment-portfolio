@@ -72,7 +72,7 @@ const AssessmentsAdmin: React.FC<IAssessmentsQuery> = () => {
 	const [type, setType] = React.useState(AssetType.stock);
 	const [questions, setQuestions] = React.useState<string[]>([]);
 	const [valuations, setValuations] = React.useState<string[]>([]);
-	const { user, firestore } = useFirebase();
+	const { firestore } = useFirebase();
 
 	const [assessments, setAssessments] = React.useState<IFirebaseAssessment[]>(
 		[]
@@ -86,6 +86,9 @@ const AssessmentsAdmin: React.FC<IAssessmentsQuery> = () => {
 	const { user: firebaseUser } = useFirebase();
 
 	const fetchAssessments = async (): Promise<void> => {
+		if (!firestore) {
+			return;
+		}
 		const querySnapshot = await firestore.collection('stocks').get();
 
 		const stocks = querySnapshot.docs.map(
@@ -127,6 +130,9 @@ const AssessmentsAdmin: React.FC<IAssessmentsQuery> = () => {
 	};
 
 	const save = async (): Promise<void> => {
+		if (!firestore) {
+			return;
+		}
 		await fetchAssessments();
 		const assessment = _.find(assessments, (q) => q.symbol === symbol);
 		const docRef = assessment

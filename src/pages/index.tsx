@@ -10,6 +10,7 @@ import Order from '../components/order/Order';
 import { IPosition } from '../../declarations/position';
 import { CurrencyContext } from '../context/currency.context';
 import { IAccount, ICompany, IOrder, IQuote } from '../../declarations';
+import Icon from '../components/icon/Icon';
 
 interface IOrderNode
 	extends Pick<
@@ -67,9 +68,6 @@ interface IIndexQueryProps extends PageProps {
 
 const IndexPage: React.FC<IIndexQueryProps> = ({ data }) => {
 	const currency = React.useContext(CurrencyContext);
-	const notes = _.sampleSize(data.allNote.nodes, data.allNote.nodes.length);
-	const review = _.first(data.allReview.nodes);
-	const random = _.random(1, 3);
 	const earningsDates = data.allEarningsDate.nodes
 		.sort((a, b) => compareNumber(moment(a.date).unix(), moment(b.date).unix()))
 		.filter(({ date }) => moment(date).diff(moment(), 'days') >= 0)
@@ -90,42 +88,6 @@ const IndexPage: React.FC<IIndexQueryProps> = ({ data }) => {
 	});
 	return (
 		<Layout>
-			<div className='row p-4'>
-				<div className='col-12'>
-					{random === 1 &&
-						review?.continue.map((c) => (
-							<div key={c}>
-								<span>
-									<i className='fas fa-sync-alt mr-2 blue-color'></i>
-								</span>
-								<span>{c}</span>
-							</div>
-						))}
-					{random === 2 &&
-						review?.start.map((s) => (
-							<div key={s}>
-								<span>
-									<i className='fas fa-play mr-2 green-color'></i>
-								</span>
-								<span>{s}</span>
-							</div>
-						))}
-					{random === 3 &&
-						review?.stop.map((s) => (
-							<div key={s}>
-								<span>
-									<i className='fas fa-stop mr-2 red-color'></i>
-								</span>
-								<span>{s}</span>
-							</div>
-						))}
-				</div>
-			</div>
-			{_.sampleSize(notes, 1).map(({ text }) => (
-				<div key={text} className='daily-note text-center b-1 py-2 px-4 mt-4'>
-					{text}
-				</div>
-			))}
 			<div className='mx-2 mt-4'>
 				<h3>Upcoming Earnings</h3>
 				{earningsDates.map(({ date, symbol }) => (

@@ -20,7 +20,6 @@ import { IDividend } from '../../declarations/dividend';
 import { ITrade } from '../../declarations/trade';
 import { IAccount } from '../../declarations';
 import AssetHover from './stock-hover/AssetHover';
-import { useFirebase } from '../providers/firebaseProvider';
 import { useSidebar } from '../providers/sidebarProvider';
 
 interface IQuoteNode
@@ -222,7 +221,6 @@ const MainLayout = ({ children }: React.PropsWithChildren) => (
 			const [currency, setCurrency] = React.useState(Currency.cad);
 			const usdCad = queryData.allExchangeRate.nodes[0]?.rate || 1;
 			const cadUsd = 1 / usdCad;
-			const { user } = useFirebase();
 
 			const positions: ISidebarPosition[] = queryData.allPosition.nodes.map(
 				(position) => ({
@@ -277,7 +275,6 @@ const MainLayout = ({ children }: React.PropsWithChildren) => (
 												onSetCurrency={setCurrency}
 												usdCad={usdCad}
 												cadUsd={cadUsd}
-												authenticated={!!user}
 											/>
 										</div>
 									</div>

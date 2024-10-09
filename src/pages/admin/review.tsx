@@ -98,6 +98,9 @@ const AdminReview = () => {
 	);
 
 	const fetchReviews = useCallback(async (): Promise<void> => {
+		if (!firestore) {
+			return;
+		}
 		const querySnapshot = await firestore.collection('reviews').get();
 
 		const reviews = querySnapshot.docs.map(
@@ -116,6 +119,9 @@ const AdminReview = () => {
 	}, [setReviews, loadReview, year]);
 
 	const saveReview = useCallback(async () => {
+		if (!firestore) {
+			return;
+		}
 		await fetchReviews();
 		const review = _.find(reviews, (q) => q.year === Number(year));
 		const docRef = review ? review.docRef : firestore.collection('reviews').doc();

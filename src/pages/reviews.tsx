@@ -237,7 +237,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 							<PercentBar percent={result.progress} />
 							<div>
 								{values.map(({ month, completed }) => (
-									<>
+									<span key={month}>
 										<span
 											className={`text-uppercase text-small ${
 												completed ? 'text-subtle' : ''
@@ -247,7 +247,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 										>
 											{month.substring(0, 3)}
 										</span>{' '}
-									</>
+									</span>
 								))}
 							</div>
 						</div>
@@ -264,11 +264,11 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 							<PercentBar percent={goal} />
 							<div>
 								{values.map((symbol) => (
-									<>
+									<span key={`goal-${symbol}`}>
 										<span className={`text-uppercase text-small`} key={symbol}>
 											${symbol}
 										</span>{' '}
-									</>
+									</span>
 								))}
 							</div>
 						</div>
@@ -286,7 +286,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 							<PercentBar percent={result.progress} />
 							<div>
 								{values.map(({ symbol, assessment }) => (
-									<>
+									<span key={symbol}>
 										<span
 											className={`text-uppercase text-small ${
 												assessment ? 'text-subtle' : ''
@@ -296,7 +296,7 @@ const Reviews: React.FC<IReviewQuery> = ({ data }) => {
 										>
 											${symbol}
 										</span>{' '}
-									</>
+									</span>
 								))}
 							</div>
 						</div>
