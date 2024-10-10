@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { IStoreState } from '../../store/store';
 import { getDownloadURL, ref } from 'firebase/storage';
+import { useFirebase } from '../../providers/firebaseProvider';
 
 interface ICustomTextProps {
 	text: string;
 }
 
-interface ICustomTextStateProps extends Pick<IStoreState, 'storage'> {}
-
-const CustomText: React.FC<ICustomTextProps & ICustomTextStateProps> = ({
-	text,
-	storage,
-}) => {
+const CustomText: React.FC<ICustomTextProps> = ({ text }) => {
 	const [imageUrls, setImageUrls] = useState<string[]>([]);
 	const [textPieces, setTextPieces] = useState<string[]>([]);
+	const { storage } = useFirebase();
 
 	useEffect(() => {
 		if (storage && text) {

@@ -3,10 +3,8 @@ import { graphql } from 'gatsby';
 import _ from 'lodash';
 import numeral from 'numeral';
 import classNames from 'classnames';
-import { connect } from 'react-redux';
 import moment from 'moment-timezone';
 
-import { IStoreState } from '../store/store';
 import { AssetType } from '../utils/enum';
 import Layout from '../components/layout';
 import CompanyBanner from '../components/company-banner/CompanyBanner';
@@ -38,8 +36,6 @@ import { IEarningsDate } from '../../declarations/earnings-date';
 import FirebaseImage from '../components/firebase-image/FirebaseImage';
 import { CurrencyContext } from '../context/currency.context';
 import { IAccount } from '../../declarations';
-
-interface IStockTemplateStateProps extends Pick<IStoreState, 'storage'> {}
 
 const estimatedManaLandValue = 5000;
 
@@ -134,16 +130,7 @@ interface IStockTemplateQuery {
 	};
 }
 
-const mapStateToProps = ({
-	storage,
-}: IStoreState): IStockTemplateStateProps => ({
-	storage,
-});
-
-const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
-	data,
-	storage,
-}) => {
+const StockTemplate: React.FC<IStockTemplateQuery> = ({ data }) => {
 	const [toggleIncomeStatement, setToggleIncomeStatement] = useState(false);
 	const currency = useContext(CurrencyContext);
 	const company = data.allCompany.nodes[0];
@@ -243,7 +230,7 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 					</div>
 					<div>
 						{incomeStatements.reverse().map((q) => (
-							<FirebaseImage key={q} image={q} storage={storage} />
+							<FirebaseImage key={q} image={q} />
 						))}
 					</div>
 				</div>
@@ -563,7 +550,6 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 								name={''}
 								maxShares={getMaxShares(trades)}
 								currentShares={position.quantity}
-								storage={storage}
 							/>
 						) : (
 							<span>(no assessment)</span>
@@ -626,18 +612,14 @@ const StockTemplate: React.FC<IStoreState & IStockTemplateQuery> = ({
 							</div>
 						</div>
 					</div>
-					<div>
-						{!!assessment && (
-							<AssessmentNotes notes={assessment.notes} storage={storage} />
-						)}
-					</div>
+					<div>{!!assessment && <AssessmentNotes notes={assessment.notes} />}</div>
 				</div>
 			)}
 		</Layout>
 	);
 };
 
-export default connect(mapStateToProps, null)(StockTemplate);
+export default StockTemplate;
 
 export const pageQuery = graphql`
 	query($symbol: String!) {

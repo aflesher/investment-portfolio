@@ -1,19 +1,14 @@
 import React from 'react';
-import firebase from 'firebase/compat/app';
-import 'firebase/firestore';
+
 import { graphql } from 'gatsby';
 import _ from 'lodash';
 import TextareaAutosize from 'react-textarea-autosize';
+import firebase from 'firebase/compat/app';
 
-import { IStoreState } from '../../store/store';
-import { connect } from 'react-redux';
 import { AssetType, RatingType } from '../../utils/enum';
 import Layout from '../../components/layout';
 import { IAssessment } from '../../../declarations/assessment';
-interface IAssessmentsStateProps {
-	user: firebase.User | null | undefined;
-	firebase: firebase.app.App | undefined;
-}
+import { useFirebase } from '../../providers/firebaseProvider';
 
 interface IAssessmentsQuery {
 	data: {
@@ -42,14 +37,6 @@ interface IChecklistItem {
 	value: boolean;
 }
 
-const mapStateToProps = ({
-	firebase,
-	user,
-}: IStoreState): IAssessmentsStateProps => ({
-	firebase,
-	user,
-});
-
 const defaultChecklist = [
 	{
 		id: 'fomo',
@@ -75,9 +62,7 @@ const defaultChecklist = [
 	{ id: 'pristine', value: false, description: '* Is a pristine asset' },
 ];
 
-const AssessmentsAdmin: React.FC<
-	IAssessmentsStateProps & IAssessmentsQuery
-> = ({ firebase, user }) => {
+const AssessmentsAdmin: React.FC<IAssessmentsQuery> = () => {
 	const [symbol, setSymbol] = React.useState('');
 	const [notes, setNotes] = React.useState<string[]>([]);
 	const [targetInvestment, setTargetInvestment] = React.useState<string>('');
@@ -87,10 +72,8 @@ const AssessmentsAdmin: React.FC<
 	const [type, setType] = React.useState(AssetType.stock);
 	const [questions, setQuestions] = React.useState<string[]>([]);
 	const [valuations, setValuations] = React.useState<string[]>([]);
-	const [
-		firestore,
-		setFirestore,
-	] = React.useState<firebase.firestore.Firestore | null>(null);
+	const { firestore } = useFirebase();
+
 	const [assessments, setAssessments] = React.useState<IFirebaseAssessment[]>(
 		[]
 	);
@@ -100,10 +83,13 @@ const AssessmentsAdmin: React.FC<
 	);
 	const [rating, setRating] = React.useState<RatingType>('none');
 
-	const fetchAssessments = async (
-		db: firebase.firestore.Firestore
-	): Promise<void> => {
-		const querySnapshot = await db.collection('stocks').get();
+	const { user: firebaseUser } = useFirebase();
+
+	const fetchAssessments = async (): Promise<void> => {
+		if (!firestore) {
+			return;
+		}
+		const querySnapshot = await firestore.collection('stocks').get();
 
 		const stocks = querySnapshot.docs.map(
 			(queryDocumentSnapshot: firebase.firestore.QueryDocumentSnapshot) => {
@@ -147,7 +133,7 @@ const AssessmentsAdmin: React.FC<
 		if (!firestore) {
 			return;
 		}
-		await fetchAssessments(firestore);
+		await fetchAssessments();
 		const assessment = _.find(assessments, (q) => q.symbol === symbol);
 		const docRef = assessment
 			? assessment.docRef
@@ -170,15 +156,6 @@ const AssessmentsAdmin: React.FC<
 
 		await docRef.set(newAssessment, { merge: true });
 	};
-
-	React.useEffect(() => {
-		if (!firestore && firebase && user) {
-			const db = firebase.firestore();
-			setFirestore(db);
-			fetchAssessments(db);
-			// saveBtc(db);
-		}
-	}, [firebase, user, firestore]);
 
 	const onSymbolChange = (symbol: string) => {
 		setSymbol(symbol);
@@ -497,7 +474,7 @@ const AssessmentsAdmin: React.FC<
 	);
 };
 
-export default connect(mapStateToProps, null)(AssessmentsAdmin);
+export default AssessmentsAdmin;
 
 export const pageQuery = graphql`
 	query {

@@ -11,8 +11,7 @@ import { ITrade } from '../../declarations/trade';
 import { IPosition } from '../../declarations/position';
 import { IQuote } from '../../declarations/quote';
 import { ICompany } from '../../declarations/company';
-import { connect } from 'react-redux';
-import { IStoreState } from '../store/store';
+import { useFirebase } from '../providers/firebaseProvider';
 
 interface IAssessmentTrade
 	extends Pick<ITrade, 'quantity' | 'timestamp' | 'isSell'> {}
@@ -31,16 +30,8 @@ interface IAssessmentsQuery {
 	};
 }
 
-interface IAssessmentStateProps extends Pick<IStoreState, 'storage'> {}
-
-const mapStateToProps = ({ storage }: IStoreState): IAssessmentStateProps => ({
-	storage,
-});
-
-const Assessments: React.FC<IAssessmentsQuery & IAssessmentStateProps> = ({
-	data,
-	storage,
-}) => {
+const Assessments: React.FC<IAssessmentsQuery> = ({ data }) => {
+	const { storage } = useFirebase();
 	const [symbol, setSymbol] = React.useState('');
 	const [startDate, setStartDate] = React.useState(new Date('2011-01-01'));
 	const [endDate, setEndDate] = React.useState(new Date());
@@ -140,7 +131,7 @@ const Assessments: React.FC<IAssessmentsQuery & IAssessmentStateProps> = ({
 	);
 };
 
-export default connect(mapStateToProps, null)(Assessments);
+export default Assessments;
 
 export const pageQuery = graphql`
 	query {

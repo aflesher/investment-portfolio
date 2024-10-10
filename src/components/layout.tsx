@@ -4,12 +4,6 @@ import { StaticQuery, graphql } from 'gatsby';
 import _ from 'lodash';
 import firebase from 'firebase/compat/app';
 
-import {
-	IStoreState,
-	IStoreAction,
-	SET_USER_ACTION,
-	SET_SHOW_SIDEBAR,
-} from '../store/store';
 import { Currency, AssetType } from '../utils/enum';
 import SidebarLeft from './sidebar/SidebarLeft';
 import SidebarRight, { ISidebarPosition } from './sidebar/SidebarRight';
@@ -26,42 +20,7 @@ import { IDividend } from '../../declarations/dividend';
 import { ITrade } from '../../declarations/trade';
 import { IAccount } from '../../declarations';
 import AssetHover from './stock-hover/AssetHover';
-
-interface ILayoutStateProps {
-	user: firebase.User | null | undefined;
-	showSidebar: boolean;
-	userLoading: boolean;
-}
-
-interface ILayoutDispatchProps {
-	setAuthenticated: (authenticated: boolean) => void;
-	setShowSidebar: (showSidebar: boolean) => void;
-}
-
-const mapStateToProps = ({
-	user,
-	showSidebar,
-	userLoading,
-}: IStoreState): ILayoutStateProps => {
-	return { user, showSidebar, userLoading };
-};
-
-const mapDispatchToProps = (
-	dispatch: (action: IStoreAction) => void
-): ILayoutDispatchProps => {
-	return {
-		setAuthenticated: (authenticated: boolean): void =>
-			dispatch({
-				type: SET_USER_ACTION,
-				payload: authenticated,
-			}),
-		setShowSidebar: (showSidebar: boolean): void =>
-			dispatch({
-				type: SET_SHOW_SIDEBAR,
-				payload: showSidebar,
-			}),
-	};
-};
+import { useSidebar } from '../providers/sidebarProvider';
 
 interface IQuoteNode
 	extends Pick<
@@ -149,9 +108,7 @@ interface ILayoutGraphQL {
 	};
 }
 
-const MainLayout: React.FC<
-	ILayoutStateProps & ILayoutDispatchProps & React.PropsWithChildren
-> = ({ children, user, showSidebar, setShowSidebar, userLoading }) => (
+const MainLayout = ({ children }: React.PropsWithChildren) => (
 	<StaticQuery
 		query={graphql`
 			query {
@@ -261,7 +218,6 @@ const MainLayout: React.FC<
 			}
 		`}
 		render={(queryData: ILayoutGraphQL): JSX.Element => {
-			const [isCollapsed, setIsCollapsed] = React.useState(true);
 			const [currency, setCurrency] = React.useState(Currency.cad);
 			const usdCad = queryData.allExchangeRate.nodes[0]?.rate || 1;
 			const cadUsd = 1 / usdCad;
@@ -300,15 +256,17 @@ const MainLayout: React.FC<
 				quoteCurrency: quote.currency,
 			}));
 
+			const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
+
 			return (
 				<div className='page-wrapper'>
 					<AssetPreviewContext.Provider value={assetHovers}>
 						<CurrencyContext.Provider value={currency}>
 							<AssetHoverProvider>
-								<div className={`page ${isCollapsed && 'collapsed'}`}>
+								<div className={`page ${sidebarOpen && 'collapsed'}`}>
 									<div
-										className={`sidebar-left ${showSidebar && 'sidebar-open'} ${
-											isCollapsed && 'collapsed'
+										className={`sidebar-left ${sidebarOpen && 'sidebar-open'} ${
+											sidebarOpen && 'collapsed'
 										}`}
 									>
 										<div className='p-2'>
@@ -317,9 +275,6 @@ const MainLayout: React.FC<
 												onSetCurrency={setCurrency}
 												usdCad={usdCad}
 												cadUsd={cadUsd}
-												authenticated={!!user || userLoading}
-												isCollapsed={isCollapsed}
-												onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
 											/>
 										</div>
 									</div>
@@ -334,7 +289,7 @@ const MainLayout: React.FC<
 									</div>
 									<div
 										className='mobile-nav-link'
-										onClick={(): void => setShowSidebar(!showSidebar)}
+										onClick={(): void => setSidebarOpen(!sidebarOpen)}
 									></div>
 									<div className='main-content'>{children}</div>
 								</div>
@@ -348,4 +303,4 @@ const MainLayout: React.FC<
 	/>
 );
 
-export default connect(mapStateToProps, mapDispatchToProps)(MainLayout);
+export default MainLayout;

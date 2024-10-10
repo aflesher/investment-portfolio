@@ -5,6 +5,9 @@ require('dotenv').config({
 const config = require('./config');
 
 module.exports = {
+	flags: {
+		DEV_SSR: true,
+	},
 	siteMetadata: {
 		siteName: 'Using TypeScript Example',
 		exampleUrl:

@@ -4,14 +4,8 @@ import TextareaAutosize from 'react-textarea-autosize';
 import firebase from 'firebase/compat/app';
 
 import Layout from '../../components/layout';
-import { connect } from 'react-redux';
-import { IStoreState } from '../../store/store';
 import { IReview } from '../../../declarations/review';
-
-interface IReviewStateProps {
-	user: firebase.User | null | undefined;
-	firebase: firebase.app.App | undefined;
-}
+import { useFirebase } from '../../providers/firebaseProvider';
 
 interface IFirebaseReviewFields
 	extends firebase.firestore.DocumentData,
@@ -22,14 +16,6 @@ interface IFirebaseReview extends IFirebaseReviewFields {
 	id?: string;
 }
 
-const mapStateToProps = ({
-	firebase,
-	user,
-}: IStoreState): IReviewStateProps => ({
-	firebase,
-	user,
-});
-
 let year = 2018;
 const years: number[] = [];
 while (year <= new Date().getFullYear()) {
@@ -39,12 +25,9 @@ while (year <= new Date().getFullYear()) {
 
 const grades = ['A+', 'A', 'B', 'C+', 'C', 'C-', 'D', 'F'];
 
-const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
+const AdminReview = () => {
+	const { firestore } = useFirebase();
 	const [reviews, setReviews] = React.useState<IFirebaseReview[]>([]);
-	const [
-		firestore,
-		setFirestore,
-	] = React.useState<firebase.firestore.Firestore | null>(null);
 	const [year, setYear] = React.useState<string>(
 		String(new Date().getFullYear())
 	);
@@ -114,32 +97,32 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 		]
 	);
 
-	const fetchReviews = useCallback(
-		async (db: firebase.firestore.Firestore): Promise<void> => {
-			const querySnapshot = await db.collection('reviews').get();
+	const fetchReviews = useCallback(async (): Promise<void> => {
+		if (!firestore) {
+			return;
+		}
+		const querySnapshot = await firestore.collection('reviews').get();
 
-			const reviews = querySnapshot.docs.map(
-				(queryDocumentSnapshot: firebase.firestore.QueryDocumentSnapshot) => {
-					const data = queryDocumentSnapshot.data() as IFirebaseReviewFields;
-					return {
-						id: queryDocumentSnapshot.id,
-						docRef: queryDocumentSnapshot.ref,
-						...data,
-					};
-				}
-			);
+		const reviews = querySnapshot.docs.map(
+			(queryDocumentSnapshot: firebase.firestore.QueryDocumentSnapshot) => {
+				const data = queryDocumentSnapshot.data() as IFirebaseReviewFields;
+				return {
+					id: queryDocumentSnapshot.id,
+					docRef: queryDocumentSnapshot.ref,
+					...data,
+				};
+			}
+		);
 
-			setReviews(reviews);
-			loadReview(year, reviews);
-		},
-		[setReviews, loadReview, year]
-	);
+		setReviews(reviews);
+		loadReview(year, reviews);
+	}, [setReviews, loadReview, year]);
 
 	const saveReview = useCallback(async () => {
 		if (!firestore) {
 			return;
 		}
-		await fetchReviews(firestore);
+		await fetchReviews();
 		const review = _.find(reviews, (q) => q.year === Number(year));
 		const docRef = review ? review.docRef : firestore.collection('reviews').doc();
 
@@ -189,12 +172,8 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 	};
 
 	React.useEffect(() => {
-		if (!firestore && firebase && user) {
-			const db = firebase.firestore();
-			setFirestore(db);
-			fetchReviews(db);
-		}
-	}, [firebase, user, firestore, fetchReviews]);
+		fetchReviews();
+	}, [firestore]);
 
 	const createInputFields = (
 		state: string[],
@@ -367,4 +346,4 @@ const AdminReview: React.FC<IReviewStateProps> = ({ firebase, user }) => {
 	);
 };
 
-export default connect(mapStateToProps)(AdminReview);
+export default AdminReview;

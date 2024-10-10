@@ -8,7 +8,6 @@ import CompanyBanner, {
 	ICompanyBannerStateProps,
 } from '../../company-banner/CompanyBanner';
 import { IAssessment } from '../../../../declarations/assessment';
-import { IStoreState } from '../../../store/store';
 
 interface IAssessmentStateProps
 	extends ICompanyBannerStateProps,
@@ -22,8 +21,7 @@ interface IAssessmentStateProps
 			| 'lastUpdatedTimestamp'
 			| 'targetInvestment'
 			| 'rating'
-		>,
-		Pick<IStoreState, 'storage'> {
+		> {
 	quotePrice: number;
 	positionTotalCost: number;
 	maxShares?: number;
@@ -45,7 +43,6 @@ const AssessmentSummary: React.FC<IAssessmentStateProps> = ({
 	rating,
 	maxShares,
 	currentShares,
-	storage,
 }) => {
 	return (
 		<div className='border-t py-3 assessment'>

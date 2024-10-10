@@ -2,13 +2,10 @@ import React from 'react';
 
 import { IAssessment } from '../../../../declarations/assessment';
 import CustomText from '../../custom-text/CustomText';
-import { IStoreState } from '../../../store/store';
 
-interface IAssessmentStateProps
-	extends Pick<IAssessment, 'notes'>,
-		Pick<IStoreState, 'storage'> {}
+interface IAssessmentStateProps extends Pick<IAssessment, 'notes'> {}
 
-const Assessment: React.FC<IAssessmentStateProps> = ({ notes, storage }) => {
+const Assessment: React.FC<IAssessmentStateProps> = ({ notes }) => {
 	return (
 		<div className='mt-4'>
 			{notes
@@ -16,7 +13,7 @@ const Assessment: React.FC<IAssessmentStateProps> = ({ notes, storage }) => {
 				.reverse()
 				.map((note, index) => (
 					<div className='my-2 p-3 notes display-linebreak' key={`note${index}`}>
-						<CustomText text={note} storage={storage} />
+						<CustomText text={note} />
 					</div>
 				))}
 		</div>
